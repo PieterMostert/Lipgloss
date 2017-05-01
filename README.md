@@ -1,3 +1,4 @@
 # Lipgloss
 Python app for creating glaze recipes.
-See README.pdf in README_latex_files for more info.
+
+See README.pdf in README LaTeX files for more info.
