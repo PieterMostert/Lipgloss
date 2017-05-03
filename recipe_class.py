@@ -23,6 +23,9 @@ from pulp2dim import *
 from restriction_class import *  #Restr_Index
 import copy
 
+solver = GLPK() 
+#solver = PULP_CBC_CMD()
+
 def get_ing_comp():                           # Redo. This function is defined in the main (gui) file
     ingredient_compositions = {}
     with shelve.open("IngredientShelf") as ingredient_shelf:
@@ -260,8 +263,7 @@ class Recipe:
             for eps in [1,-1]:               # calculate lower and upper bounds.
                 prob += eps*lp_var[res.objective_func], res.name
                 #prob.writeLP('constraints.lp')
-                #prob.solve()
-                prob.solve(GLPK())
+                prob.solve(solver)
                 if prob.status == 1:
                     res.calc_bounds[eps].config(text = ('%.'+str(res.dec_pt)+'f') % abs(eps*pulp.value(prob.objective)))
                                                         # we use abs above to avoid showing -0.0, but this could cause problems
@@ -273,7 +275,7 @@ class Recipe:
                     return
 
         t6 = time.process_time()
-        print(t1-t0, t5-t1, t6-t5)
+        #print(t1-t0, t5-t1, t6-t5)
 
     def calc_2d_projection(self, prob, lp_var, proj_frame):  # This is designed to be run when only the x and y variables have changed; it does not take
                                                # into account changes to upper and lower bounds. It should be possible to detect when the
@@ -300,7 +302,7 @@ class Recipe:
              
         if tdp == 1:
             vertices = prob.two_dim_projection(var_x, var_y)            # defined in pulp2dim file
-            print(vertices)
+            #print(vertices)
 
      # Display 2-d projection of feasible region onto 'x'-'y' axes
         if tdp == 1:

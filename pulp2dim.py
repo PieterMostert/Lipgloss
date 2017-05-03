@@ -22,23 +22,15 @@ def two_dim_projection(self, var0, var1):   # Calculates a set of vertices in R^
                                             # the projection of the linear programming problem, self, onto a 2d subspace
     # Start by finding two distinct points on the 2 dimensional projection of the feasible reason. This assumes
     # the region is bounded.
-    initial_x_coords = []
+
+    #tol = '0.000000001'
+    solver = GLPK() # try GLPK(options=['--mipgap', tol]))
+    #solver = PULP_CBC_CMD()
+    initial_vertices = []
     for eps in [-1,1]:
         self += eps*var0
-        #self.solve()
-        self.solve(GLPK())
-        initial_x_coords.append(eps*pulp.value(self.objective))
-    
-    initial_vertices = []
-    for x in initial_x_coords:
-            
-        self += var0 == x, 'x'
-        self += var1
-        #self.solve()
-        self.solve(GLPK())
-        initial_vertices.append([x, pulp.value(self.objective)])  
-
-        del self.constraints['x']
+        self.solve(solver)
+        initial_vertices.append([pulp.value(var0), pulp.value(var1)]) 
 
     # Find remaining points:
     vertices_post = []
@@ -58,24 +50,27 @@ def two_dim_projection(self, var0, var1):   # Calculates a set of vertices in R^
                 print('points coincide')
                 return
             
-            v = [v1[0] - v0[0], v1[1] - v0[1]]   #vector subtraction. Why are there no built in vectors in Python?
+            v = [v1[0] - v0[0], v1[1] - v0[1]]  
             s = - v[1]*var0 + v[0]*var1
             self += s
-            #self.solve()
-            self.solve(GLPK())
+            self.solve(solver)
             v2 = [pulp.value(var0), pulp.value(var1)]
-            
-            if abs(pulp.value(self.objective) + v[1]*v0[0] - v[0]*v0[1]) < 0.1**5:   #Look into what error bounds PuLP uses
+
+            #print('Difference = : '+str(pulp.value(self.objective) + v[1]*v0[0] - v[0]*v0[1]))
+            if abs(pulp.value(self.objective) + v[1]*v0[0] - v[0]*v0[1]) < 0.1**7:   #Look into what error bounds PuLP uses
                 vertices_pre.remove(v0)                     
                 vertices_post.append(v0)                 
             else:
                 vertices_pre.insert(1,v2)
+
+        if count==100:
+            print('Error: count overflowed')
        
         initial_vertices.reverse()  # After the 'top' part of the for loop, we switch the order of the vertices to get ready for the 'bottom' part
     
     return vertices_post
 
-LpProblem.two_dim_projection = two_dim_projection
+LpProblem.two_dim_projection = two_dim_projection  # Add the method two_dim_projection to the predefined LpProblem class.
 
 
             

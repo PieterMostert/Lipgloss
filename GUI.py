@@ -30,7 +30,6 @@ from pretty_names import prettify
 from restriction_class import *  # imports Oxide, Ingredient, Other and Restriction classes. %$@$#%%^ SourceTree always capitalizes the restriction_class file
 from recipe_class import Recipe, restr_keys
 
-
 ## SECTION 0
 # Initialize the oxide_dict, ingredient_dict, and other_dict dictionaries
 # Define default recipe bounds (optional)
