@@ -19,12 +19,10 @@
 import shelve
 from tkinter import *
 import time
-from pulp2dim import *
-from restriction_class import *  #Restr_Index
 import copy
 
-solver = GLPK() 
-#solver = PULP_CBC_CMD()
+from pulp2dim import *
+from restriction_class import * 
 
 def get_ing_comp():                           # Redo. This function is defined in the main (gui) file
     ingredient_compositions = {}

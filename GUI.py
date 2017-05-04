@@ -16,19 +16,11 @@
 
 # Contact: pi.mostert@gmail.com
 
-from gui_basic_framework import *
-from vert_scrolled_frame import *
-from functools import partial
-import time
-import shelve
-import copy
-from pulp2dim import *
-from polyplot import *
-from numbers import Number
 import tkinter.messagebox
-from pretty_names import prettify
-from restriction_class import *  # imports Oxide, Ingredient, Other and Restriction classes. %$@$#%%^ SourceTree always capitalizes the restriction_class file
-from recipe_class import Recipe, restr_keys
+from numbers import Number
+
+from polyplot import *
+from recipe_class import * 
 
 ## SECTION 0
 # Initialize the oxide_dict, ingredient_dict, and other_dict dictionaries
@@ -349,20 +341,18 @@ with shelve.open("RecipeShelf") as Recipe_Shelf:
     recipe_dict = dict(Recipe_Shelf)
     current_recipe = recipe_dict['0']
 
-# OPTIONS MENU
-        
-def edit_oxides():
-    pass                       # Come back to this later. Include the option to only display
-                               # an oxide when at least one of the ingredients contains at
-                               # least x% of that oxide, where x can be modified by the user.
-
-def restriction_settings():
-    pass                       # Set default user lower and upper bounds for all restrictions, and
-                               # rearrange the order in which they are listed (with each group).
-                               # Also set the number of decimal places to display for calculated
-                               # bounds
-
 # SECTION 4
+# Options in the Options menu: Edit Oxides, Edit Ingredients, Edit Other Rrestricitons, Restriction Settings.
+# Currently only Edit Ingredients does anything
+
+# SECTION 4.1
+# Come back to this later. Include the option to only display an oxide when at least one of the ingredients contains at
+# least x% of that oxide, where x can be modified by the user. Might not include this at all.
+
+def edit_oxides():
+    pass                       
+
+# SECTION 4.2
 # Functions relating to the ingredient editor window (accessed through Options > Edit Ingredients)
 
 def update_ingredient_dict():         # Run when updating ingredients. Needs improvement
@@ -501,19 +491,41 @@ def edit_ingredients():   # Opens window that lets you add, delete, and edit oxi
 
         i_e_scrollframe.interior.focus_force()
 
+# SECTION 4.3
+# Introduce the option of adding custom restrictions. Users will define the numerator and denominator, which will be linear
+# combinations of the lp_var[] variables.
+
 def edit_other_restrictions():
-    pass                           # Introduce the option of adding custom restrictions
+    pass                           
 
-# RESTRICTIONS 
-# When you open a new recipe, update the restriction values.
+# SECTION 4.4
+# Set default user lower and upper bounds for all restrictions, and rearrange the order in which they are listed (with each group).
+# Also set the number of decimal places to display for calculated bounds
+        
+def restriction_settings():
+    pass
 
-# SECTION 5:
-# defines structures for the window on the left which allows users to add and remove ingredients and other constraints to the problem
+# SECTION 5
+# Create menus
+file_menu = Menu(menubar, tearoff=0)    
+file_menu.add_command(label="Open", command=open_recipe_menu)
+file_menu.add_command(label="Save", command=save_recipe)
+file_menu.add_command(label="Save as new recipe", command=save_new_recipe)
+menubar.add_cascade(label="File", menu=file_menu)
+
+option_menu.add_command(label="Edit Oxides", command=edit_oxides)
+option_menu.add_command(label="Edit Ingredients", command=edit_ingredients)
+option_menu.add_command(label="Edit Other Restricitions", command=edit_other_restrictions)
+option_menu.add_command(label="Restriction Settings", command=restriction_settings)
+menubar.add_cascade(label="Options", menu=option_menu)
+
+# SECTION 6:
+# defines structures for the window on the left which allows users to add and remove ingredients and other restrictions to the problem.
 
 ingredient_select_button={}
 
 def toggle_ingredient(index):     # adds or removes ingredient_dict[index] to or from the current recipe
-                                   # depending on whether it isn't or is an ingredient already
+                                  # depending on whether it isn't or is an ingredient already
     global current_recipe
     global ingredient_select_button
     ingredient_compositions = get_ing_comp()
@@ -578,7 +590,7 @@ for index in other_dict:
                                                width=18, command = partial(toggle_other, index))
     other_select_button[index].grid(row = ot.pos+1) 
 
-# SECTION 6
+# SECTION 7
 # Calculations. See the recipe_class file for definitions of calc_restrictions and calc_2d_projection
 
 proj_frame = ttk.Frame(main_frame, padding=(15, 5, 10, 5))  # this just needs to have been defined somewhere
@@ -604,19 +616,6 @@ def calc():
     current_recipe.calc_2d_projection(prob, lp_var, proj_frame)
     
 calc_button = ttk.Button(main_frame, text = 'Calculate restrictions', command = calc)   # Calc button
-
-# SECTION 7
-# Create menus
-file_menu = Menu(menubar, tearoff=0)    
-file_menu.add_command(label="Open", command=open_recipe_menu)
-file_menu.add_command(label="Save", command=save_recipe)
-file_menu.add_command(label="Save as new recipe", command=save_new_recipe)
-menubar.add_cascade(label="File", menu=file_menu)
-
-option_menu.add_command(label="Edit Oxides", command=edit_oxides)
-option_menu.add_command(label="Edit Ingredients", command=edit_ingredients)
-option_menu.add_command(label="Restriction Settings", command=restriction_settings)
-menubar.add_cascade(label="Options", menu=option_menu)
 
 # SECTION 8
 # Grid remaining widgets

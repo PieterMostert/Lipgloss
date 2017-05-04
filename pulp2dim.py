@@ -18,14 +18,15 @@
 
 from pulp import *
 
+#tol = '0.000000001'
+solver = GLPK() # try GLPK(options=['--mipgap', tol]))
+#solver = PULP_CBC_CMD()
+
 def two_dim_projection(self, var0, var1):   # Calculates a set of vertices in R^2 whose convex hull is
                                             # the projection of the linear programming problem, self, onto a 2d subspace
     # Start by finding two distinct points on the 2 dimensional projection of the feasible reason. This assumes
     # the region is bounded.
 
-    #tol = '0.000000001'
-    solver = GLPK() # try GLPK(options=['--mipgap', tol]))
-    #solver = PULP_CBC_CMD()
     initial_vertices = []
     for eps in [-1,1]:
         self += eps*var0
