@@ -20,7 +20,7 @@
 \def\lpv{lp\_var}
 %\include{diagxy}
 %opening
-\title{Lipgloss Notes}
+\title{LIPGLOSS Notes}
 %\newline Course Information and Policies}
 \author{Pieter Mostert}%\fontsize{\Large}{}Course Information and Policies}}
 %\date{}
@@ -30,13 +30,15 @@
 \def\thefootnote{\fnsymbol{footnote}}\setcounter{footnote}{1}
 %\setcounter{prob}{33}\fontsize{\Large}{}
 \section{Introduction}
-Lipgloss is a collection of Python scripts designed to construct ceramic recipes that satisfy a number of constraints, by using a linear programming algorithm. In particular, it allows users to construct recipes with a given oxide composition, when possible. `Lipgloss' is an acronym for LInear Programming GLaze Oxide Software System, but since that's a terrible name, it\'s better to just go by Lipgloss.
+LIPGLOSS is a collection of Python scripts designed to construct ceramic recipes that satisfy a number of constraints. In particular, it allows users to construct recipes with a given oxide composition, when possible.
 
-Currently, to use Lipgloss, you need to instal Python 3, the linear programming API \href{https://github.com/coin-or/pulp}{PuLP}, and the \href{https://www.gnu.org/software/glpk/}{GLPK} library\footnote{If installing the GLPK library is a problem, comment out `solver = GLPK()' and uncomment `solver = PULP\_CBC\_CMD()' in recipe\_class.py and pulp2dim.py. This will result in the COIN-OR \href{https://projects.coin-or.org/Cbc}{Cbc} solver being used, which comes with PuLP. Note, however, that it is released under the \href{https://en.wikipedia.org/wiki/Eclipse_Public_License}{Eclipse Public Licence}, which is \href{https://eclipse.org/legal/eplfaq.php}{incompatible with the GPL}.} (and possibly the \href{https://wiki.python.org/moin/TkInter}{tkinter} Python package). Running the GUI.py script opens the graphical user interface. 
+It employs a linear programming algorithm to calculate bounds on oxides and ingredients, hence its full name: \textit{LInear Programming GLaze Oxide Software System}. Since that's a terrible name, it\'s better to just stick with the acronym LIPGLOSS.
 
-The plan is that Lipgloss will eventually be released as a stand-alone app that users can customize with their own ingredients and restrictions. This will be designed to import and export recipes from \href{https://glazy.org}{Glazy}, as well as other glaze calculation software; alternatively, part of the code could be incorporated within Glazy.
+The plan is that LIPGLOSS will eventually be released as a stand-alone app that users can customize with their own ingredients and restrictions. This will be designed to import and export recipes from \href{https://glazy.org}{Glazy}, as well as other glaze calculation software; alternatively, part of the code could be incorporated within Glazy.
 
-\section{Using Lipgloss}
+\section{Using LIPGLOSS}
+
+Currently, to use LIPGLOSS, you need to instal \href{https://www.python.org/downloads/}{Python 3}, the linear programming API \href{https://github.com/coin-or/pulp}{PuLP}, and the \href{https://www.gnu.org/software/glpk/}{GLPK} library\footnote{If installing the GLPK library is a problem, comment out `solver = GLPK()' and uncomment `solver = PULP\_CBC\_CMD()' in recipe\_class.py and pulp2dim.py. This will result in the COIN-OR \href{https://projects.coin-or.org/Cbc}{Cbc} solver being used, which comes with PuLP. Note, however, that it is released under the \href{https://en.wikipedia.org/wiki/Eclipse_Public_License}{Eclipse Public Licence}, which is \href{https://eclipse.org/legal/eplfaq.php}{incompatible with the GPL}.} (and possibly the \href{https://wiki.python.org/moin/TkInter}{tkinter} Python package). Running the GUI.py script opens the graphical user interface. 
 
 When the gui opens, you'll be presented with a window that shows a list of ingredients and `other restrictions' in the panel on the left. Some of these will have already been selected by default, but you can add or remove items by clicking on the buttons.
 
@@ -46,11 +48,11 @@ When you click the `Calculate restrictions' button, the two columns on the right
 
 You can now progressively strengthen the bounds on the left, based on the calculated bounds. This may be as simple as unselecting an ingredient whose calculated lower bound is zero. Given a single oxide, ingredient, or other restriction, you can narrow it's range to any interval that overlaps the calculated interval, and be guaranteed that the problem still has a solution\footnote{Actually, this is a lie, since the calculated bounds are rounded to a certain number of decimal places, so, for example, setting the upper bound equal to the calculated lower bound won't work if the calculated lower bound has been rounded down.}. However, it's important to note that if you restrict the bounds for two or more items simultaneously, a solution is not guaranteed even if the restricted intervals both overlap their respective calculated intervals\footnote{For example, if only two ingredients are selected and no restrictions are imposed, the bounds on the percentages of these ingredients will be 0 and 100. If you then impose the bounds 0 to 40 on both these ingredient percentages, there will be no solution, simply because the sum of the ingredient percentages must add up to 100.}.
 
-If you want to restrict the bounds for two variables simultaneously, you have the option of plotting the set of possible values of those two variables. That is to say, for each point in the region shown, there is at least one recipe where the variables take on the $x$ and $y$ values of the point, and which satisfies all the constraints\footnote{If you take the example in the previous footnote, the region corresponding to the two ingredient percentages will be a straight line from $(0,100)$ to $(100,0)$. Typically, the regions that arise will be two dimensional, and will always have boundaries that are either straight lines or sections of hyperbolas.}. The $x$ and $y$ variables to plot can be selected by clicking on the left and right hand labels in the right hand panel, respectively. An asterisk should appear next to the label when you click on it. At the moment it's only possible to compare variables of the same type, so you can't plot the percentage of an ingredient together with the mole percentage of an oxide, or the UMF of an oxide together with the weight percentage of an oxide. Also be aware that the region displayed is not always the correct one. This shouldn't be too hard to fix though.
+If you want to restrict the bounds for two variables simultaneously, you have the option of plotting the set of possible values of those two variables. That is to say, for each point in the region shown, there is at least one recipe where the variables take on the $x$ and $y$ values of the point, and which satisfies all the constraints\footnote{If you take the example in the previous footnote, the region corresponding to the two ingredient percentages will be a straight line from $(0,100)$ to $(100,0)$. Typically, the regions that arise will be two dimensional, and will always have boundaries that are either straight lines or sections of hyperbolas.}. The $x$ and $y$ variables to plot can be selected by clicking on the left and right hand labels in the right hand panel, respectively. An asterisk should appear next to the label when you click on it. At the moment it's only possible to compare variables of the same type, so you can't plot the percentage of an ingredient together with the mole percentage of an oxide, or the UMF of an oxide together with the weight percentage of an oxide.
 
 A collection of ingredient and other restrictions with lower and upper bounds will be referred to as a bounded recipe. Bounded recipes can be saved, or saved as new bounded recipes (at the moment, their names are determined automatically). If you start with the default bounds and narrow them down to a recipe - i.e. all upper and lower bounds are effectively the same - you should save this as a new bounded recipe, otherwise you'll have to undo all your restrictions when you start working on a new problem. Saved bounded recipes can be opened through the File menu.
 
-Lipgloss will come pre-installed with common types of ingredients, but most of these should be updated to reflect the analyses of the ingredients in your studio. To do this, click Options $>$ Edit Ingredients to open the ingredient editor.
+LIPGLOSS will come pre-installed with common types of ingredients, but most of these should be updated to reflect the analyses of the ingredients in your studio. To do this, click Options $>$ Edit Ingredients to open the ingredient editor.
 
 \section{Code Structure}
 In an attempt to make things clearer, any text below that is used as code will be printed in blue. File names will be printed in purple.
@@ -62,7 +64,7 @@ I really should have used a module dependency graph instead, but I can't get \hr
 
 The files \green{ingredientfile.py} and \green{oxidefile.py} are usually not used, and can be omitted from any stable releases. See section 0 in \green{GUI.py} for when they are needed.
 
-The following classes are defined: \blue{Oxide}, \blue{Ingredient}, \blue{Other}, \blue{Restriction} (see \green{restriction\_class.py}) and \blue{Recipe} (see \green{recipe\_class.py}). To keep track of the instances of these classes, we use the dictionaries \blue{oxide\_dict}, \blue{ingredient\_dict}, \blue{other\_dict}, \blue{restr\_dir}, and \blue{recipe\_dict}. The keys for the \blue{ingredient\_dict}, \blue{other\_dict}, and \blue{recipe\_dict} dictionaries are strings of non-negative integers. The keys for \blue{oxide\_dict} are strings of the form \blue{\'SiO2\'}, \blue{\'Al2O3\'}, etc.  There are five types of \blue{Restriction} instances, so keys are of five different types:
+The following classes are defined: \blue{Oxide}, \blue{Ingredient}, \blue{Other}, \blue{Restriction} (see \green{restriction\_class.py}) and \blue{Recipe} (see \green{recipe\_class.py}). To keep track of the instances of these classes, we use the dictionaries \blue{oxide\_dict}, \blue{ingredient\_dict}, \blue{other\_dict}, \blue{restr\_dir}, and \blue{recipe\_dict}. The keys for the \blue{ingredient\_dict}, \newline \blue{other\_dict}, and \blue{recipe\_dict} dictionaries are strings of non-negative integers. The keys for \blue{oxide\_dict} are strings of the form \blue{\'SiO2\'}, \blue{\'Al2O3\'}, etc.  There are five types of \blue{Restriction} instances, so keys are of five different types:
 \begin{itemize}
 \item \blue{\'umf\_\'+ox}, \blue{\'mass\_perc\_\'+ox}, and \blue{\'mole\_perc\_\'+ox}, for each key \blue{ox} in \blue{oxide\_dict},
 \item \blue{\'ingredient\_\'+k} for each key \blue{k} in \blue{ingredient\_dict}, 
@@ -141,7 +143,6 @@ At the moment, we could do without the \green{OxideShelf} files, since there's n
 \section{Known bugs}
 \begin{itemize}
 \item Other restrictions don't work yet.
-\item The 2 dimensional projection sometimes calculates the wrong region.
 \item If you delete an ingredient using the ingredient editor, it will only be deleted from the current recipe (assuming it\'s one of the ingredients in the recipe). When you attempt to open a recipe that contains the deleted ingredient, you'll get an error (unless you've subsequently added a new ingredient which happens to have the same index).
 \item On my computer, the PuLP API causes a window to open and close each time a linear function is optimized, resulting in a delay of around 10 seconds, even though the actual calculation usually takes under 2 seconds. There may be a fix for this, but I haven't been able to implement it.
 \end{itemize}
@@ -155,6 +156,7 @@ At the moment, we could do without the \green{OxideShelf} files, since there's n
 \item Allow users to define custom `other restrictions'. Users would need to specify an objective function, and a normalization.
 \item Implement the ability to add other attributes to ingredients, using the restriction editor. Each other attribute will be assigned a variable, and an `other restriction' corresponding to that attribute will automatically be added. For example, an other attribute could be the percentage of an ingredient having particle diameters between two bounds.
 \item Fix the headings when scrolling down in the ingredient editor. Add a horizontal scrollbar, and fix the ingredient names when scrolling sideways.
+\item Allow users to name bounded recipes.
 \item Import recipes (or oxide compositions of recipes) from external software, and automatically generate a recipe problem where the oxides are constrained to have the same composition as the imported recipe.
 \item Convert recipe bounds to actual recipes, and export these to external software. This should only be used when the upper and lower bounds on all ingredients are sufficiently close together.
 \item Include an `about box'. 
