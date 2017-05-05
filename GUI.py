@@ -112,12 +112,13 @@ if initialize_other == 1:
     with shelve.open("OtherShelf") as other_shelf:
         for index in other_shelf:
             del other_shelf[index]
-        other_shelf['0'] = Other(0,'SiO2_Al2O3', "lp_var['mole_SiO2']", "lp_var['mole_Al2O3']", 13, 18, 2)   # Using 'SiO2:Al2O3' gives an error
-        other_shelf['1'] = Other(1,'LOI', "sum(ingredient_dict[index].other_attributes['0']* \
-                                   lp_var['ingredient_'+index] for index in self.ingredients)", \
-                                "lp_var['ingredient_total']", 0, 100, 1)    # Getting the error 'name 'ingredient_dict' is not defined'
-        other_shelf['2'] = Other(2,'cost', 'cost', "lp_var['ingredient_total']", 0, 100, 1)    # Not working yet
-        other_shelf['3'] = Other(3,'Total clay', 'Total clay', "lp_var['ingredient_total']", 0, 100, 1)  # Not working yet
+        other_shelf['0'] = Other(0,'SiO2_Al2O3', {'mole_SiO2':1}, "lp_var['mole_Al2O3']", 3, 18, 2)   # Using 'SiO2:Al2O3' gives an error
+        other_shelf['1'] = Other(1,'LOI', {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['LOI']) for index in ingredient_dict if float(ingredient_dict[index].other_attributes['LOI'])>0}, \
+                                "lp_var['ingredient_total']", 0, 100, 1)
+        other_shelf['2'] = Other(2,'cost', {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['cost']) for index in ingredient_dict if float(ingredient_dict[index].other_attributes['cost'])>0}, \
+                                "lp_var['ingredient_total']", 0, 100, 1)
+        other_shelf['3'] = Other(3,'Total clay', {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['clay']) for index in ingredient_dict if float(ingredient_dict[index].other_attributes['clay'])>0}, \
+                                "lp_var['ingredient_total']", 0, 100, 1)
         
         other_dict = dict(other_shelf)
 else:
@@ -171,8 +172,12 @@ for ox in oxide_dict:
 
 for index in other_dict:
     ot = 'other_'+index
-    lp_var[ot] = pulp.LpVariable(ot, 0, None, pulp.LpContinuous)  #use LpAffine thingy?
-    prob += eval("lp_var[ot] ==" + other_dict['0'].objective_defn) # relate this variable to the other variables.
+    coefs = other_dict[index].numerator_coefs
+    #print(coefs)
+    linear_combo = [(lp_var[key], coefs[key]) for key in coefs]
+    print(linear_combo)
+    lp_var[ot] = pulp.LpVariable(ot, 0, None, pulp.LpContinuous)
+    prob += lp_var[ot] == LpAffineExpression(linear_combo)         # relate this variable to the other variables.
 
 prob += lp_var['ingredient_total'] == sum(0.01*lp_var['ingredient_'+index] for index in ingredient_dict), 'ing_total'
 prob += lp_var['fluxes_total'] == sum(oxide_dict[ox].flux*lp_var['mole_'+ox] for ox in oxide_dict)

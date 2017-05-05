@@ -239,17 +239,17 @@ class Recipe:
 ##            prob += lp_var['KNaO_umf'] == lp_var['K2O_umf'] + lp_var['Na2O_umf']     
 ##            prob += lp_var['KNaO_wt_%'] == lp_var['K2O_wt_%'] + lp_var['Na2O_wt_%']  
 
-##        for index in other_data:
-##            if index in self.other:  
-##                other_norm = other_data[index].normalization               
-##                prob.constraints['other_'+index+'_lower'] = lp_var['other_'+index] >= eval('other[index].low.get()*'+other_norm)   # lower bound
-##                prob.constraints['other_'+index+'_upper'] = lp_var['other_'+index] <= eval('other[index].upp.get()*'+other_norm)   # upper bound
-##            else:
-##                try:
-##                    del prob.constraints['other_'+index+'_lower']
-##                    del prob.constraints['other_'+index+'_upper']
-##                except:
-##                    pass
+        for index in other_dict:
+            if index in self.other:  
+                other_norm = eval(other_dict[index].normalization)               
+                prob.constraints['other_'+index+'_lower'] = lp_var['other_'+index] >= restr_dict['other_'+index].low.get()*other_norm   # lower bound
+                prob.constraints['other_'+index+'_upper'] = lp_var['other_'+index] <= restr_dict['other_'+index].upp.get()*other_norm   # upper bound
+            else:
+                try:
+                    del prob.constraints['other_'+index+'_lower']
+                    del prob.constraints['other_'+index+'_upper']
+                except:
+                    pass
              
         t5 = time.process_time()
 
@@ -260,7 +260,7 @@ class Recipe:
                                                                                    # Apparently this doesn't slow things down a whole lot
             for eps in [1,-1]:               # calculate lower and upper bounds.
                 prob += eps*lp_var[res.objective_func], res.name
-                #prob.writeLP('constraints.lp')
+                prob.writeLP('constraints.lp')
                 prob.solve(solver)
                 if prob.status == 1:
                     res.calc_bounds[eps].config(text = ('%.'+str(res.dec_pt)+'f') % abs(eps*pulp.value(prob.objective)))
@@ -268,7 +268,7 @@ class Recipe:
                                                         # if we introduce other attributes that can be negative
                     #prob.writeLP('constraints.lp')
                 else:
-                    messagebox.showerror(" ", LpStatus[status])
+                    messagebox.showerror(" ", LpStatus[prob.status])
                     prob.writeLP('constraints.lp')
                     return
 

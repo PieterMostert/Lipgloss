@@ -16,11 +16,14 @@
 
 # Contact: pi.mostert@gmail.com
 
+# We define the Restriction, Oxide, Ingredient,and Other classes
+
 from tkinter import *
 from pretty_names import *
 from functools import partial
 import shelve
 import copy
+
 from gui_basic_framework import *  # we really just want restriction_sf.interior
 
 
@@ -173,40 +176,26 @@ class Other:
     
     #'special case of restriction class, with added ability to edit in "Edit other" window'
     
-    def __init__(self, pos, name, objective_defn, normalization, def_low, def_upp, dec_pt):
+    def __init__(self, pos, name, numerator_coefs, normalization, def_low, def_upp, dec_pt):
         'SiO2:Al2O3, LOI, cost, total clay, etc'
 
         self.pos = pos  # determines order in which other restrictions are displayed
         self.name = name
-        self.objective_defn = objective_defn   # a text string that describes a linear combination of lp_var variables
-                                               # we may have to change this to a list of four dictionaries giving the coefficients
-                                               # of lp_var[ox_umf], lp_var[ox_wt_%], lp_var[ingredient.name+'ingredient']
-        self.normalization = normalization     # similar comments as above
+        self.numerator_coefs = numerator_coefs   # a dictionary with keys of the form mass_ox, mole_ox, ingredient_i,
+                                                 # and values real numbers that are the coefficients in the linear
+                                                 # combination of basic variables that define the numerator.
+        self.normalization = normalization     # For now, just a text string of the form 'lp_var[...]'
         self.def_low = def_low
         self.def_upp = def_upp
         self.dec_pt = dec_pt
     def display(self, frame):     # To be used in the 'Edit other' window.
         pass
 
-if 1 == 1:
-    with shelve.open("OtherShelf") as other_shelf:
-        for index in other_shelf:
-            del other_shelf[index]
-        other_shelf['0'] = Other(0,'SiO2_Al2O3', "lp_var['mole_SiO2']", "lp_var['mole_Al2O3']", 13, 18, 2)   # Using 'SiO2:Al2O3' gives an error
-        other_shelf['1'] = Other(1,'LOI', "sum(ingredient_data[index].other_attributes['0']* \
-                                   lp_var['ingredient_'+index] for index in self.ingredients)", \
-                                "lp_var['ingredient_total']", 0, 100, 1)    # Getting the error 'name 'ingredient_data' is not defined'
-        other_shelf['2'] = Other(2,'cost', "lp_var['mole_SiO2']", "lp_var['ingredient_total']", 0, 100, 1)    # Not working yet
-        other_shelf['3'] = Other(3,'Total clay', "lp_var['mole_SiO2']", "lp_var['ingredient_total']", 0, 100, 1)  # Not working yet
-        
-        other_dict = dict(other_shelf)
-else:
-    other_dict = update_other()
 
 # oxide_shelf should be a dictionary of the form
 # {'SiO2' : Oxide(1, 60.083, 0), 'Al2O3' : Oxide(2, 101.961, 0), ...}
 
-restr_dict = {}  # a dictionary with keys of the form 'umf_'+ox, 'wt_perc_'+ox, 'mole_perc_'+ox, 'ingredient_'+index or 'other_'+index
+restr_dict = {}  # a dictionary with keys of the form 'umf_'+ox, 'mass_perc_'+ox, 'mole_perc_'+ox, 'ingredient_'+index or 'other_'+index
 
 with shelve.open("OxideShelf") as oxide_shelf:
     for ox in oxide_shelf:   # create oxide restrictions
@@ -224,9 +213,28 @@ with shelve.open("OxideShelf") as oxide_shelf:
 
 with shelve.open("IngredientShelf") as ingredient_shelf:   # If there are a large number of ingredients, maybe it's better to only create the corresponding restrictions
                                                          # once they're selected for a particular recipe.
+    ingredient_dict = dict(ingredient_shelf)     # This is defined again in GUI.py. Will give trouble if initialize_ingredients == 1 in GUI.py.
+                                                 # Need to rethink
     for index in ingredient_shelf:
         restr_dict['ingredient_'+index] = Restriction('ingredient_'+index, ingredient_shelf[index].name, 'ingredient_'+index, "lp_var['ingredient_total']", 0, 100)
-   
+
+if 1 == 1:
+    with shelve.open("OtherShelf") as other_shelf:
+        for index in other_shelf:
+            del other_shelf[index]
+        other_shelf['0'] = Other(0,'SiO2_Al2O3', {'mole_SiO2':1}, "lp_var['mole_Al2O3']", 3, 18, 2)   # Using 'SiO2:Al2O3' gives an error
+        #print(ingredient_dict[index].other_attributes)
+        other_shelf['1'] = Other(1,'LOI', {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['LOI']) for index in ingredient_dict if float(ingredient_dict[index].other_attributes['LOI'])>0}, \
+                                "lp_var['ingredient_total']", 0, 100, 1)
+        other_shelf['2'] = Other(2,'cost', {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['cost']) for index in ingredient_dict if float(ingredient_dict[index].other_attributes['cost'])>0}, \
+                                "lp_var['ingredient_total']", 0, 100, 1)
+        other_shelf['3'] = Other(3,'Total clay', {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['clay']) for index in ingredient_dict if float(ingredient_dict[index].other_attributes['clay'])>0}, \
+                                "lp_var['ingredient_total']", 0, 100, 1)
+        
+        other_dict = dict(other_shelf)
+else:
+    other_dict = update_other()
+    
 with shelve.open("OtherShelf") as other_shelf:
     for index in other_shelf:
         ot = other_shelf[index]    # instance of 'Other' class
