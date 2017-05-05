@@ -128,18 +128,18 @@ where $\mathcal{F}$ is the set of all fluxes,
 %These relations always hold (unless the ingredients are changed). 
 
 Note that the quantities we'd like to optimize are not the basic variables \blue{\lpv[}\ldots\blue{]}, but certain \emph{ratios} of these variables. For example, the UMF value of an oxide \blue{ox} is $$\frac{\textnormal{\blue{\lpv[\'mole\'+ox]}}}{\textnormal{\blue{\lpv[\'fluxes\_total\']}}},$$ 
-while the percentage of an ingredient with index \blue{i} is $$100\times\frac{\textnormal{\blue{\lpv[\'ingredient\'+i]}}}{\textnormal{\blue{\lpv[\'ingredient\_total\']}}}.$$
+while the percentage of an ingredient with index \blue{k} is $$100\times\frac{\textnormal{\blue{\lpv[\'ingredient\'+k]}}}{\textnormal{\blue{\lpv[\'ingredient\_total\']}}}.$$
 
 In general, given a restriction \blue{res}, the associated quantity we want to optimize is of the form \blue{\lpv[}numerator\blue{]}/\blue{res.normalization} where `numerator' and \blue{res.normalization} are defined below:
 
 \begin{flushleft}
-\begin{tabular}{|p{0.22\textwidth}|p{0.19\textwidth}| p{0.41\textwidth}| } \hline
+\begin{tabular}{|p{0.22\textwidth}|p{0.2\textwidth}| p{0.41\textwidth}| } \hline
  restriction                   & numerator                     & \blue{res.normalization} \\ \hline
  \blue{\tq umf\_\tq+ox}        & \blue{\tq mole\_\tq+ox} & \blue{\lpv[\tq fluxes\_total\tq]} \\ \hline
  \blue{\tq mass\_perc\_\tq+ox} & \blue{\tq mass\_\tq+ox} & $0.01\times$\blue{\lpv[\tq oxide\_mass\_total\tq]}  \\ \hline
  \blue{\tq mole\_perc\_\tq+ox} & \blue{\tq mole\_\tq+ox} & $0.01\times$\blue{\lpv[\tq oxide\_mole\_total\tq]}  \\ \hline
- \blue{\tq ingredient\_\tq+i}  & \blue{\tq ingredient\_\tq+i} & $0.01\times$\blue{\lpv[\tq ingredients\_total\tq]}  \\ \hline
- \blue{\tq other\_\tq+i}       & Custom &  Custom \\ \hline
+ \blue{\tq ingredient\_\tq+k}  & \blue{\tq ingredient\_\tq+k} & $0.01\times$\blue{\lpv[\tq ingredients\_total\tq]}  \\ \hline
+ \blue{\tq other\_\tq+k}       & \blue{\tq other\_\tq+k} &  Custom \\ \hline
 \end{tabular}
 \end{flushleft}
 
@@ -161,7 +161,6 @@ At the moment, we could do without the \green{OxideShelf} files, since there's n
 
 \section{Known bugs}
 \begin{itemize}
-\item Other restrictions don't work yet.
 \item If you delete an ingredient using the ingredient editor, it will only be deleted from the current recipe (assuming it\'s one of the ingredients in the recipe). When you attempt to open a recipe that contains the deleted ingredient, you'll get an error (unless you've subsequently added a new ingredient which happens to have the same index).
 \item If you edit the oxide composition of an ingredient that has been selected, the list of oxides shown doesn't change to reflect this.
 \item On my computer, the PuLP API causes a window to open and close each time a linear function is optimized, resulting in a delay of around 10 seconds, even though the actual calculation usually takes under 2 seconds. There may be a fix for this, but I haven't been able to implement it.
