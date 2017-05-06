@@ -25,11 +25,7 @@ import shelve
 import copy
 
 from gui_basic_framework import *  # we really just want restriction_sf.interior
-from pulp import *
 
-initialize_oxides = 0       # Run script with initialize_oxides = 1 whenever the Oxide class is changed
-initialize_ingredients = 0  # Run script with initialize_ingredients = 1 whenever the Ingredient class is changed
-initialize_other = 0        # Run script with initialize_other = 1 whenever the Other class is changed
 
 class Restriction:
     'Oxide UMF, oxide % molar, oxide % weight, ingredient, SiO2:Al2O3 molar, LOI, cost, etc'
@@ -217,7 +213,7 @@ with shelve.open("OxideShelf") as oxide_shelf:
 
 with shelve.open("IngredientShelf") as ingredient_shelf:   # If there are a large number of ingredients, maybe it's better to only create the corresponding restrictions
                                                          # once they're selected for a particular recipe.
-    ingredient_dict = dict(ingredient_shelf)     # This is defined again in GUI.py. Will give trouble if initialize_ingredients == 1.
+    ingredient_dict = dict(ingredient_shelf)     # This is defined again in GUI.py. Will give trouble if initialize_ingredients == 1 in GUI.py.
                                                  # Need to rethink
     for index in ingredient_shelf:
         restr_dict['ingredient_'+index] = Restriction('ingredient_'+index, ingredient_shelf[index].name, 'ingredient_'+index, "lp_var['ingredient_total']", 0, 100)
@@ -244,140 +240,6 @@ with shelve.open("OtherShelf") as other_shelf:
         ot = other_shelf[index]    # instance of 'Other' class
         restr_dict['other_'+index] = Restriction('other_'+index, ot.name, 'other_'+index, ot.normalization, ot.def_low, ot.def_upp, dec_pt=ot.dec_pt)
 
-## SECTION 0
-# Initialize the oxide_dict, ingredient_dict, and other_dict dictionaries
-# Define default recipe bounds (optional)
-# Set up the linear programming problem. Define variables, and set constraints that always hold (unless any
-# of the dictionaries above are modified)
 
-# Initialize oxides:  
-
-if initialize_oxides == 1:
-    import oxidefile
-
-    with shelve.open("OxideShelf") as oxide_shelf:
-        for ox in oxide_shelf:
-            del oxide_shelf[ox]
-        for (pos, ox) in enumerate(oxidefile.oxides):
-            if ox in oxidefile.fluxes:
-                ox_init = Oxide(pos, molar_mass = oxidefile.molar_mass_dict[ox], flux = 1)
-            else:
-                ox_init = Oxide(pos, molar_mass = oxidefile.molar_mass_dict[ox], flux = 0)
-            oxide_shelf[ox] = ox_init
-else:
-    pass
-
-def update_ox():
-    global oxides
-    global molar_masses
-    with shelve.open("OxideShelf") as oxide_shelf:
-        oxides = [ox for ox in oxide_shelf]
-        molar_masses = {ox:oxide_shelf[ox].molar_mass for ox in oxide_shelf}
-        return dict(oxide_shelf)
-    
-oxide_dict = update_ox()
-
-# Define ingredients.
-
-def update_ing():
-    with shelve.open("IngredientShelf") as ingredient_shelf:
-        return dict(ingredient_shelf)
-
-if initialize_ingredients == 1:
-    from ingredientfile import *
-    with shelve.open("IngredientShelf") as ingredient_shelf:
-        for index in ingredient_shelf:
-            del ingredient_shelf[index]
-        for (pos, ing) in enumerate(ingredient_names):  # Here we're taking the position to be the index
-
-            ing_init = Ingredient(pos, name=ing, oxide_comp = dict([(ox, ingredient_compositions[ing][ox]) \
-                                                                    for ox in oxides if ox in ingredient_compositions[ing]]))
-
-            for attr in ['LOI', 'cost']:
-                if attr in ingredient_compositions[ing]:
-                    ing_init.other_attributes[attr] = ingredient_compositions[ing][attr]
-                else:
-                    ing_init.other_attributes[attr] = 0
-            
-            if ing in clays_init:
-                ing_init.other_attributes['clay'] = 100
-            else:
-                ing_init.other_attributes['clay'] = 0
-            
-            ingredient_shelf[str(pos)] = ing_init
-else:
-    pass
-
-ingredient_dict = update_ing()
-
-def get_ing_comp():
-    ingredient_compositions = {}
-    for index in ingredient_dict:
-        ingredient_compositions[index] = ingredient_dict[index].oxide_comp
-    return ingredient_compositions
-
-ingredient_compositions = get_ing_comp()
-
-# Initialize other
-
-def update_other():
-    with shelve.open("OtherShelf") as other_shelf:
-        other_dict = dict(other_shelf)
-        return other_dict
-        
-if initialize_other == 1:
-    with shelve.open("OtherShelf") as other_shelf:
-        for index in other_shelf:
-            del other_shelf[index]
-        other_shelf['0'] = Other(0,'SiO2_Al2O3', {'mole_SiO2':1}, "lp_var['mole_Al2O3']", 3, 18, 2)   # Using 'SiO2:Al2O3' gives an error
-        other_shelf['1'] = Other(1,'LOI', {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['LOI']) for index in ingredient_dict if float(ingredient_dict[index].other_attributes['LOI'])>0}, \
-                                "lp_var['ingredient_total']", 0, 100, 1)
-        other_shelf['2'] = Other(2,'cost', {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['cost']) for index in ingredient_dict if float(ingredient_dict[index].other_attributes['cost'])>0}, \
-                                "lp_var['ingredient_total']", 0, 100, 1)
-        other_shelf['3'] = Other(3,'Total clay', {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['clay']) for index in ingredient_dict if float(ingredient_dict[index].other_attributes['clay'])>0}, \
-                                "lp_var['ingredient_total']", 0, 100, 1)
-        
-        other_dict = dict(other_shelf)
-else:
-    other_dict = update_other()
-
-
-# Set up variables and universal restrictions for LP problem
-
-prob = pulp.LpProblem('Glaze recipe', pulp.LpMaximize)
-lp_var = {}     # dictionary for the variables in the linear programming problem prob. Should this be an instance of the Restr_Index class?
-
-for total in ['ingredient_total', 'fluxes_total', 'ox_mass_total', 'ox_mole_total']:
-    lp_var[total] = pulp.LpVariable(total, 0, None, pulp.LpContinuous)           # used to normalize
-
-for index in ingredient_dict:
-    ing = 'ingredient_'+index
-    lp_var[ing] = pulp.LpVariable(ing, 0, None, pulp.LpContinuous)
-    
-for ox in oxide_dict:
-    lp_var['mole_'+ox] = pulp.LpVariable('mole_'+ox, 0, None, pulp.LpContinuous)
-    lp_var['mass_'+ox] = pulp.LpVariable('mass_'+ox, 0, None, pulp.LpContinuous)
-    prob += lp_var['mole_'+ox]*oxide_dict[ox].molar_mass == lp_var['mass_'+ox]   # relate percent and unity
-    prob += sum(ingredient_compositions[index][ox]*lp_var['ingredient_'+index]/100 \
-                for index in ingredient_dict if ox in ingredient_compositions[index]) \
-            == lp_var['mass_'+ox], ox     # relate ingredients and oxides
-
-##for index in other_attributes:
-##    lp_var['other_attr_'+index] = pulp.LpVariable('other_attr_'+index, 0, None, pulp.LpContinuous)
-##    # For each 'other attribute' we will generate a corresponding 'other variable'
-
-for index in other_dict:
-    ot = 'other_'+index
-    coefs = other_dict[index].numerator_coefs
-    #print(coefs)
-    linear_combo = [(lp_var[key], coefs[key]) for key in coefs]
-    #print(linear_combo)
-    lp_var[ot] = pulp.LpVariable(ot, 0, None, pulp.LpContinuous)
-    prob += lp_var[ot] == LpAffineExpression(linear_combo)         # relate this variable to the other variables.
-
-prob += lp_var['ingredient_total'] == sum(0.01*lp_var['ingredient_'+index] for index in ingredient_dict), 'ing_total'
-prob += lp_var['fluxes_total'] == sum(oxide_dict[ox].flux*lp_var['mole_'+ox] for ox in oxide_dict)
-prob += lp_var['ox_mass_total'] == sum(0.01*lp_var['mass_'+ox] for ox in oxide_dict)
-prob += lp_var['ox_mole_total'] == sum(0.01*lp_var['mole_'+ox] for ox in oxide_dict)
 
 

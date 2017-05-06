@@ -1,6 +1,6 @@
 \* Glaze recipe *\
 Maximize
-Zinc_Oxide: - ingredient_10
+cost: - other_2
 Subject To
 Al2O3: 0.4021 ingredient_1 + 0.0602 ingredient_11 + 0.099 ingredient_12
  + 0.1198 ingredient_14 + 0.2502 ingredient_2 + 0.1832 ingredient_3
@@ -13,6 +13,12 @@ Al2O3_wt_%_lower: mass_Al2O3 >= 0
 Al2O3_wt_%_upper: mass_Al2O3 - 100 ox_mass_total <= 0
 B2O3: 0.0289 ingredient_11 + 0.1377 ingredient_12 + 0.2309 ingredient_13
  + 0.2262 ingredient_14 - mass_B2O3 = 0
+B2O3_mol_%_lower: mole_B2O3 >= 0
+B2O3_mol_%_upper: mole_B2O3 - 100 ox_mole_total <= 0
+B2O3_umf_lower: mole_B2O3 >= 0
+B2O3_umf_upper: - fluxes_total + mole_B2O3 <= 0
+B2O3_wt_%_lower: mass_B2O3 >= 0
+B2O3_wt_%_upper: mass_B2O3 - 100 ox_mass_total <= 0
 BaO: mass_BaO = 0
 CaO: 0.0564 ingredient_11 + 0.1407 ingredient_12 + 0.2013 ingredient_13
  + 0.1136 ingredient_14 + 0.5422 ingredient_15 + 0.003 ingredient_2
@@ -129,13 +135,13 @@ ingredient_0_upper: ingredient_0 - 100 ingredient_total <= 0
 ingredient_10_lower: ingredient_10 >= 0
 ingredient_10_upper: ingredient_10 - 100 ingredient_total <= 0
 ingredient_11_lower: ingredient_11 >= 0
-ingredient_11_upper: ingredient_11 <= 0
+ingredient_11_upper: ingredient_11 - 100 ingredient_total <= 0
 ingredient_12_lower: ingredient_12 >= 0
-ingredient_12_upper: ingredient_12 <= 0
+ingredient_12_upper: ingredient_12 - 100 ingredient_total <= 0
 ingredient_13_lower: ingredient_13 >= 0
-ingredient_13_upper: ingredient_13 <= 0
+ingredient_13_upper: ingredient_13 - 100 ingredient_total <= 0
 ingredient_14_lower: ingredient_14 >= 0
-ingredient_14_upper: ingredient_14 <= 0
+ingredient_14_upper: ingredient_14 - 100 ingredient_total <= 0
 ingredient_15_lower: ingredient_15 >= 0
 ingredient_15_upper: ingredient_15 <= 0
 ingredient_16_lower: ingredient_16 >= 0
@@ -161,4 +167,12 @@ ingredient_8_upper: ingredient_8 - 100 ingredient_total <= 0
 ingredient_9_lower: ingredient_9 >= 0
 ingredient_9_upper: ingredient_9 - 100 ingredient_total <= 0
 normalization: ingredient_total = 1
+other_0_lower: - 3 mole_Al2O3 + other_0 >= 0
+other_0_upper: - 18 mole_Al2O3 + other_0 <= 0
+other_1_lower: other_1 >= 0
+other_1_upper: - 100 ingredient_total + other_1 <= 0
+other_2_lower: other_2 >= 0
+other_2_upper: - 100 ingredient_total + other_2 <= 0
+other_3_lower: other_3 >= 0
+other_3_upper: - 100 ingredient_total + other_3 <= 0
 End
