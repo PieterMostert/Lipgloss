@@ -1,6 +1,6 @@
 \* Glaze recipe *\
 Maximize
-cost: - other_2
+LOI: - other_1
 Subject To
 Al2O3: 0.4021 ingredient_1 + 0.0602 ingredient_11 + 0.099 ingredient_12
  + 0.1198 ingredient_14 + 0.2502 ingredient_2 + 0.1832 ingredient_3
@@ -126,10 +126,10 @@ _C9: - mass_Li2O + 29.879 mole_Li2O = 0
 ing_total: - 0.01 ingredient_0 - 0.01 ingredient_1 - 0.01 ingredient_10
  - 0.01 ingredient_11 - 0.01 ingredient_12 - 0.01 ingredient_13
  - 0.01 ingredient_14 - 0.01 ingredient_15 - 0.01 ingredient_16
- - 0.01 ingredient_17 - 0.01 ingredient_2 - 0.01 ingredient_3
- - 0.01 ingredient_4 - 0.01 ingredient_5 - 0.01 ingredient_6
- - 0.01 ingredient_7 - 0.01 ingredient_8 - 0.01 ingredient_9
- + ingredient_total = 0
+ - 0.01 ingredient_17 - 0.01 ingredient_18 - 0.01 ingredient_19
+ - 0.01 ingredient_2 - 0.01 ingredient_3 - 0.01 ingredient_4
+ - 0.01 ingredient_5 - 0.01 ingredient_6 - 0.01 ingredient_7
+ - 0.01 ingredient_8 - 0.01 ingredient_9 + ingredient_total = 0
 ingredient_0_lower: ingredient_0 >= 0
 ingredient_0_upper: ingredient_0 - 100 ingredient_total <= 0
 ingredient_10_lower: ingredient_10 >= 0
@@ -148,6 +148,10 @@ ingredient_16_lower: ingredient_16 >= 0
 ingredient_16_upper: ingredient_16 <= 0
 ingredient_17_lower: ingredient_17 >= 0
 ingredient_17_upper: ingredient_17 <= 0
+ingredient_18_lower: ingredient_18 >= 0
+ingredient_18_upper: ingredient_18 <= 0
+ingredient_19_lower: ingredient_19 >= 0
+ingredient_19_upper: ingredient_19 <= 0
 ingredient_1_lower: ingredient_1 >= 0
 ingredient_1_upper: ingredient_1 - 100 ingredient_total <= 0
 ingredient_2_lower: ingredient_2 >= 0

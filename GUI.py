@@ -175,7 +175,7 @@ for index in other_dict:
     coefs = other_dict[index].numerator_coefs
     #print(coefs)
     linear_combo = [(lp_var[key], coefs[key]) for key in coefs]
-    print(linear_combo)
+    #print(linear_combo)
     lp_var[ot] = pulp.LpVariable(ot, 0, None, pulp.LpContinuous)
     prob += lp_var[ot] == LpAffineExpression(linear_combo)         # relate this variable to the other variables.
 
@@ -277,7 +277,7 @@ def open_recipe(index, restr_dict, r_s=0):   # to be used when opening a recipe,
     for ot in other_dict:
         if ot in current_recipe.other:
             other_select_button[ot].state(['pressed'])
-            restr_dict['other_'+ot].display(1001 + ingredient_dict[i].pos)
+            restr_dict['other_'+ot].display(1001 + other_dict[ot].pos)
         else:
             other_select_button[ot].state(['!pressed'])
 
@@ -360,7 +360,8 @@ def edit_oxides():
 # SECTION 4.2
 # Functions relating to the ingredient editor window (accessed through Options > Edit Ingredients)
 
-def update_ingredient_dict():         # Run when updating ingredients. Needs improvement
+def update_ingredient_dict():         # Run when updating ingredients. Needs improvement since it removes stars from
+                                      # ingredients that correspond to x or y variables.
 
     global ingredient_dict
     global prob
