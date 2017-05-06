@@ -22,7 +22,9 @@ import time
 import copy
 
 from pulp2dim import *
-from restriction_class import * 
+from restrictions import *
+
+initialize_recipe = 0       # Run script with initialize_recipe = 1 whenever the Recipe class is changed
 
 def get_ing_comp():                           # Redo. This function is defined in the main (gui) file
     ingredient_compositions = {}
@@ -307,3 +309,26 @@ class Recipe:
             canvas = Canvas(proj_frame, width=450, height=450, bg = 'white', borderwidth = 1, relief = 'solid')
             canvas.create_polygon_plot(vertices)
             canvas.pack(expand='yes', fill='both')
+
+
+# Define default recipe, in the case where class definitions have changed, or when things have just generally gotten messy
+if initialize_recipe == 1:
+    with shelve.open("RecipeShelf") as recipe_shelf:
+        for index in recipe_shelf:
+            del recipe_shelf[index]
+        lb = {} 
+        ub = {} 
+        
+        for ox in ['SiO2', 'Al2O3', 'B2O3', 'MgO', 'CaO', 'Na2O', 'K2O', 'ZnO', 'Fe2O3', 'TiO2', 'P2O5']:
+            for t in ['umf_', 'mass_perc_', 'mole_perc_']:
+                lb[t+ox] = 0
+                ub[t+ox] = 100
+        ub['umf_Al2O3'] = 10
+        for ox in ['B2O3', 'MgO', 'CaO', 'Na2O', 'K2O', 'ZnO', 'Fe2O3', 'TiO2', 'P2O5']:
+            ub['umf_'+ox] = 1
+            
+        for i in range(15):
+            lb['ingredient_'+str(i)] = 0
+            ub['ingredient_'+str(i)] = 100
+            
+        recipe_shelf['0'] = Recipe('Default Recipe Bounds', 0, [str(i) for i in range(15)], [], lb, ub, 'umf_')
