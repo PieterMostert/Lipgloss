@@ -129,9 +129,13 @@ class Oxide:
 with shelve.open("OxideShelf") as oxide_shelf:
     oxides = [ox for ox in oxide_shelf]
 
+other_attr_names = {'0':'LOI', '1':'cost','2':'clay'}  # This should probably be a dictionary where the values are instances of
+                                                      # a yet-to-be-defined 'other_attribute' class. This class will have the
+                                                      # attributes pos and name.
+
 class Ingredient:    # Ingredients will be referenced by their index, a string consisting of a unique natural number
     
-    def __init__(self, pos, name='New ingredient', notes = '', oxide_comp = {}, other_attributes = {'LOI':0, 'cost':0, 'clay':0}):
+    def __init__(self, pos, name='New ingredient', notes = '', oxide_comp = {}, other_attributes = {'0':0, '1':0, '2':0}):
 
         self.pos = pos      # position of the ingredient in the list of ingredients to choose from, and in the ingredient editor
         self.name = name
@@ -161,11 +165,11 @@ class Ingredient:    # Ingredients will be referenced by their index, a string c
                 pass
             c+=1
 
-        for i, attr in enumerate(['LOI', 'cost', 'clay']): # If we allow users to define their own attributes, we should have them indexed
+        for i in other_attr_names: # If we allow users to define their own attributes, we should have them indexed
                                                            # by positive integers, rather than the names of the attributes
-            sdw[attr] = Entry(master = frame, width=5)
-            sdw[attr].grid(row = r, column = c+i)
-            sdw[attr].insert(0, self.other_attributes[attr])
+            sdw[i] = Entry(master = frame, width=5)
+            sdw[i].grid(row = r, column = c+int(i))             # replace int(i) by other_attr_dict[i].pos
+            sdw[i].insert(0, self.other_attributes[i])
 
     def pickleable_version(self):
         temp = copy.copy(self)
@@ -225,11 +229,11 @@ if 1 == 1:
         other_shelf['0'] = Other(0,'SiO2_Al2O3', {'mole_SiO2':1}, "lp_var['mole_Al2O3']", 3, 18, 2)   # Using 'SiO2:Al2O3' gives an error
         other_shelf['1'] = Other(1,'KNaO UMF', {'mole_K2O':1, 'mole_Na2O':1}, "lp_var['fluxes_total']", 0, 1, 3)
         other_shelf['2'] = Other(2,'KNaO % mol', {'mole_K2O':1, 'mole_Na2O':1}, "0.01*lp_var['ox_mole_total']", 0, 100, 1)
-        other_att_3 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['clay']) for index in ingredient_dict}
+        other_att_3 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['2']) for index in ingredient_dict}
         other_shelf['3'] = Other(3,'Total clay', {k:v for k,v in other_att_3.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
-        other_att_4 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['LOI']) for index in ingredient_dict}
+        other_att_4 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['0']) for index in ingredient_dict}
         other_shelf['4'] = Other(4,'LOI',  {k:v for k,v in other_att_4.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
-        other_att_5 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['cost']) for index in ingredient_dict}
+        other_att_5 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['1']) for index in ingredient_dict}
         other_shelf['5'] = Other(5,'cost', {k:v for k,v in other_att_5.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
         
         other_dict = dict(other_shelf)

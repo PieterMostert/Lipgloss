@@ -76,16 +76,11 @@ if initialize_ingredients == 1:
             ing_init = Ingredient(pos, name=ing, oxide_comp = dict([(ox, ingredient_compositions[ing][ox]) \
                                                                     for ox in oxides if ox in ingredient_compositions[ing]]))
 
-            for attr in ['LOI', 'cost']:
-                if attr in ingredient_compositions[ing]:
+            for attr in ['0', '1', '2']:
+                if attr in ingredient_compositions[ing]:      
                     ing_init.other_attributes[attr] = ingredient_compositions[ing][attr]
                 else:
                     ing_init.other_attributes[attr] = 0
-            
-            if ing in clays_init:
-                ing_init.other_attributes['clay'] = 100
-            else:
-                ing_init.other_attributes['clay'] = 0
             
             ingredient_shelf[str(pos)] = ing_init
 else:
@@ -115,11 +110,11 @@ if initialize_other == 1:
         other_shelf['0'] = Other(0,'SiO2_Al2O3', {'mole_SiO2':1}, "lp_var['mole_Al2O3']", 3, 18, 2)   # Using 'SiO2:Al2O3' gives an error
         other_shelf['1'] = Other(1,'KNaO UMF', {'mole_K2O':1, 'mole_Na2O':1}, "lp_var['fluxes_total']", 0, 1, 3)
         other_shelf['2'] = Other(2,'KNaO % mol', {'mole_K2O':1, 'mole_Na2O':1}, "0.01*lp_var['ox_mole_total']", 0, 100, 1)
-        other_att_3 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['clay']) for index in ingredient_dict}
+        other_att_3 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['2']) for index in ingredient_dict}
         other_shelf['3'] = Other(3,'Total clay', {k:v for k,v in other_att_3.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
-        other_att_4 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['LOI']) for index in ingredient_dict}
+        other_att_4 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['0']) for index in ingredient_dict}
         other_shelf['4'] = Other(4,'LOI',  {k:v for k,v in other_att_4.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
-        other_att_5 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['cost']) for index in ingredient_dict}
+        other_att_5 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['1']) for index in ingredient_dict}
         other_shelf['5'] = Other(5,'cost', {k:v for k,v in other_att_5.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
 
         other_dict = dict(other_shelf)
@@ -389,7 +384,7 @@ def update_ingredient_dict():         # Run when updating ingredients. Needs imp
                 except:
                     pass
 
-        for attr in ['LOI', 'cost', 'clay']:
+        for attr in other_attr_names:
             ing.other_attributes[attr] = ing.display_widgets[attr].get()
 
         ingredient_dict[index] = ing
@@ -419,7 +414,7 @@ def delete_ingredient(index):
                                    for index in ingredient_dict if ox in ingredient_compositions[index]) \
                                == lp_var['mass_'+ox]     # relate ingredients and oxides
 
-    for widget in ['del', 'name'] + oxides + ['LOI', 'cost', 'clay']:
+    for widget in ['del', 'name'] + oxides + ['0', '1', '2']:
         ingredient_dict[index].display_widgets[widget].destroy()
 
     if index in current_recipe.ingredients:
@@ -431,8 +426,10 @@ def delete_ingredient(index):
     
     ingredient_select_button[index].destroy()   # remove the deleted ingredient from the list of ingredients to select from
 
-    del lp_var['ingredient_'+index]
-    prob.constraints['ing_total'] = lp_var['ingredient_total'] == sum(0.01*lp_var['ingredient_'+i] for i in ingredient_dict)
+    del lp_var['ingredient_'+index]     # somehow, this doesn't seem to be happening
+    prob.constraints['ing_total'] = lp_var['ingredient_total'] == sum(lp_var['ingredient_'+i] for i in ingredient_dict)
+
+    del restr_dict['ingredient_'+index]
   
     # To Do: delete the ingredient from all recipes. If there are any recipes containing this ingredient, get confirmation from the user
     # before doing this
@@ -448,7 +445,7 @@ def new_ingredient():
     ingredient_dict[index] = ing
 
     lp_var['ingredient_'+index] = pulp.LpVariable('ingredient_'+index, 0, None, pulp.LpContinuous)
-    prob.constraints['ing_total'] = lp_var['ingredient_total'] == sum(0.01*lp_var['ingredient_'+index] for index in ingredient_dict)
+    prob.constraints['ing_total'] = lp_var['ingredient_total'] == sum(lp_var['ingredient_'+index] for index in ingredient_dict)
     
     ingredient_dict[index] = ing
     ing.display(index, i_e_scrollframe.interior, delete_ingredient)
@@ -486,8 +483,8 @@ def edit_ingredients():   # Opens window that lets you add, delete, and edit oxi
             Label(master=i_e_scrollframe.interior, text=prettify(ox), width=5).grid(row=0, column=c)
             c+=1
 
-        for i, attr in enumerate(['LOI', 'cost', 'clay']):
-            Label(master=i_e_scrollframe.interior, text=attr, width=5).grid(row=0, column=c+i)
+        for i, attr in other_attr_names.items():
+            Label(master=i_e_scrollframe.interior, text=attr, width=5).grid(row=0, column=c+int(i))   # replace int(i) by other_attr_dict[attr].pos
         
         for index in ingredient_dict:
                 ingredient_dict[index].display(index, i_e_scrollframe.interior, delete_ingredient)  
