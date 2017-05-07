@@ -207,8 +207,8 @@ with shelve.open("OxideShelf") as oxide_shelf:
         elif ox == 'Al2O3':
             def_upp = 10
         restr_dict['umf_'+ox] = Restriction('umf_'+ox, ox, 'mole_'+ox, "lp_var['fluxes_total']", 0, def_upp, dec_pt = dp)
-        restr_dict['mass_perc_'+ox] = Restriction('mass_perc_'+ox, ox, 'mass_'+ox, "lp_var['ox_mass_total']", 0, 100, dec_pt = 2) 
-        restr_dict['mole_perc_'+ox] = Restriction('mole_perc_'+ox, ox, 'mole_'+ox, "lp_var['ox_mole_total']", 0, 100, dec_pt = 2)
+        restr_dict['mass_perc_'+ox] = Restriction('mass_perc_'+ox, ox, 'mass_'+ox, "0.01*lp_var['ox_mass_total']", 0, 100, dec_pt = 2) 
+        restr_dict['mole_perc_'+ox] = Restriction('mole_perc_'+ox, ox, 'mole_'+ox, "0.01*lp_var['ox_mole_total']", 0, 100, dec_pt = 2)
 
 
 with shelve.open("IngredientShelf") as ingredient_shelf:   # If there are a large number of ingredients, maybe it's better to only create the corresponding restrictions
@@ -216,20 +216,21 @@ with shelve.open("IngredientShelf") as ingredient_shelf:   # If there are a larg
     ingredient_dict = dict(ingredient_shelf)     # This is defined again in GUI.py. Will give trouble if initialize_ingredients == 1 in GUI.py.
                                                  # Need to rethink
     for index in ingredient_shelf:
-        restr_dict['ingredient_'+index] = Restriction('ingredient_'+index, ingredient_shelf[index].name, 'ingredient_'+index, "lp_var['ingredient_total']", 0, 100)
+        restr_dict['ingredient_'+index] = Restriction('ingredient_'+index, ingredient_shelf[index].name, 'ingredient_'+index, "0.01*lp_var['ingredient_total']", 0, 100)
 
 if 1 == 1:
     with shelve.open("OtherShelf") as other_shelf:
         for index in other_shelf:
             del other_shelf[index]
         other_shelf['0'] = Other(0,'SiO2_Al2O3', {'mole_SiO2':1}, "lp_var['mole_Al2O3']", 3, 18, 2)   # Using 'SiO2:Al2O3' gives an error
-        #print(ingredient_dict[index].other_attributes)
-        other_shelf['1'] = Other(1,'LOI', {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['LOI']) for index in ingredient_dict if float(ingredient_dict[index].other_attributes['LOI'])>0}, \
-                                "lp_var['ingredient_total']", 0, 100, 1)
-        other_shelf['2'] = Other(2,'cost', {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['cost']) for index in ingredient_dict if float(ingredient_dict[index].other_attributes['cost'])>0}, \
-                                "lp_var['ingredient_total']", 0, 100, 1)
-        other_shelf['3'] = Other(3,'Total clay', {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['clay']) for index in ingredient_dict if float(ingredient_dict[index].other_attributes['clay'])>0}, \
-                                "lp_var['ingredient_total']", 0, 100, 1)
+        other_shelf['1'] = Other(1,'KNaO UMF', {'mole_K2O':1, 'mole_Na2O':1}, "lp_var['fluxes_total']", 0, 1, 3)
+        other_shelf['2'] = Other(2,'KNaO % mol', {'mole_K2O':1, 'mole_Na2O':1}, "0.01*lp_var['ox_mole_total']", 0, 100, 1)
+        other_att_3 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['clay']) for index in ingredient_dict}
+        other_shelf['3'] = Other(3,'Total clay', {k:v for k,v in other_att_3.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
+        other_att_4 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['LOI']) for index in ingredient_dict}
+        other_shelf['4'] = Other(4,'LOI',  {k:v for k,v in other_att_4.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
+        other_att_5 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['cost']) for index in ingredient_dict}
+        other_shelf['5'] = Other(5,'cost', {k:v for k,v in other_att_5.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
         
         other_dict = dict(other_shelf)
 else:
