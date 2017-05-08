@@ -1,0 +1,26 @@
+* [33m877a3de[m[33m ([m[1;36mHEAD -> [m[1;32mtemp[m[33m, [m[1;33mtag: master[m[33m)[m Completed merge by cutting and pasting, since I don't know how SourceTree is supposed to work. Also fixed relations between lp_var's and definitions in calc_restrictions that I should have changed previously.
+*   [33m92c503c[m Merge branch 'temp' into HEAD. I don't really know what I'm doing
+[32m|[m[33m\[m  
+[32m|[m * [33m036e945[m[33m ([m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmaster[m[33m)[m Documented two newly observed bugs in the README pdf.
+[32m|[m * [33m1a6948f[m Started changing other attributes of ingredients to an index-based system ('LOI' -> '0', 'cost' -> '1', 'clay' -> '2')
+[32m|[m * [33m3dcd9ef[m Added the other restrictions 'KNaO UMF' and 'KNaO % mol', and changed the order in which the other restrictions appear.
+[32m|[m * [33m1f9b521[m Fixed newly discovered bug where 'other restrictions' were being displayed on top of each other. Fixed the one known case where the 2d projection failed, by renormalizing the objective functions in the algorithm. No guarantee this will work in all cases.
+[32m|[m * [33ma9695d8[m Revert "RENAMED RESTRICTION_CLASS.PY AND RECIPE_CLASS.PY TO RESTRICTIONS.PY AND RECIPES.PY RESPECTIVELY . MOVED THE WHOLE OF SECTION 0 OF GUI.PY TO RESTRICTIONS.PY, EXCEPT FOR THE part relating to the default recipe, which was moved to recipes.py. Have not updated the README yet."
+* [33m|[m [33m7d47559[m No real changes
+[33m|[m[33m/[m  
+* [33m60a5ac8[m Renamed restriction_class.py and recipe_class.py to restrictions.py and recipes.py respectively . Moved the whole of section 0 of GUI.py to restrictions.py, except for the part relating to the default recipe, which was moved to recipes.py. Have not updated the README yet.
+* [33mb5b3898[m Update README
+* [33m4dae207[m Replaced the objective_defn attribute of the Other class with numerator_coefs, which is a dictionary with keys names of lp variables, and values real numbers. Redefined the restrictions coming from instances of the Other class, and uncommented sections in recipe_class.py so that the 'other restrictions' now work.
+* [33m7a9ccb2[m Got rid of some unnecessary imports and added a module dependency graph to the README pdf. Also added a bug to the README pdf.
+* [33m6f27d35[m Updated README.
+* [33m12e94dc[m Improved the algorithm that finds the 2 dimensional projection. Can't guarantee that it will always work though.
+* [33md577c8d[m Added licence back.
+*   [33m4d17237[m Merge branch 'master' of https://github.com/PieterMostert/Lipgloss
+[34m|[m[35m\[m  
+[34m|[m * [33m3c2bf31[m Update README.md
+[34m|[m * [33m62c1b45[m Delete LICENCE.txt
+[34m|[m * [33m5e465b3[m Update README.md
+* [35m|[m [33mceaaddd[m Updated README
+[35m|[m[35m/[m  
+* [33m43d5b92[m Moving repository from Bitbucket
+* [33m5b6f6a7[m Initial commit
