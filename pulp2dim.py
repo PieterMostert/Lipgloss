@@ -18,8 +18,8 @@
 
 from pulp import *
 
-#tol = '0.000000001'
-solver = GLPK() # try GLPK(options=['--mipgap', tol]))
+tol = '0.000000001'
+solver = GLPK(options=['--mipgap', tol])
 #solver = PULP_CBC_CMD()
 
 def two_dim_projection(self, var0, var1):   # Calculates a set of vertices in R^2 whose convex hull is
@@ -51,14 +51,17 @@ def two_dim_projection(self, var0, var1):   # Calculates a set of vertices in R^
                 print('points coincide')
                 return
             
-            v = [v1[0] - v0[0], v1[1] - v0[1]]  
-            s = - v[1]*var0 + v[0]*var1
+            v = [v1[0] - v0[0], v1[1] - v0[1]]
+            d = abs(v[0])+abs(v[1])+1
+            print(d)
+            s = - v[1]/d*var0 + v[0]/d*var1
             self += s
             self.solve(solver)
             v2 = [pulp.value(var0), pulp.value(var1)]
 
-            #print('Difference = : '+str(pulp.value(self.objective) + v[1]*v0[0] - v[0]*v0[1]))
-            if abs(pulp.value(self.objective) + v[1]*v0[0] - v[0]*v0[1]) < 0.1**7:   #Look into what error bounds PuLP uses
+            print(pulp.value(self.objective))
+            print('Difference = : '+str(pulp.value(self.objective) + (v[1]*v0[0] - v[0]*v0[1])/d))
+            if abs(pulp.value(self.objective) + (v[1]*v0[0] - v[0]*v0[1])/d) < 0.1**5:   #Look into what error bounds PuLP uses
                 vertices_pre.remove(v0)                     
                 vertices_post.append(v0)                 
             else:

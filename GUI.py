@@ -115,7 +115,7 @@ def open_recipe(index, restr_dict, r_s=0):   # to be used when opening a recipe,
     for ot in other_dict:
         if ot in current_recipe.other:
             other_select_button[ot].state(['pressed'])
-            restr_dict['other_'+ot].display(1001 + ingredient_dict[i].pos)
+            restr_dict['other_'+ot].display(1001 + other_dict[ot].pos)
         else:
             other_select_button[ot].state(['!pressed'])
 
@@ -198,7 +198,8 @@ def edit_oxides():
 # SECTION 4.2
 # Functions relating to the ingredient editor window (accessed through Options > Edit Ingredients)
 
-def update_ingredient_dict():         # Run when updating ingredients. Needs improvement
+def update_ingredient_dict():         # Run when updating ingredients. Needs improvement since it removes stars from
+                                      # ingredients that correspond to x or y variables.
 
     global ingredient_dict
     global prob
@@ -224,7 +225,7 @@ def update_ingredient_dict():         # Run when updating ingredients. Needs imp
                 except:
                     pass
 
-        for attr in ['LOI', 'cost', 'clay']:
+        for attr in other_attr_names:
             ing.other_attributes[attr] = ing.display_widgets[attr].get()
 
         ingredient_dict[index] = ing
@@ -254,7 +255,7 @@ def delete_ingredient(index):
                                    for index in ingredient_dict if ox in ingredient_compositions[index]) \
                                == lp_var['mass_'+ox]     # relate ingredients and oxides
 
-    for widget in ['del', 'name'] + oxides + ['LOI', 'cost', 'clay']:
+    for widget in ['del', 'name'] + oxides + ['0', '1', '2']:
         ingredient_dict[index].display_widgets[widget].destroy()
 
     if index in current_recipe.ingredients:
@@ -266,8 +267,10 @@ def delete_ingredient(index):
     
     ingredient_select_button[index].destroy()   # remove the deleted ingredient from the list of ingredients to select from
 
-    del lp_var['ingredient_'+index]
-    prob.constraints['ing_total'] = lp_var['ingredient_total'] == sum(0.01*lp_var['ingredient_'+i] for i in ingredient_dict)
+    del lp_var['ingredient_'+index]     # somehow, this doesn't seem to be happening
+    prob.constraints['ing_total'] = lp_var['ingredient_total'] == sum(lp_var['ingredient_'+i] for i in ingredient_dict)
+
+    del restr_dict['ingredient_'+index]
   
     # To Do: delete the ingredient from all recipes. If there are any recipes containing this ingredient, get confirmation from the user
     # before doing this
@@ -283,7 +286,7 @@ def new_ingredient():
     ingredient_dict[index] = ing
 
     lp_var['ingredient_'+index] = pulp.LpVariable('ingredient_'+index, 0, None, pulp.LpContinuous)
-    prob.constraints['ing_total'] = lp_var['ingredient_total'] == sum(0.01*lp_var['ingredient_'+index] for index in ingredient_dict)
+    prob.constraints['ing_total'] = lp_var['ingredient_total'] == sum(lp_var['ingredient_'+index] for index in ingredient_dict)
     
     ingredient_dict[index] = ing
     ing.display(index, i_e_scrollframe.interior, delete_ingredient)
@@ -321,8 +324,8 @@ def edit_ingredients():   # Opens window that lets you add, delete, and edit oxi
             Label(master=i_e_scrollframe.interior, text=prettify(ox), width=5).grid(row=0, column=c)
             c+=1
 
-        for i, attr in enumerate(['LOI', 'cost', 'clay']):
-            Label(master=i_e_scrollframe.interior, text=attr, width=5).grid(row=0, column=c+i)
+        for i, attr in other_attr_names.items():
+            Label(master=i_e_scrollframe.interior, text=attr, width=5).grid(row=0, column=c+int(i))   # replace int(i) by other_attr_dict[attr].pos
         
         for index in ingredient_dict:
                 ingredient_dict[index].display(index, i_e_scrollframe.interior, delete_ingredient)  
