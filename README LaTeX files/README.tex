@@ -163,6 +163,8 @@ At the moment, we could do without the \green{OxideShelf} files, since there's n
 \begin{itemize}
 \item If you delete an ingredient using the ingredient editor, it will only be deleted from the current recipe (assuming it\'s one of the ingredients in the recipe). When you attempt to open a recipe that contains the deleted ingredient, you'll get an error (unless you've subsequently added a new ingredient which happens to have the same index).
 \item If you edit the oxide composition of an ingredient that has been selected, the list of oxides shown doesn't change to reflect this.
+\item In the ingredient editor, if you press `New ingredient', fill in some values, update, and then press `New ingredient' again, the values from the first new ingredient will be shown in the second new ingredient. This was not a problem with earlier versions of LIPGLOSS.
+\item If you create a new ingredient, calculate the restrictions with the new ingredients as part of the recipe, delete the new ingredient, create a new ingredient (we're assuming it has the same name as the previous one), and try calculate the restrictions again, an error message appears saying, in part, `pulp.constants.PulpError: Repeated variable names in Lp format'. This was not a problem with previous versions of LIPGLOSS.
 \item On my computer, the PuLP API causes a window to open and close each time a linear function is optimized, resulting in a delay of around 10 seconds, even though the actual calculation usually takes under 2 seconds. There may be a fix for this, but I haven't been able to implement it.
 \end{itemize}
 
