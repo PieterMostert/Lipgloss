@@ -290,7 +290,7 @@ def new_ingredient():
     
     ingredient_dict[index] = ing
     ing.display(index, i_e_scrollframe.interior, delete_ingredient)
-    restr_dict['ingredient_'+index] = Restriction('ingredient_'+index, ing.name, 'ingredient_'+index, "lp_var['ingredient_total']", 0, 100)
+    restr_dict['ingredient_'+index] = Restriction('ingredient_'+index, ing.name, 'ingredient_'+index, "0.01*lp_var['ingredient_total']", 0, 100)
 
     ingredient_select_button[index] = ttk.Button(vsf.interior, text = ing.name, width=20,
                                                  command = partial(toggle_ingredient, index))

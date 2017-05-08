@@ -173,28 +173,30 @@ class Recipe:
 ##            tkinter.messagebox.showerror(" ", 'No SiO\u2082 and/or Al\u2082O\u2083')
 ##            return
 
-        if sum(restr_dict['umf_'+ox].low.get() for ox in selected_fluxes)>1:
+        delta = 0.1**9
+
+        if sum(restr_dict['umf_'+ox].low.get() for ox in selected_fluxes) > 1 + delta:
             messagebox.showerror(" ", 'Sum of UMF flux lower bounds > 1')
             return
             
-        if sum(restr_dict['umf_'+ox].upp.get() for ox in selected_fluxes)<1:
+        if sum(restr_dict['umf_'+ox].upp.get() for ox in selected_fluxes) < 1 - delta:
             messagebox.showerror(" ", 'Sum of UMF flux upper bounds < 1')
             return
 
         for t in ['mass_perc_', 'mole_perc_']:
-            if sum(restr_dict[t+ox].low.get() for ox in self.oxides if ox != 'KNaO')>100:
+            if sum(restr_dict[t+ox].low.get() for ox in self.oxides if ox != 'KNaO') > 100 + delta:
                 messagebox.showerror(" ", 'Sum of ' + t + 'lower bounds > 100')
                 return
 
-            if sum(restr_dict[t+ox].upp.get() for ox in self.oxides if ox != 'KNaO')<100:
+            if sum(restr_dict[t+ox].upp.get() for ox in self.oxides if ox != 'KNaO') < 100 - delta:
                 messagebox.showerror(" ", 'Sum of ' + t + 'upper bounds < 100')
                 return
 
-        if sum(restr_dict['ingredient_'+index].low.get() for index in self.ingredients)>100:
+        if sum(restr_dict['ingredient_'+index].low.get() for index in self.ingredients) > 100 + delta:
             messagebox.showerror(" ", 'Sum of ingredient lower bounds > 100')
             return
             
-        if sum(restr_dict['ingredient_'+index].upp.get() for index in self.ingredients) < 100:
+        if sum(restr_dict['ingredient_'+index].upp.get() for index in self.ingredients) < 100 - delta:
             messagebox.showerror(" ", 'Sum of ingredient upper bounds < 100')
             return
          
@@ -206,8 +208,8 @@ class Recipe:
         for index in ingredient_dict:
             ing = 'ingredient_'+index
             if index in self.ingredients:
-                ing_low = restr_dict[ing].low.get()
-                ing_upp = restr_dict[ing].upp.get()
+                ing_low = 0.01*restr_dict[ing].low.get()
+                ing_upp = 0.01*restr_dict[ing].upp.get()
             else:
                 ing_low = 0
                 ing_upp = 0
@@ -221,10 +223,10 @@ class Recipe:
             if ox in self.oxides:     
                 prob.constraints[ox+'_umf_lower'] = lp_var['mole_'+ox] >= restr_dict['umf_'+ox].low.get()*lp_var['fluxes_total']   # oxide UMF lower bounds
                 prob.constraints[ox+'_umf_upper'] = lp_var['mole_'+ox] <= restr_dict['umf_'+ox].upp.get()*lp_var['fluxes_total']   # oxide UMF upper bounds
-                prob.constraints[ox+'_wt_%_lower'] = lp_var['mass_'+ox] >= restr_dict['mass_perc_'+ox].low.get()*lp_var['ox_mass_total']    # oxide weight % lower bounds
-                prob.constraints[ox+'_wt_%_upper'] = lp_var['mass_'+ox] <= restr_dict['mass_perc_'+ox].upp.get()*lp_var['ox_mass_total']    # oxide weight % upper bounds
-                prob.constraints[ox+'_mol_%_lower'] = lp_var['mole_'+ox] >= restr_dict['mole_perc_'+ox].low.get()*lp_var['ox_mole_total']   # oxide mol % lower bounds
-                prob.constraints[ox+'_mol_%_upper'] = lp_var['mole_'+ox] <= restr_dict['mole_perc_'+ox].upp.get()*lp_var['ox_mole_total']   # oxide mol % upper bounds
+                prob.constraints[ox+'_wt_%_lower'] = lp_var['mass_'+ox] >= 0.01*restr_dict['mass_perc_'+ox].low.get()*lp_var['ox_mass_total']    # oxide weight % lower bounds
+                prob.constraints[ox+'_wt_%_upper'] = lp_var['mass_'+ox] <= 0.01*restr_dict['mass_perc_'+ox].upp.get()*lp_var['ox_mass_total']    # oxide weight % upper bounds
+                prob.constraints[ox+'_mol_%_lower'] = lp_var['mole_'+ox] >= 0.01*restr_dict['mole_perc_'+ox].low.get()*lp_var['ox_mole_total']   # oxide mol % lower bounds
+                prob.constraints[ox+'_mol_%_upper'] = lp_var['mole_'+ox] <= 0.01*restr_dict['mole_perc_'+ox].upp.get()*lp_var['ox_mole_total']   # oxide mol % upper bounds
 
             else:
                 try:
@@ -309,7 +311,6 @@ class Recipe:
             canvas = Canvas(proj_frame, width=450, height=450, bg = 'white', borderwidth = 1, relief = 'solid')
             canvas.create_polygon_plot(vertices)
             canvas.pack(expand='yes', fill='both')
-
 
 # Define default recipe, in the case where class definitions have changed, or when things have just generally gotten messy
 if initialize_recipe == 1:

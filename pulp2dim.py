@@ -53,14 +53,14 @@ def two_dim_projection(self, var0, var1):   # Calculates a set of vertices in R^
             
             v = [v1[0] - v0[0], v1[1] - v0[1]]
             d = abs(v[0])+abs(v[1])+1
-            print(d)
+            #print(d)
             s = - v[1]/d*var0 + v[0]/d*var1
             self += s
             self.solve(solver)
             v2 = [pulp.value(var0), pulp.value(var1)]
 
-            print(pulp.value(self.objective))
-            print('Difference = : '+str(pulp.value(self.objective) + (v[1]*v0[0] - v[0]*v0[1])/d))
+            #print(pulp.value(self.objective))
+            #print('Difference = : '+str(pulp.value(self.objective) + (v[1]*v0[0] - v[0]*v0[1])/d))
             if abs(pulp.value(self.objective) + (v[1]*v0[0] - v[0]*v0[1])/d) < 0.1**5:   #Look into what error bounds PuLP uses
                 vertices_pre.remove(v0)                     
                 vertices_post.append(v0)                 
@@ -71,7 +71,8 @@ def two_dim_projection(self, var0, var1):   # Calculates a set of vertices in R^
             print('Error: count overflowed')
        
         initial_vertices.reverse()  # After the 'top' part of the for loop, we switch the order of the vertices to get ready for the 'bottom' part
-    
+
+    print(vertices_post)
     return vertices_post
 
 LpProblem.two_dim_projection = two_dim_projection  # Add the method two_dim_projection to the predefined LpProblem class.

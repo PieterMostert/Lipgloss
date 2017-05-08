@@ -133,9 +133,13 @@ class Oxide:
 with shelve.open("OxideShelf") as oxide_shelf:
     oxides = [ox for ox in oxide_shelf]
 
+other_attr_names = {'0':'LOI', '1':'cost','2':'clay'}  # This should probably be a dictionary where the values are instances of
+                                                      # a yet-to-be-defined 'other_attribute' class. This class will have the
+                                                      # attributes pos and name.
+
 class Ingredient:    # Ingredients will be referenced by their index, a string consisting of a unique natural number
     
-    def __init__(self, pos, name='New ingredient', notes = '', oxide_comp = {}, other_attributes = {'LOI':0, 'cost':0, 'clay':0}):
+    def __init__(self, pos, name='New ingredient', notes = '', oxide_comp = {}, other_attributes = {'0':0, '1':0, '2':0}):
 
         self.pos = pos      # position of the ingredient in the list of ingredients to choose from, and in the ingredient editor
         self.name = name
@@ -165,11 +169,11 @@ class Ingredient:    # Ingredients will be referenced by their index, a string c
                 pass
             c+=1
 
-        for i, attr in enumerate(['LOI', 'cost', 'clay']): # If we allow users to define their own attributes, we should have them indexed
+        for i in other_attr_names: # If we allow users to define their own attributes, we should have them indexed
                                                            # by positive integers, rather than the names of the attributes
-            sdw[attr] = Entry(master = frame, width=5)
-            sdw[attr].grid(row = r, column = c+i)
-            sdw[attr].insert(0, self.other_attributes[attr])
+            sdw[i] = Entry(master = frame, width=5)
+            sdw[i].grid(row = r, column = c+int(i))             # replace int(i) by other_attr_dict[i].pos
+            sdw[i].insert(0, self.other_attributes[i])
 
     def pickleable_version(self):
         temp = copy.copy(self)
@@ -211,29 +215,30 @@ with shelve.open("OxideShelf") as oxide_shelf:
         elif ox == 'Al2O3':
             def_upp = 10
         restr_dict['umf_'+ox] = Restriction('umf_'+ox, ox, 'mole_'+ox, "lp_var['fluxes_total']", 0, def_upp, dec_pt = dp)
-        restr_dict['mass_perc_'+ox] = Restriction('mass_perc_'+ox, ox, 'mass_'+ox, "lp_var['ox_mass_total']", 0, 100, dec_pt = 2) 
-        restr_dict['mole_perc_'+ox] = Restriction('mole_perc_'+ox, ox, 'mole_'+ox, "lp_var['ox_mole_total']", 0, 100, dec_pt = 2)
+        restr_dict['mass_perc_'+ox] = Restriction('mass_perc_'+ox, ox, 'mass_'+ox, "0.01*lp_var['ox_mass_total']", 0, 100, dec_pt = 2) 
+        restr_dict['mole_perc_'+ox] = Restriction('mole_perc_'+ox, ox, 'mole_'+ox, "0.01*lp_var['ox_mole_total']", 0, 100, dec_pt = 2)
 
 
 with shelve.open("IngredientShelf") as ingredient_shelf:   # If there are a large number of ingredients, maybe it's better to only create the corresponding restrictions
                                                          # once they're selected for a particular recipe.
-    ingredient_dict = dict(ingredient_shelf)     # This is defined again in GUI.py. Will give trouble if initialize_ingredients == 1.
+    ingredient_dict = dict(ingredient_shelf)     # This is defined again in GUI.py. Will give trouble if initialize_ingredients == 1 in GUI.py.
                                                  # Need to rethink
     for index in ingredient_shelf:
-        restr_dict['ingredient_'+index] = Restriction('ingredient_'+index, ingredient_shelf[index].name, 'ingredient_'+index, "lp_var['ingredient_total']", 0, 100)
+        restr_dict['ingredient_'+index] = Restriction('ingredient_'+index, ingredient_shelf[index].name, 'ingredient_'+index, "0.01*lp_var['ingredient_total']", 0, 100)
 
 if 1 == 1:
     with shelve.open("OtherShelf") as other_shelf:
         for index in other_shelf:
             del other_shelf[index]
         other_shelf['0'] = Other(0,'SiO2_Al2O3', {'mole_SiO2':1}, "lp_var['mole_Al2O3']", 3, 18, 2)   # Using 'SiO2:Al2O3' gives an error
-        #print(ingredient_dict[index].other_attributes)
-        other_shelf['1'] = Other(1,'LOI', {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['LOI']) for index in ingredient_dict if float(ingredient_dict[index].other_attributes['LOI'])>0}, \
-                                "lp_var['ingredient_total']", 0, 100, 1)
-        other_shelf['2'] = Other(2,'cost', {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['cost']) for index in ingredient_dict if float(ingredient_dict[index].other_attributes['cost'])>0}, \
-                                "lp_var['ingredient_total']", 0, 100, 1)
-        other_shelf['3'] = Other(3,'Total clay', {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['clay']) for index in ingredient_dict if float(ingredient_dict[index].other_attributes['clay'])>0}, \
-                                "lp_var['ingredient_total']", 0, 100, 1)
+        other_shelf['1'] = Other(1,'KNaO UMF', {'mole_K2O':1, 'mole_Na2O':1}, "lp_var['fluxes_total']", 0, 1, 3)
+        other_shelf['2'] = Other(2,'KNaO % mol', {'mole_K2O':1, 'mole_Na2O':1}, "0.01*lp_var['ox_mole_total']", 0, 100, 1)
+        other_att_3 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['2']) for index in ingredient_dict}
+        other_shelf['3'] = Other(3,'Total clay', {k:v for k,v in other_att_3.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
+        other_att_4 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['0']) for index in ingredient_dict}
+        other_shelf['4'] = Other(4,'LOI',  {k:v for k,v in other_att_4.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
+        other_att_5 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['1']) for index in ingredient_dict}
+        other_shelf['5'] = Other(5,'cost', {k:v for k,v in other_att_5.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
         
         other_dict = dict(other_shelf)
 else:
@@ -293,16 +298,11 @@ if initialize_ingredients == 1:
             ing_init = Ingredient(pos, name=ing, oxide_comp = dict([(ox, ingredient_compositions[ing][ox]) \
                                                                     for ox in oxides if ox in ingredient_compositions[ing]]))
 
-            for attr in ['LOI', 'cost']:
+            for attr in ['0', '1', '2']:
                 if attr in ingredient_compositions[ing]:
                     ing_init.other_attributes[attr] = ingredient_compositions[ing][attr]
                 else:
                     ing_init.other_attributes[attr] = 0
-            
-            if ing in clays_init:
-                ing_init.other_attributes['clay'] = 100
-            else:
-                ing_init.other_attributes['clay'] = 0
             
             ingredient_shelf[str(pos)] = ing_init
 else:
@@ -357,7 +357,7 @@ for index in ingredient_dict:
 for ox in oxide_dict:
     lp_var['mole_'+ox] = pulp.LpVariable('mole_'+ox, 0, None, pulp.LpContinuous)
     lp_var['mass_'+ox] = pulp.LpVariable('mass_'+ox, 0, None, pulp.LpContinuous)
-    prob += lp_var['mole_'+ox]*oxide_dict[ox].molar_mass == lp_var['mass_'+ox]   # relate percent and unity
+    prob += lp_var['mole_'+ox]*oxide_dict[ox].molar_mass == lp_var['mass_'+ox]   # relate mole percent and unity
     prob += sum(ingredient_compositions[index][ox]*lp_var['ingredient_'+index]/100 \
                 for index in ingredient_dict if ox in ingredient_compositions[index]) \
             == lp_var['mass_'+ox], ox     # relate ingredients and oxides
@@ -375,9 +375,9 @@ for index in other_dict:
     lp_var[ot] = pulp.LpVariable(ot, 0, None, pulp.LpContinuous)
     prob += lp_var[ot] == LpAffineExpression(linear_combo)         # relate this variable to the other variables.
 
-prob += lp_var['ingredient_total'] == sum(0.01*lp_var['ingredient_'+index] for index in ingredient_dict), 'ing_total'
+prob += lp_var['ingredient_total'] == sum(lp_var['ingredient_'+index] for index in ingredient_dict), 'ing_total'
 prob += lp_var['fluxes_total'] == sum(oxide_dict[ox].flux*lp_var['mole_'+ox] for ox in oxide_dict)
-prob += lp_var['ox_mass_total'] == sum(0.01*lp_var['mass_'+ox] for ox in oxide_dict)
-prob += lp_var['ox_mole_total'] == sum(0.01*lp_var['mole_'+ox] for ox in oxide_dict)
+prob += lp_var['ox_mass_total'] == sum(lp_var['mass_'+ox] for ox in oxide_dict)
+prob += lp_var['ox_mole_total'] == sum(lp_var['mole_'+ox] for ox in oxide_dict)
 
 
