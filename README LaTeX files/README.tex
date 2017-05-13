@@ -81,9 +81,9 @@ As noted before, the \green{GUI.py} file launches the gui. The following diagram
 \caption{Module dependencies \label{dep}}
 \end{figure}
 
-The files \green{ingredientfile.py} and \green{oxidefile.py} are usually not used, and can be omitted from any stable releases. See section 0 in \green{GUI.py} for when they are needed.
+The files \green{ingredientfile.py} and \green{oxidefile.py} are usually not used, and can be omitted from any stable releases. See section 5 in \green{restrictions.py} for when they are needed.
 
-The following classes are defined: \blue{Oxide}, \blue{Ingredient}, \blue{Other}, \blue{Restriction} (see \green{restriction\_class.py}) and \blue{Recipe} (see \green{recipe\_class.py}). To keep track of the instances of these classes, we use the dictionaries \blue{oxide\_dict}, \blue{ingredient\_dict}, \blue{other\_dict}, \blue{restr\_dir}, and \blue{recipe\_dict}. The keys for the \blue{ingredient\_dict}, \newline \blue{other\_dict}, and \blue{recipe\_dict} dictionaries are strings of non-negative integers. The keys for \blue{oxide\_dict} are strings of the form \blue{\'SiO2\'}, \blue{\'Al2O3\'}, etc.  There are five types of \blue{Restriction} instances, so keys are of five different types:
+The following classes are defined: \blue{Oxide}, \blue{Ingredient}, \blue{Other}, \blue{Restriction} (see \green{restrictions.py}) and \blue{Recipe} (see \green{recipes.py}). To keep track of the instances of these classes, we use the dictionaries \blue{oxide\_dict}, \blue{ingredient\_dict}, \blue{other\_dict}, \blue{restr\_dir}, and \blue{recipe\_dict}. The keys for the \blue{ingredient\_dict}, \newline \blue{other\_dict}, and \blue{recipe\_dict} dictionaries are strings of non-negative integers. The keys for \blue{oxide\_dict} are strings of the form \blue{\'SiO2\'}, \blue{\'Al2O3\'}, etc.  There are five types of \blue{Restriction} instances, so keys are of five different types:
 \begin{itemize}
 \item \blue{\'umf\_\'+ox}, \blue{\'mass\_perc\_\'+ox}, and \blue{\'mole\_perc\_\'+ox}, for each key \blue{ox} in \blue{oxide\_dict},
 \item \blue{\'ingredient\_\'+k} for each key \blue{k} in \blue{ingredient\_dict}, 
@@ -94,7 +94,7 @@ We could easily do without the \blue{Oxide} class, but I've introduced it so tha
 
 \subsection{Setting up the linear programming problem}
 The code relating to the computation of the bounds is mostly found in \newline
-\green{recipe\_class.py}, although parts of the linear programming problem are set up in \green{GUI.py}. To set up the LP problem, we define the following variables / families of variables:
+\green{recipes.py}, although parts of the linear programming problem are set up in \green{restrictions.py}, section 5. To set up the LP problem, we define the following variables / families of variables:
 \begin{itemize}
 \item \blue{\lpv[\'mass\_\'+ox]}, for each key \blue{ox} in \blue{oxide\_dict}, representing the mass (in grams) of that oxide in a batch.
 \item \blue{\lpv[\'mole\_\'+ox]}, for each key \blue{ox} in \blue{oxide\_dict}, representing the number (in moles) of that oxide in a batch.
@@ -162,9 +162,8 @@ At the moment, we could do without the \green{OxideShelf} files, since there's n
 \section{Known bugs}
 \begin{itemize}
 \item If you delete an ingredient using the ingredient editor, it will only be deleted from the current recipe (assuming it\'s one of the ingredients in the recipe). When you attempt to open a recipe that contains the deleted ingredient, you'll get an error (unless you've subsequently added a new ingredient which happens to have the same index).
-\item If you edit the oxide composition of an ingredient that has been selected, the list of oxides shown doesn't change to reflect this.
-\item In the ingredient editor, if you press `New ingredient', fill in some values, update, and then press `New ingredient' again, the values from the first new ingredient will be shown in the second new ingredient. This was not a problem with earlier versions of LIPGLOSS.
-\item If you create a new ingredient, calculate the restrictions with the new ingredients as part of the recipe, delete the new ingredient, create a new ingredient (we're assuming it has the same name as the previous one), and try calculate the restrictions again, an error message appears saying, in part, `pulp.constants.PulpError: Repeated variable names in Lp format'. This was not a problem with previous versions of LIPGLOSS.
+\item If you edit the oxide composition of an ingredient that has been selected, and then click 'Update', the list of oxides shown doesn't change to reflect this.
+\item If you create a new ingredient, calculate the restrictions, delete the new ingredient, create a new ingredient (we're assuming it has the same name as the previous one), and try calculate the restrictions again, an error message appears saying, in part, `pulp.constants.PulpError: Repeated variable names in Lp format'. This was not a problem with previous versions of LIPGLOSS.
 \item On my computer, the PuLP API causes a window to open and close each time a linear function is optimized, resulting in a delay of around 10 seconds, even though the actual calculation usually takes under 2 seconds. There may be a fix for this, but I haven't been able to implement it.
 \end{itemize}
 
