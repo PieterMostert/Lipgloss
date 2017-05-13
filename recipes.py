@@ -24,7 +24,7 @@ import copy
 from pulp2dim import *
 from restrictions import *
 
-initialize_recipe = 0       # Run script with initialize_recipe = 1 whenever the Recipe class is changed
+initialize_recipe = 1       # Run script with initialize_recipe = 1 whenever the Recipe class is changed
 
 def get_ing_comp():                           # Redo. This function is defined in the main (gui) file
     ingredient_compositions = {}
@@ -332,4 +332,4 @@ if initialize_recipe == 1:
             lb['ingredient_'+str(i)] = 0
             ub['ingredient_'+str(i)] = 100
             
-        recipe_shelf['0'] = Recipe('Default Recipe Bounds', 0, [str(i) for i in range(15)], [], lb, ub, 'umf_')
+        recipe_shelf['0'] = Recipe('Default Recipe Bounds', 0, [str(i) for i in range(3)], [], lb, ub, 'umf_')

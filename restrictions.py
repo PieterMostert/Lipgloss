@@ -31,6 +31,9 @@ initialize_oxides = 0       # Run script with initialize_oxides = 1 whenever the
 initialize_ingredients = 0  # Run script with initialize_ingredients = 1 whenever the Ingredient class is changed
 initialize_other = 0        # Run script with initialize_other = 1 whenever the Other class is changed
 
+# SECTION 1
+# Define Restriction class
+
 class Restriction:
     'Oxide UMF, oxide % molar, oxide % weight, ingredient, SiO2:Al2O3 molar, LOI, cost, etc'
     
@@ -117,6 +120,9 @@ class Restriction:
         for eps in [-1,1]:
             self.calc_bounds[eps].config(text = ('%.'+str(self.dec_pt)+'f') % self.calc_value[eps])
 
+# SECTION 2
+# Define Oxide class and initialize oxides
+
 class Oxide:
     
      def __init__(self, pos, molar_mass, flux, min_threshhold=0):
@@ -133,9 +139,12 @@ class Oxide:
 with shelve.open("OxideShelf") as oxide_shelf:
     oxides = [ox for ox in oxide_shelf]
 
+# SECTION 3
+# Define Ingredient class
+
 other_attr_names = {'0':'LOI', '1':'cost','2':'clay'}  # This should probably be a dictionary where the values are instances of
-                                                      # a yet-to-be-defined 'other_attribute' class. This class will have the
-                                                      # attributes pos and name.
+                                                       # a yet-to-be-defined 'other_attribute' class. This class will have the
+                                                       # attributes pos and name.
 
 class Ingredient:    # Ingredients will be referenced by their index, a string consisting of a unique natural number
     
@@ -180,9 +189,10 @@ class Ingredient:    # Ingredients will be referenced by their index, a string c
         temp.display_widgets = {}    # the values in self.display_widgets that the ingredient editor introduces can't be pickled 
         return temp
 
+# SECTION 4
+# Define Other class
+
 class Other:
-    
-    #'special case of restriction class, with added ability to edit in "Edit other" window'
     
     def __init__(self, pos, name, numerator_coefs, normalization, def_low, def_upp, dec_pt):
         'SiO2:Al2O3, LOI, cost, total clay, etc'
@@ -196,12 +206,15 @@ class Other:
         self.def_low = def_low
         self.def_upp = def_upp
         self.dec_pt = dec_pt
+        
     def display(self, frame):     # To be used in the 'Edit other' window.
         pass
 
-
-# oxide_shelf should be a dictionary of the form
-# {'SiO2' : Oxide(1, 60.083, 0), 'Al2O3' : Oxide(2, 101.961, 0), ...}
+# SECTION 5
+# Initialize the restr_dict, oxide_dict, ingredient_dict, and other_dict dictionaries
+# Define default recipe bounds (optional)
+# Set up the linear programming problem. Define variables, and set constraints that always hold (unless any
+# of the dictionaries above are modified)
 
 restr_dict = {}  # a dictionary with keys of the form 'umf_'+ox, 'mass_perc_'+ox, 'mole_perc_'+ox, 'ingredient_'+index or 'other_'+index
 
@@ -249,13 +262,7 @@ with shelve.open("OtherShelf") as other_shelf:
         ot = other_shelf[index]    # instance of 'Other' class
         restr_dict['other_'+index] = Restriction('other_'+index, ot.name, 'other_'+index, ot.normalization, ot.def_low, ot.def_upp, dec_pt=ot.dec_pt)
 
-## SECTION 0
-# Initialize the oxide_dict, ingredient_dict, and other_dict dictionaries
-# Define default recipe bounds (optional)
-# Set up the linear programming problem. Define variables, and set constraints that always hold (unless any
-# of the dictionaries above are modified)
-
-# Initialize oxides:  
+#Initialize oxides:  
 
 if initialize_oxides == 1:
     import oxidefile

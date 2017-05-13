@@ -282,7 +282,14 @@ def new_ingredient():
     with shelve.open("IngredientShelf") as ingredient_shelf:
         r = max([int(index) for index in ingredient_shelf]) + 1
         index = str(r)
-        ing = ingredient_shelf[str(r)] = Ingredient(r, 'Ingredient #'+index)
+        ing = ingredient_shelf[str(r)] = Ingredient(r, 'Ingredient #'+index, notes = '', oxide_comp = {}, other_attributes = {'0':0, '1':0, '2':0})
+                        # If we just had Ingredient(r, 'Ingredient #'+index) above, the default values of the notes, oxide_comp
+                        # and other_attributes attributes would change when the last instance of the class defined had those
+                        # attributes changed
+##        ing = Ingredient(r, 'Ingredient #'+index, oxide_comp = {})
+##        print(ing.oxide_comp)
+##        print(ing.name)
+##        ingredient_shelf[str(r)] = copy.deepcopy(ing)
     ingredient_dict[index] = ing
 
     lp_var['ingredient_'+index] = pulp.LpVariable('ingredient_'+index, 0, None, pulp.LpContinuous)
