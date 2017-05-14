@@ -246,12 +246,13 @@ if 1 == 1:
         other_shelf['0'] = Other(0,'SiO2_Al2O3', {'mole_SiO2':1}, "lp_var['mole_Al2O3']", 3, 18, 2)   # Using 'SiO2:Al2O3' gives an error
         other_shelf['1'] = Other(1,'KNaO UMF', {'mole_K2O':1, 'mole_Na2O':1}, "lp_var['fluxes_total']", 0, 1, 3)
         other_shelf['2'] = Other(2,'KNaO % mol', {'mole_K2O':1, 'mole_Na2O':1}, "0.01*lp_var['ox_mole_total']", 0, 100, 1)
-        other_att_3 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['2']) for index in ingredient_dict}
-        other_shelf['3'] = Other(3,'Total clay', {k:v for k,v in other_att_3.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
-        other_att_4 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['0']) for index in ingredient_dict}
-        other_shelf['4'] = Other(4,'LOI',  {k:v for k,v in other_att_4.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
-        other_att_5 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['1']) for index in ingredient_dict}
-        other_shelf['5'] = Other(5,'cost', {k:v for k,v in other_att_5.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
+        other_shelf['3'] = Other(3,'RO UMF', {'mole_MgO':1, 'mole_CaO':1, 'mole_BaO':1, 'mole_SrO':1}, "lp_var['fluxes_total']", 0, 1, 3)
+        other_att_4 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['2']) for index in ingredient_dict}
+        other_shelf['4'] = Other(4,'Total clay', {k:v for k,v in other_att_4.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
+        other_att_5 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['0']) for index in ingredient_dict}
+        other_shelf['5'] = Other(5,'LOI',  {k:v for k,v in other_att_5.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
+        other_att_6 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['1']) for index in ingredient_dict}
+        other_shelf['6'] = Other(6,'cost', {k:v for k,v in other_att_6.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
         
         other_dict = dict(other_shelf)
 else:
@@ -332,21 +333,7 @@ def update_other():
         other_dict = dict(other_shelf)
         return other_dict
         
-if initialize_other == 1:
-    with shelve.open("OtherShelf") as other_shelf:
-        for index in other_shelf:
-            del other_shelf[index]
-        other_shelf['0'] = Other(0,'SiO2_Al2O3', {'mole_SiO2':1}, "lp_var['mole_Al2O3']", 3, 18, 2)   # Using 'SiO2:Al2O3' gives an error
-        other_shelf['1'] = Other(1,'LOI', {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['LOI']) for index in ingredient_dict if float(ingredient_dict[index].other_attributes['LOI'])>0}, \
-                                "lp_var['ingredient_total']", 0, 100, 1)
-        other_shelf['2'] = Other(2,'cost', {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['cost']) for index in ingredient_dict if float(ingredient_dict[index].other_attributes['cost'])>0}, \
-                                "lp_var['ingredient_total']", 0, 100, 1)
-        other_shelf['3'] = Other(3,'Total clay', {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['clay']) for index in ingredient_dict if float(ingredient_dict[index].other_attributes['clay'])>0}, \
-                                "lp_var['ingredient_total']", 0, 100, 1)
-        
-        other_dict = dict(other_shelf)
-else:
-    other_dict = update_other()
+other_dict = update_other()
 
 
 # Set up variables and universal restrictions for LP problem
