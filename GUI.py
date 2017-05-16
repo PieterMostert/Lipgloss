@@ -248,6 +248,7 @@ def delete_ingredient(index):
     oxides_to_update = ingredient_dict[index].oxide_comp
 
     ingredient_compositions = get_ing_comp()   # shouldn't be necessary
+    prob._variables.remove(lp_var['ingredient_'+index])     # somehow, this doesn't seem to be happening
 
     #make this a function update_basic_constraints
     for ox in oxides_to_update:
@@ -266,8 +267,15 @@ def delete_ingredient(index):
         del ingredient_shelf[index]
     
     ingredient_select_button[index].destroy()   # remove the deleted ingredient from the list of ingredients to select from
-
-    del lp_var['ingredient_'+index]     # somehow, this doesn't seem to be happening
+    
+    try:
+        del prob.constraints['ingredient_'+index+'_lower']  # Is this necessary?
+    except:
+        pass
+    try:
+        del prob.constraints['ingredient_'+index+'_upper']  # Is this necessary?
+    except:
+        pass
     prob.constraints['ing_total'] = lp_var['ingredient_total'] == sum(lp_var['ingredient_'+i] for i in ingredient_dict)
 
     del restr_dict['ingredient_'+index]
@@ -504,4 +512,4 @@ open_recipe('0', restr_dict)
     
 root.config(menu=menubar)
 
-
+root.mainloop()
