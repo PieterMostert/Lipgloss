@@ -18,7 +18,8 @@
 
 # Initialize ingredients:
 ingredient_names = ['Silica', 'Kaolin', 'Ball Clay','Potash Feldspar', 'Soda Feldspar', 'Neph Sy', 'Wollastonite', 'Whiting', 'Talc',
-                    'Magnesite', 'Zinc Oxide', 'Frit 3110', 'Frit 3124', 'Frit 3134', 'Frit 3195', 'Tricalcium Phosphate', 'Lithium Carbonate', 'Red Iron Oxide']
+                    'Magnesite', 'Zinc Oxide', 'Frit 3110', 'Frit 3124', 'Frit 3134', 'Frit 3195', 'Tricalcium Phosphate',
+                    'Lithium Carbonate', 'Red Iron Oxide', 'Gillespie Borate', 'Cornwall Stone']
 # Note that '0'='LOI', '1'='1', and '2'='clay'
 ingredient_compositions={}
 ingredient_compositions['Silica']={'SiO2':100,'1':0}
@@ -40,6 +41,12 @@ ingredient_compositions['Frit 3195']={'SiO2':48.35,'Al2O3':11.98,'CaO':11.36,'Na
 ingredient_compositions['Tricalcium Phosphate']={'CaO':54.22,'P2O5':45.78,'1':0}
 ingredient_compositions['Lithium Carbonate']={'Li2O':40.74,'0':59.26,'1':0}
 ingredient_compositions['Red Iron Oxide']={'Fe2O3':95,'0':5,'1':0}
+ingredient_compositions['Gillespie Borate']={'SiO2':11.8,'Al2O3':1.7, 'B2O3':24.49,'CaO':22.99,'MgO':3.9,'Na2O':3.77,'1':30.9}
+ingredient_compositions['Cornwall Stone']={'SiO2':73.78,'Al2O3':16.33,'CaO':1.81,'K2O':4.3,'Na2O':3.3,'MgO':0.14,'Fe2O3':0.19,
+                                           'TiO2':0.15,'1':0}
+
+
 
 default_ingredients_init = ['Silica', 'Kaolin', 'Ball Clay', 'Potash Feldspar', 'Soda Feldspar', 'Neph Sy',
-                            'Wollastonite', 'Whiting', 'Talc', 'Magnesite', 'Zinc Oxide', 'Frit 3110', 'Frit 3124', 'Frit 3134', 'Frit 3195']
+                            'Wollastonite', 'Whiting', 'Talc', 'Magnesite', 'Zinc Oxide', 'Frit 3110', 'Frit 3124', 'Frit 3134',
+                            'Frit 3195']
