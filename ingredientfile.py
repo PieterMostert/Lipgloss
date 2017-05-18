@@ -20,7 +20,7 @@
 ingredient_names = ['Silica', 'Kaolin', 'Ball Clay','Potash Feldspar', 'Soda Feldspar', 'Neph Sy', 'Wollastonite', 'Whiting', 'Talc',
                     'Magnesite', 'Zinc Oxide', 'Frit 3110', 'Frit 3124', 'Frit 3134', 'Frit 3195', 'Tricalcium Phosphate',
                     'Lithium Carbonate', 'Red Iron Oxide', 'Gillespie Borate', 'Cornwall Stone']
-# Note that '0'='LOI', '1'='1', and '2'='clay'
+# Note that '0'='LOI', '1'='cost', and '2'='clay'
 ingredient_compositions={}
 ingredient_compositions['Silica']={'SiO2':100,'1':0}
 ingredient_compositions['Kaolin']={'Al2O3':40.21,'SiO2':47.29,'0':12.5,'1':0, '2':100}
