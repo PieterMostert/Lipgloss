@@ -96,12 +96,12 @@ ZnO_umf_lower: mole_ZnO >= 0
 ZnO_umf_upper: - fluxes_total + mole_ZnO <= 0
 ZnO_wt_%_lower: mass_ZnO >= 0
 ZnO_wt_%_upper: mass_ZnO - ox_mass_total <= 0
-_C1: - mass_SiO2 + 60.083 mole_SiO2 = 0
+_C1: - mass_SiO2 + 60.085 mole_SiO2 = 0
 _C10: - mass_Na2O + 61.979 mole_Na2O = 0
-_C11: - mass_K2O + 94.191 mole_K2O = 0
-_C12: - mass_P2O5 + 141.943 mole_P2O5 = 0
-_C13: - mass_Fe2O3 + 159.687 mole_Fe2O3 = 0
-_C14: - mass_TiO2 + 79.865 mole_TiO2 = 0
+_C11: - mass_K2O + 94.196 mole_K2O = 0
+_C12: - mass_P2O5 + 141.945 mole_P2O5 = 0
+_C13: - mass_Fe2O3 + 159.688 mole_Fe2O3 = 0
+_C14: - mass_TiO2 + 79.866 mole_TiO2 = 0
 _C15: - mass_MnO2 + 86.937 mole_MnO2 = 0
 _C16: - mole_SiO2 + other_0 = 0
 _C17: - mole_K2O - mole_Na2O + other_1 = 0
@@ -121,13 +121,13 @@ _C24: - mass_Al2O3 - mass_B2O3 - mass_BaO - mass_CaO - mass_Fe2O3 - mass_K2O
 _C25: - mole_Al2O3 - mole_B2O3 - mole_BaO - mole_CaO - mole_Fe2O3 - mole_K2O
  - mole_Li2O - mole_MgO - mole_MnO2 - mole_Na2O - mole_P2O5 - mole_SiO2
  - mole_SrO - mole_TiO2 - mole_ZnO + ox_mole_total = 0
-_C3: - mass_B2O3 + 69.617 mole_B2O3 = 0
+_C3: - mass_B2O3 + 69.62 mole_B2O3 = 0
 _C4: - mass_MgO + 40.304 mole_MgO = 0
 _C5: - mass_CaO + 56.077 mole_CaO = 0
-_C6: - mass_SrO + 103.619 mole_SrO = 0
-_C7: - mass_BaO + 153.329 mole_BaO = 0
-_C8: - mass_ZnO + 81.379 mole_ZnO = 0
-_C9: - mass_Li2O + 29.879 mole_Li2O = 0
+_C6: - mass_SrO + 103.62 mole_SrO = 0
+_C7: - mass_BaO + 153.326 mole_BaO = 0
+_C8: - mass_ZnO + 81.39 mole_ZnO = 0
+_C9: - mass_Li2O + 29.881 mole_Li2O = 0
 ing_total: - ingredient_0 - ingredient_1 - ingredient_10 - ingredient_11
  - ingredient_12 - ingredient_13 - ingredient_14 - ingredient_15
  - ingredient_16 - ingredient_17 - ingredient_18 - ingredient_19
