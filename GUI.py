@@ -16,6 +16,9 @@
 
 # Contact: pi.mostert@gmail.com
 
+import json
+import jsonpickle
+
 import tkinter.messagebox
 from numbers import Number
 
@@ -154,35 +157,68 @@ def update_shelf(name, dictionary):
     with shelve.open(name) as shelf:
         shelf = dictionary
         
-def update_shelf_entry(name, key, value):
-    with shelve.open(name) as shelf:
-        shelf[key] = value
-        
+#def update_shelf_entry(name, key, value):
+#    with shelve.open(name) as shelf:
+#        shelf[key] = value
+
+def json_load_recipes():
+    global recipe_dict
+    global current_recipe
+    f = open('JSONRecipeShelf.json', 'r')
+    json_str = f.read()
+    recipe_dict = jsonpickle.decode(json_str)
+    # open first (default) recipe in list
+    current_recipe = recipe_dict['0']
+
+def json_save_recipe():
+    global recipe_dict
+    f = open('JSONRecipeShelf.json', 'w')
+    jsonpickle.set_preferred_backend('json')
+    jsonpickle.set_encoder_options('json', indent=4)
+    f.write(jsonpickle.encode(recipe_dict))
+
 def save_recipe():
     global recipe_dict
     current_recipe.update_bounds(restr_dict)
     current_recipe.entry_type = entry_type.get()
     recipe_dict[recipe_index] = copy.deepcopy(current_recipe)
-    update_shelf_entry("RecipeShelf", recipe_index, current_recipe)
+    json_save_recipe()
 
 def save_new_recipe():
     global recipe_index
     global recipe_dict
     current_recipe.update_bounds(restr_dict)
     current_recipe.entry_type = entry_type.get()
-    with shelve.open("RecipeShelf") as Recipe_Shelf:
-        r = max([int(index) for index in Recipe_Shelf]) + 1
-        recipe_index = str(r)
-        current_recipe.name = 'Recipe Bounds '+recipe_index
-        current_recipe.pos = r
-        Recipe_Shelf[recipe_index] = current_recipe
+    recipe_index = len(recipe_dict)
+    current_recipe.name = 'Recipe Bounds ' + str(recipe_index)
+    current_recipe.pos = recipe_index
     recipe_dict[recipe_index] = copy.deepcopy(current_recipe)
     recipe_name.set(current_recipe.name)
+    json_save_recipe()
 
-# open first (default) recipe in list
-with shelve.open("RecipeShelf") as Recipe_Shelf:
-    recipe_dict = dict(Recipe_Shelf)
-    current_recipe = recipe_dict['0']
+#def save_recipe():
+#    global recipe_dict
+#    current_recipe.update_bounds(restr_dict)
+#    current_recipe.entry_type = entry_type.get()
+#    recipe_dict[recipe_index] = copy.deepcopy(current_recipe)
+#    update_shelf_entry("RecipeShelf", recipe_index, current_recipe)
+
+#def save_new_recipe():
+#    global recipe_index
+#    global recipe_dict
+#    current_recipe.update_bounds(restr_dict)
+#    current_recipe.entry_type = entry_type.get()
+#    with shelve.open("RecipeShelf") as Recipe_Shelf:
+#        r = max([int(index) for index in Recipe_Shelf]) + 1
+#        recipe_index = str(r)
+#        current_recipe.name = 'Recipe Bounds '+recipe_index
+#        current_recipe.pos = r
+#        Recipe_Shelf[recipe_index] = current_recipe
+#    recipe_dict[recipe_index] = copy.deepcopy(current_recipe)
+#    recipe_name.set(current_recipe.name)
+
+# read in all recipes to global recipe_dict
+json_load_recipes()
 
 # SECTION 4
 # Options in the Options menu: Edit Oxides, Edit Ingredients, Edit Other Rrestricitons, Restriction Settings.
