@@ -78,7 +78,7 @@ def bind_restrictions_to_recipe(recipe, restr_dict):    #   Set the command for 
 # Functions relating to opening and saving recipes.
 
 recipe_name = StringVar()
-Label(recipe_name_frame, textvariable = recipe_name, font = ("Helvetica 12 italic")).grid()  # displays the name of the current recipe
+Entry(recipe_name_frame, textvariable = recipe_name, font = ("Helvetica 12 italic")).grid()  # displays the name of the current recipe
 
 def get_highest_recipe_key():
     """Return the highest recipe key in the recipe dict"""
@@ -186,20 +186,6 @@ def open_recipe_menu():   # Opens window that lets you select a recipe to open
             
     r_s_scrollframe.interior.focus_force()
 
-def save_recipe_menu():   # Opens window that lets you name a new recipe
-    global new_recipe_name_entry
-
-    recipe_name_selector = Toplevel()
-    recipe_name_scrollframe = VerticalScrolledFrame(recipe_name_selector)
-    recipe_name_scrollframe.frame_height = 200
-    recipe_name_scrollframe.pack()
-    Label(master=recipe_name_scrollframe.interior, text='Recipe Name', width=35).grid(row=0, column=0)  
-    new_recipe_name_entry = Entry(master=recipe_name_scrollframe.interior)
-    new_recipe_name_entry.grid(row=1, column=0)
-    save_button = ttk.Button(recipe_name_scrollframe.interior, text = 'Save', width=20, command = partial(save_new_recipe, recipe_name_selector))
-    save_button.grid(row=2)
-    recipe_name_scrollframe.interior.focus_force()
-
 def update_shelf(name, dictionary):
     with shelve.open(name) as shelf:
         shelf = dictionary
@@ -226,26 +212,22 @@ def json_write_recipes():
 def save_recipe():
     """Save a recipe to the global recipe_dict, then update the JSON data file"""
     global recipe_dict
+    current_recipe.name = recipe_name.get()
     current_recipe.update_bounds(restr_dict)
     current_recipe.entry_type = entry_type.get()
     recipe_dict[recipe_index] = copy.deepcopy(current_recipe)
     json_write_recipes()
 
 def save_new_recipe(r_s=0):
-    """Save a new recipe with new ID to the global recipe_dict, then update the JSON data file"""
-    global new_recipe_name_entry    
+    """Save a new recipe with new ID to the global recipe_dict, then update the JSON data file"""  
     global recipe_index
     global recipe_dict
     
-    new_recipe_name = new_recipe_name_entry.get()
     current_recipe.update_bounds(restr_dict)
     current_recipe.entry_type = entry_type.get()
     highest_recipe_key = get_highest_recipe_key()
     recipe_index = int(highest_recipe_key) + 1
-    if not new_recipe_name:
-        current_recipe.name = 'Recipe Bounds ' + str(recipe_index)
-    else:
-        current_recipe.name = new_recipe_name
+    current_recipe.name = 'Recipe Bounds ' + str(recipe_index)
     current_recipe.pos = recipe_index
     recipe_dict[recipe_index] = copy.deepcopy(current_recipe)
     recipe_name.set(current_recipe.name)
@@ -446,7 +428,7 @@ def restriction_settings():
 file_menu = Menu(menubar, tearoff=0)    
 file_menu.add_command(label="Recipes", command=open_recipe_menu)
 file_menu.add_command(label="Save", command=save_recipe)
-file_menu.add_command(label="Save as new recipe", command=save_recipe_menu)
+file_menu.add_command(label="Save as new recipe", command=save_new_recipe)
 menubar.add_cascade(label="File", menu=file_menu)
 
 option_menu.add_command(label="Edit Oxides", command=edit_oxides)
