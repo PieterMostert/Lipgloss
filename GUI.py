@@ -16,14 +16,13 @@
 
 # Contact: pi.mostert@gmail.com
 
-import json
-import jsonpickle
-
 import tkinter.messagebox
 from numbers import Number
 
 from recipes import *
 from polyplot import *
+
+from serializers.recipeserializer import RecipeSerializer
 
 ## SECTION 1
 # Create stuff for restriction window
@@ -73,6 +72,27 @@ def bind_restrictions_to_recipe(recipe, restr_dict):    #   Set the command for 
 
 recipe_name = StringVar()
 Label(recipe_name_frame, textvariable = recipe_name, font = ("Helvetica 12 italic")).grid()  # displays the name of the current recipe
+
+def get_highest_recipe_key():
+    """Return the highest recipe key in the recipe dict"""
+    global recipe_dict
+    return max(recipe_dict, key=int)
+
+def delete_recipe(index, restr_dict, r_s=0):
+    """Delete the recipe from the recipe_dict, then write out the updated recipe_dict to JSON file."""
+    global recipe_dict
+    global recipe_index
+
+    if index != '0': # don't allow a user to delete the default 
+        del recipe_dict[index]
+        json_write_recipes()
+    try:
+        r_s.destroy() # destroy the open recipe window
+    except:
+        pass
+    if index == recipe_index:
+        # we have deleted the current recipe.  go to default recipe
+        open_recipe('0', restr_dict)
 
 def open_recipe(index, restr_dict, r_s=0):   # to be used when opening a recipe, (or when ingredients have been updated?). Be careful.
 
@@ -130,9 +150,14 @@ def open_recipe(index, restr_dict, r_s=0):   # to be used when opening a recipe,
 
 def display_recipe(index, frame, window):     # display recipe name in recipe_selector
     recipe = recipe_dict[index]
-    name_button =  ttk.Button(master=frame, text = recipe.name, width=20,
+    name_button =  ttk.Button(master=frame, text = recipe.name, width=30,
                              command = partial(open_recipe, index, restr_dict, window))
     name_button.grid(row=recipe.pos+1, column=0)
+    if index != '0': 
+        # only allow deletion of user recipes.  index '0' denotes the default recipe bounds
+        delete_button = ttk.Button(master=frame, text = "X", width=5,
+                                  command = partial(delete_recipe, index, restr_dict, window))
+        delete_button.grid(row=recipe.pos+1, column=1)
 
 def open_recipe_menu():   # Opens window that lets you select a recipe to open
     global recipe_selector
@@ -157,65 +182,44 @@ def update_shelf(name, dictionary):
     with shelve.open(name) as shelf:
         shelf = dictionary
         
-#def update_shelf_entry(name, key, value):
-#    with shelve.open(name) as shelf:
-#        shelf[key] = value
-
 def json_load_recipes():
+    """Load recipes from a JSON file using our deserializer"""
     global recipe_dict
     global current_recipe
-    f = open('JSONRecipeShelf.json', 'r')
+    f = open('./data/JSONRecipeShelf.json', 'r')
     json_str = f.read()
-    recipe_dict = jsonpickle.decode(json_str)
+    recipe_dict = RecipeSerializer.deserialize_dict(json_str)
     # open first (default) recipe in list
     current_recipe = recipe_dict['0']
 
-def json_save_recipe():
+def json_write_recipes():
+    """Write all recipes from the global recipe_dict to file, overwriting previous data"""
     global recipe_dict
-    f = open('JSONRecipeShelf.json', 'w')
-    jsonpickle.set_preferred_backend('json')
-    jsonpickle.set_encoder_options('json', indent=4)
-    f.write(jsonpickle.encode(recipe_dict))
+    f = open('./data/JSONRecipeShelf.json', 'w')
+    json_string = RecipeSerializer.serialize_dict(recipe_dict)
+    f.write(json_string)
 
 def save_recipe():
+    """Save a recipe to the global recipe_dict, then update the JSON data file"""
     global recipe_dict
     current_recipe.update_bounds(restr_dict)
     current_recipe.entry_type = entry_type.get()
     recipe_dict[recipe_index] = copy.deepcopy(current_recipe)
-    json_save_recipe()
+    json_write_recipes()
 
 def save_new_recipe():
+    """Save a new recipe with new ID to the global recipe_dict, then update the JSON data file"""
     global recipe_index
     global recipe_dict
     current_recipe.update_bounds(restr_dict)
     current_recipe.entry_type = entry_type.get()
-    recipe_index = len(recipe_dict)
+    highest_recipe_key = get_highest_recipe_key()
+    recipe_index = int(highest_recipe_key) + 1
     current_recipe.name = 'Recipe Bounds ' + str(recipe_index)
     current_recipe.pos = recipe_index
     recipe_dict[recipe_index] = copy.deepcopy(current_recipe)
     recipe_name.set(current_recipe.name)
-    json_save_recipe()
-
-#def save_recipe():
-#    global recipe_dict
-#    current_recipe.update_bounds(restr_dict)
-#    current_recipe.entry_type = entry_type.get()
-#    recipe_dict[recipe_index] = copy.deepcopy(current_recipe)
-#    update_shelf_entry("RecipeShelf", recipe_index, current_recipe)
-
-#def save_new_recipe():
-#    global recipe_index
-#    global recipe_dict
-#    current_recipe.update_bounds(restr_dict)
-#    current_recipe.entry_type = entry_type.get()
-#    with shelve.open("RecipeShelf") as Recipe_Shelf:
-#        r = max([int(index) for index in Recipe_Shelf]) + 1
-#        recipe_index = str(r)
-#        current_recipe.name = 'Recipe Bounds '+recipe_index
-#        current_recipe.pos = r
-#        Recipe_Shelf[recipe_index] = current_recipe
-#    recipe_dict[recipe_index] = copy.deepcopy(current_recipe)
-#    recipe_name.set(current_recipe.name)
+    json_write_recipes()
 
 # read in all recipes to global recipe_dict
 json_load_recipes()
@@ -405,7 +409,7 @@ def restriction_settings():
 # SECTION 5
 # Create menus
 file_menu = Menu(menubar, tearoff=0)    
-file_menu.add_command(label="Open", command=open_recipe_menu)
+file_menu.add_command(label="Recipes", command=open_recipe_menu)
 file_menu.add_command(label="Save", command=save_recipe)
 file_menu.add_command(label="Save as new recipe", command=save_new_recipe)
 menubar.add_cascade(label="File", menu=file_menu)

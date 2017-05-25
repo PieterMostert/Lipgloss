@@ -1,6 +1,6 @@
 {
     "0": {
-        "py/object": "recipes.Recipe",
+        "name": "Default Recipe Bounds",
         "entry_type": "umf_",
         "ingredients": [
             "0",
@@ -18,6 +18,19 @@
             "13",
             "14",
             "10"
+        ],
+        "other": [],
+        "oxides": [
+            "MgO",
+            "CaO",
+            "Fe2O3",
+            "SiO2",
+            "B2O3",
+            "TiO2",
+            "ZnO",
+            "Al2O3",
+            "K2O",
+            "Na2O"
         ],
         "lower_bounds": {
             "ingredient_0": 0.0,
@@ -66,23 +79,6 @@
             "umf_TiO2": 0.0,
             "umf_ZnO": 0.0
         },
-        "name": "Default Recipe Bounds",
-        "other": [],
-        "oxides": {
-            "py/set": [
-                "CaO",
-                "MgO",
-                "K2O",
-                "B2O3",
-                "Fe2O3",
-                "Na2O",
-                "TiO2",
-                "SiO2",
-                "ZnO",
-                "Al2O3"
-            ]
-        },
-        "pos": 0,
         "upper_bounds": {
             "ingredient_0": 100.0,
             "ingredient_1": 100.0,
@@ -130,6 +126,7 @@
             "umf_TiO2": 1.0,
             "umf_ZnO": 1.0
         },
+        "pos": 0,
         "variables": {}
     }
 }
