@@ -93,13 +93,13 @@ def delete_recipe(index, restr_dict, r_s=0):
     if index != '0': # don't allow a user to delete the default 
         del recipe_dict[index]
         json_write_recipes()
+    if index == recipe_index:
+        # we have deleted the current recipe.  go to default recipe
+        open_recipe('0', restr_dict)
     try:
         r_s.destroy() # destroy the open recipe window
     except:
         pass
-    if index == recipe_index:
-        # we have deleted the current recipe.  go to default recipe
-        open_recipe('0', restr_dict)
 
 def open_recipe(index, restr_dict, r_s=0):   # to be used when opening a recipe, (or when ingredients have been updated?). Be careful.
 
@@ -178,12 +178,27 @@ def open_recipe_menu():   # Opens window that lets you select a recipe to open
     recipe_selector_buttons = Frame(recipe_selector)
     recipe_selector_buttons.pack()
 
-    Label(master=r_s_scrollframe.interior, text='Recipes', width=15).grid(row=0, column=1)  
+    Label(master=r_s_scrollframe.interior, text='Recipes', width=35).grid(row=0, column=0)  
+    Label(master=r_s_scrollframe.interior, text='Delete', width=5).grid(row=0, column=1)  
 
     for index in recipe_dict:
         display_recipe(index, r_s_scrollframe.interior, recipe_selector) 
             
     r_s_scrollframe.interior.focus_force()
+
+def save_recipe_menu():   # Opens window that lets you name a new recipe
+    global new_recipe_name_entry
+
+    recipe_name_selector = Toplevel()
+    recipe_name_scrollframe = VerticalScrolledFrame(recipe_name_selector)
+    recipe_name_scrollframe.frame_height = 200
+    recipe_name_scrollframe.pack()
+    Label(master=recipe_name_scrollframe.interior, text='Recipe Name', width=35).grid(row=0, column=0)  
+    new_recipe_name_entry = Entry(master=recipe_name_scrollframe.interior)
+    new_recipe_name_entry.grid(row=1, column=0)
+    save_button = ttk.Button(recipe_name_scrollframe.interior, text = 'Save', width=20, command = partial(save_new_recipe, recipe_name_selector))
+    save_button.grid(row=2)
+    recipe_name_scrollframe.interior.focus_force()
 
 def update_shelf(name, dictionary):
     with shelve.open(name) as shelf:
@@ -216,19 +231,30 @@ def save_recipe():
     recipe_dict[recipe_index] = copy.deepcopy(current_recipe)
     json_write_recipes()
 
-def save_new_recipe():
+def save_new_recipe(r_s=0):
     """Save a new recipe with new ID to the global recipe_dict, then update the JSON data file"""
+    global new_recipe_name_entry    
     global recipe_index
     global recipe_dict
+    
+    new_recipe_name = new_recipe_name_entry.get()
     current_recipe.update_bounds(restr_dict)
     current_recipe.entry_type = entry_type.get()
     highest_recipe_key = get_highest_recipe_key()
     recipe_index = int(highest_recipe_key) + 1
-    current_recipe.name = 'Recipe Bounds ' + str(recipe_index)
+    if not new_recipe_name:
+        current_recipe.name = 'Recipe Bounds ' + str(recipe_index)
+    else:
+        current_recipe.name = new_recipe_name
     current_recipe.pos = recipe_index
     recipe_dict[recipe_index] = copy.deepcopy(current_recipe)
     recipe_name.set(current_recipe.name)
     json_write_recipes()
+    try:
+        r_s.destroy()
+    except:
+        pass
+
 
 # read in all recipes to global recipe_dict
 json_load_recipes()
@@ -420,7 +446,7 @@ def restriction_settings():
 file_menu = Menu(menubar, tearoff=0)    
 file_menu.add_command(label="Recipes", command=open_recipe_menu)
 file_menu.add_command(label="Save", command=save_recipe)
-file_menu.add_command(label="Save as new recipe", command=save_new_recipe)
+file_menu.add_command(label="Save as new recipe", command=save_recipe_menu)
 menubar.add_cascade(label="File", menu=file_menu)
 
 option_menu.add_command(label="Edit Oxides", command=edit_oxides)
