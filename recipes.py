@@ -328,5 +328,5 @@ class Recipe:
             lb['ingredient_'+str(i)] = 0
             ub['ingredient_'+str(i)] = 100
             
-        return Recipe('Default Recipe Bounds XX', 0, [str(i) for i in range(3)], [], lb, ub, 'umf_')
+        return Recipe('Default Recipe Bounds', 0, [str(i) for i in range(3)], [], lb, ub, 'umf_')
 
