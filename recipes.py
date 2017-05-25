@@ -24,8 +24,6 @@ import copy
 from pulp2dim import *
 from restrictions import *
 
-initialize_recipe = 0       # Run script with initialize_recipe = 1 whenever the Recipe class is changed
-
 def get_ing_comp():                           # Redo. This function is defined in the main (gui) file
     ingredient_compositions = {}
     with shelve.open("IngredientShelf") as ingredient_shelf:
@@ -312,11 +310,9 @@ class Recipe:
             canvas.create_polygon_plot(vertices)
             canvas.pack(expand='yes', fill='both')
 
-# Define default recipe, in the case where class definitions have changed, or when things have just generally gotten messy
-if initialize_recipe == 1:
-    with shelve.open("RecipeShelf") as recipe_shelf:
-        for index in recipe_shelf:
-            del recipe_shelf[index]
+    @staticmethod
+    def get_default_recipe():
+        """Define default recipe, in the case where class definitions have changed, or when things have just generally gotten messy"""
         lb = {} 
         ub = {} 
         
@@ -332,4 +328,5 @@ if initialize_recipe == 1:
             lb['ingredient_'+str(i)] = 0
             ub['ingredient_'+str(i)] = 100
             
-        recipe_shelf['0'] = Recipe('Default Recipe Bounds', 0, [str(i) for i in range(3)], [], lb, ub, 'umf_')
+        return Recipe('Default Recipe Bounds XX', 0, [str(i) for i in range(3)], [], lb, ub, 'umf_')
+

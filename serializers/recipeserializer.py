@@ -1,5 +1,5 @@
 import json
-from recipes import *
+from recipes import Recipe
 
 
 class RecipeSerializer(object):

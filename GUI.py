@@ -24,6 +24,13 @@ from polyplot import *
 
 from serializers.recipeserializer import RecipeSerializer
 
+if False:  # Set to True whenever the Recipe class is changed
+    default_recipe_dict = {}
+    default_recipe_dict['0'] = Recipe.get_default_recipe()
+    f = open('./data/JSONRecipeShelf.json', 'w')
+    f.write(RecipeSerializer.serialize_dict(default_recipe_dict))
+    f.close()
+    
 ## SECTION 1
 # Create stuff for restriction window
 
@@ -188,6 +195,7 @@ def json_load_recipes():
     global current_recipe
     f = open('./data/JSONRecipeShelf.json', 'r')
     json_str = f.read()
+    f.close()
     recipe_dict = RecipeSerializer.deserialize_dict(json_str)
     # open first (default) recipe in list
     current_recipe = recipe_dict['0']
@@ -198,7 +206,8 @@ def json_write_recipes():
     f = open('./data/JSONRecipeShelf.json', 'w')
     json_string = RecipeSerializer.serialize_dict(recipe_dict)
     f.write(json_string)
-
+    f.close()
+    
 def save_recipe():
     """Save a recipe to the global recipe_dict, then update the JSON data file"""
     global recipe_dict
