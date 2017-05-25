@@ -14,6 +14,12 @@ Al2O3_wt_%_lower: mass_Al2O3 >= 0
 Al2O3_wt_%_upper: mass_Al2O3 - ox_mass_total <= 0
 B2O3: 0.0289 ingredient_11 + 0.1377 ingredient_12 + 0.2309 ingredient_13
  + 0.2262 ingredient_14 + 0.2449 ingredient_18 - mass_B2O3 = 0
+B2O3_mol_%_lower: mole_B2O3 >= 0
+B2O3_mol_%_upper: mole_B2O3 - ox_mole_total <= 0
+B2O3_umf_lower: mole_B2O3 >= 0
+B2O3_umf_upper: - fluxes_total + mole_B2O3 <= 0
+B2O3_wt_%_lower: mass_B2O3 >= 0
+B2O3_wt_%_upper: mass_B2O3 - ox_mass_total <= 0
 BaO: mass_BaO = 0
 CaO: 0.0564 ingredient_11 + 0.1407 ingredient_12 + 0.2013 ingredient_13
  + 0.1136 ingredient_14 + 0.5422 ingredient_15 + 0.2299 ingredient_18
@@ -132,13 +138,13 @@ ingredient_0_upper: ingredient_0 - ingredient_total <= 0
 ingredient_10_lower: ingredient_10 >= 0
 ingredient_10_upper: ingredient_10 - ingredient_total <= 0
 ingredient_11_lower: ingredient_11 >= 0
-ingredient_11_upper: ingredient_11 <= 0
+ingredient_11_upper: ingredient_11 - ingredient_total <= 0
 ingredient_12_lower: ingredient_12 >= 0
-ingredient_12_upper: ingredient_12 <= 0
+ingredient_12_upper: ingredient_12 - ingredient_total <= 0
 ingredient_13_lower: ingredient_13 >= 0
-ingredient_13_upper: ingredient_13 <= 0
+ingredient_13_upper: ingredient_13 - ingredient_total <= 0
 ingredient_14_lower: ingredient_14 >= 0
-ingredient_14_upper: ingredient_14 <= 0
+ingredient_14_upper: ingredient_14 - ingredient_total <= 0
 ingredient_15_lower: ingredient_15 >= 0
 ingredient_15_upper: ingredient_15 <= 0
 ingredient_16_lower: ingredient_16 >= 0
