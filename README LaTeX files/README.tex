@@ -51,7 +51,7 @@ You can now progressively strengthen the bounds on the left, based on the calcul
 
 If you want to restrict the bounds for two variables simultaneously, you have the option of plotting the set of possible values of those two variables. That is to say, for each point in the region shown, there is at least one recipe where the variables take on the $x$ and $y$ values of the point, and which satisfies all the constraints\footnote{If you take the example in the previous footnote, the region corresponding to the two ingredient percentages will be a straight line from $(0,100)$ to $(100,0)$. Typically, the regions that arise will be two dimensional, and will always have boundaries that are either straight lines or sections of hyperbolas.}. The $x$ and $y$ variables to plot can be selected by clicking on the left and right hand labels in the right hand panel, respectively. An asterisk should appear next to the label when you click on it. At the moment it's only possible to compare variables of the same type, so you can't plot the percentage of an ingredient together with the mole percentage of an oxide, or the UMF of an oxide together with the weight percentage of an oxide.
 
-A collection of ingredient and other restrictions with lower and upper bounds will be referred to as a bounded recipe. Bounded recipes can be saved, or saved as new bounded recipes (at the moment, their names are determined automatically). If you start with the default bounds and narrow them down to a recipe - i.e. all upper and lower bounds are effectively the same - you should save this as a new bounded recipe, otherwise you'll have to undo all your restrictions when you start working on a new problem. Saved bounded recipes can be opened through the File menu.
+A collection of ingredient and other restrictions with lower and upper bounds will be referred to as a bounded recipe. Bounded recipes can be saved, or saved as new bounded recipes. If you start with the default bounds and narrow them down to a recipe - i.e. all upper and lower bounds are effectively the same - you should save this as a new bounded recipe, otherwise you'll have to undo all your restrictions when you start working on a new problem. Saved bounded recipes can be opened through the File menu.
 
 LIPGLOSS will come pre-installed with common types of ingredients, but most of these should be updated to reflect the analyses of the ingredients in your studio. To do this, click Options $>$ Edit Ingredients to open the ingredient editor.
 
@@ -155,14 +155,14 @@ To maximize or minimize the variable associated with a restriction \blue{res}, w
 
 \subsection{Storing user-defined data}
 
-To save data entered by the user, I\'ve chosen to use the \href{https://docs.python.org/3.6/library/shelve.html}{shelve} module. There may be better ways to do this. This results in several data files: \green{IngredientShelf.dat}, \green{OtherShelf.dat}, \green{OxideShelf.dat}, \green{RecipeShelf.dat} (these all have associated bak and dir files). 
+To save data entered by the user, I\'ve been using the \href{https://docs.python.org/3.6/library/shelve.html}{shelve} module. This results in several data files: \green{IngredientShelf.dat}, \green{OtherShelf.dat}, and \green{OxideShelf.dat} (these all have associated bak and dir files). Derek Au is in the process of switching to JSON instead. The JSON files will be stored in the `data' folder.
 
 At the moment, we could do without the \green{OxideShelf} files, since there's no way for the user to modify any data related to the oxides, but it may be possible in future versions.
 
 \section{Known bugs}
 \begin{itemize}
 \item If you delete an ingredient using the ingredient editor, it will only be deleted from the current recipe (assuming it\'s one of the ingredients in the recipe). When you attempt to open a recipe that contains the deleted ingredient, you'll get an error (unless you've subsequently added a new ingredient which happens to have the same index).
-\item If you edit the oxide composition of an ingredient that has been selected, and then click 'Update', the list of oxides shown doesn't change to reflect this.
+\item If you edit the oxide composition of an ingredient that has been selected, and then click `Update', the list of oxides shown doesn't change to reflect this.
 \item If you create a new ingredient, calculate the restrictions, delete the new ingredient, create a new ingredient (we're assuming it has the same name as the previous one), and try calculate the restrictions again, an error message appears saying, in part, `pulp.constants.PulpError: Repeated variable names in Lp format'. This was not a problem with previous versions of LIPGLOSS.
 \item On my computer, the PuLP API causes a window to open and close each time a linear function is optimized, resulting in a delay of around 10 seconds, even though the actual calculation usually takes under 2 seconds. There may be a fix for this, but I haven't been able to implement it.
 \end{itemize}
@@ -176,7 +176,6 @@ At the moment, we could do without the \green{OxideShelf} files, since there's n
 \item Allow users to define custom `other restrictions'. Users would need to specify an objective function, and a normalization.
 \item Implement the ability to add other attributes to ingredients, using the restriction editor. Each other attribute will be assigned a variable, and an `other restriction' corresponding to that attribute will automatically be added. For example, an other attribute could be the percentage of an ingredient having particle diameters between two bounds.
 \item Fix the headings when scrolling down in the ingredient editor. Add a horizontal scrollbar, and fix the ingredient names when scrolling sideways.
-\item Allow users to name bounded recipes.
 \item Import recipes (or oxide compositions of recipes) from external software, and automatically generate a recipe problem where the oxides are constrained to have the same composition as the imported recipe.
 \item Convert recipe bounds to actual recipes, and export these to external software. This should only be used when the upper and lower bounds on all ingredients are sufficiently close together.
 \item Include an `about box'. 
