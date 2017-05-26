@@ -1,6 +1,6 @@
 \* Glaze recipe *\
 Maximize
-Zinc_Oxide: - ingredient_10
+SiO2: mole_SiO2
 Subject To
 Al2O3: 0.4021 ingredient_1 + 0.0602 ingredient_11 + 0.099 ingredient_12
  + 0.1198 ingredient_14 + 0.017 ingredient_18 + 0.1633 ingredient_19
@@ -29,7 +29,7 @@ CaO_mol_%_lower: mole_CaO >= 0
 CaO_mol_%_upper: mole_CaO - ox_mole_total <= 0
 CaO_umf_lower: mole_CaO >= 0
 CaO_umf_upper: - fluxes_total + mole_CaO <= 0
-CaO_wt_%_lower: mass_CaO >= 0
+CaO_wt_%_lower: mass_CaO - 0.08 ox_mass_total >= 0
 CaO_wt_%_upper: mass_CaO - ox_mass_total <= 0
 Fe2O3: 0.95 ingredient_17 + 0.0019 ingredient_19 + 0.0102 ingredient_2
  + 0.001 ingredient_5 - mass_Fe2O3 = 0
@@ -67,7 +67,7 @@ Na2O_mol_%_lower: mole_Na2O >= 0
 Na2O_mol_%_upper: mole_Na2O - ox_mole_total <= 0
 Na2O_umf_lower: mole_Na2O >= 0
 Na2O_umf_upper: - fluxes_total + mole_Na2O <= 0
-Na2O_wt_%_lower: mass_Na2O >= 0
+Na2O_wt_%_lower: mass_Na2O - 0.8 ox_mass_total >= 0
 Na2O_wt_%_upper: mass_Na2O - ox_mass_total <= 0
 P2O5: 0.4578 ingredient_15 - mass_P2O5 = 0
 SiO2: ingredient_0 + 0.4729 ingredient_1 + 0.6688 ingredient_11
@@ -173,5 +173,5 @@ ingredient_8_lower: ingredient_8 >= 0
 ingredient_8_upper: ingredient_8 - ingredient_total <= 0
 ingredient_9_lower: ingredient_9 >= 0
 ingredient_9_upper: ingredient_9 - ingredient_total <= 0
-normalization: 0.01 ingredient_total = 1
+normalization: fluxes_total = 1
 End

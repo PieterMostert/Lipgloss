@@ -161,47 +161,64 @@ class Recipe:
         if sum(oxide_dict[ox].flux for ox in self.oxides) == 0:
             messagebox.showerror(" ", 'No flux! You have to give a flux.')
             return
+    
+        # Run tests to see if the denominators of other restrictions are identically zero?
 
         for res in restrictions:
             if res.low.get() > res.upp.get():
                 messagebox.showerror(" ", 'Incompatible ' + print_res_type(res.normalization) + 'bounds on ' + prettify(res.name))
                 return
 
-##        if 'SiO2:Al2O3' in selected_other and not ('SiO2' in selected_oxides and 'Al2O3' in selected_oxides):  #replace this with general check to see if normalization is inconsistent
-##            tkinter.messagebox.showerror(" ", 'No SiO\u2082 and/or Al\u2082O\u2083')
-##            return
-
         delta = 0.1**9
 
-        if sum(restr_dict['umf_'+ox].low.get() for ox in selected_fluxes) > 1 + delta:
-            messagebox.showerror(" ", 'Sum of UMF flux lower bounds > 1')
+        sum_UMF_low = sum(restr_dict['umf_'+ox].low.get() for ox in selected_fluxes)
+        if sum_UMF_low > 1 + delta:
+            messagebox.showerror(" ", 'The sum of the UMF flux lower bounds is '+str(sum_UMF_low)
+                                       +'. It should be at most 1. Decrease one of the lower bounds by '+str(sum_UMF_low-1)
+                                       +' or more.')     #will be a problem if they're all < sum_UMF_low-1))
             return
-            
-        if sum(restr_dict['umf_'+ox].upp.get() for ox in selected_fluxes) < 1 - delta:
-            messagebox.showerror(" ", 'Sum of UMF flux upper bounds < 1')
+
+        sum_UMF_upp = sum(restr_dict['umf_'+ox].upp.get() for ox in selected_fluxes)            
+        if sum_UMF_upp < 1 - delta:
+            messagebox.showerror(" ", 'The sum of the UMF flux upper bounds is '+str(sum_UMF_upp)
+                                       +'. It should be at least 1. Increase one of the upper bounds by '+str(1-sum_UMF_low)
+                                       +' or more.')
             return
 
         for t in ['mass_perc_', 'mole_perc_']:
-            if sum(restr_dict[t+ox].low.get() for ox in self.oxides if ox != 'KNaO') > 100 + delta:
-                messagebox.showerror(" ", 'Sum of ' + t + 'lower bounds > 100')
+            sum_t_low = sum(restr_dict[t+ox].low.get() for ox in self.oxides)
+            if sum_t_low > 100 + delta:
+                messagebox.showerror(" ", 'The sum of the ' + prettify(t) + ' lower bounds is '+str(sum_t_low)
+                                           +'. It should be at most 100. Decrease one of the lower bounds by '+str(sum_t_low-100)
+                                           +' or more.')     #will be a problem if they're all < sum_t_low-100)
                 return
 
-            if sum(restr_dict[t+ox].upp.get() for ox in self.oxides if ox != 'KNaO') < 100 - delta:
-                messagebox.showerror(" ", 'Sum of ' + t + 'upper bounds < 100')
+            sum_t_upp = sum(restr_dict[t+ox].upp.get() for ox in self.oxides)
+            if  sum_t_upp < 100 - delta:
+                messagebox.showerror(" ", 'The sum of the ' + prettify(t) + ' upper bounds is '+str(sum_t_upp)
+                                           +'. It should be at least 100. Increase one of the upper bounds by '+str(100-sum_t_upp)
+                                           +' or more.') 
                 return
-
-        if sum(restr_dict['ingredient_'+index].low.get() for index in self.ingredients) > 100 + delta:
-            messagebox.showerror(" ", 'Sum of ingredient lower bounds > 100')
+            
+        sum_ing_low = sum(restr_dict['ingredient_'+index].low.get() for index in self.ingredients)
+        if sum_ing_low > 100 + delta:
+            messagebox.showerror(" ", 'The sum of the ingredient lower bounds is '+str(sum_ing_low)
+                                      +'. It should be at most 100. Decrease one of the lower bounds by '+str(sum_ing_low-100)
+                                      +' or more.')     #will be a problem if they're all < sum_ing_low-100)
             return
             
-        if sum(restr_dict['ingredient_'+index].upp.get() for index in self.ingredients) < 100 - delta:
-            messagebox.showerror(" ", 'Sum of ingredient upper bounds < 100')
+        sum_ing_upp = sum(restr_dict['ingredient_'+index].upp.get() for index in self.ingredients)
+        if sum_ing_upp < 100 - delta:
+            messagebox.showerror(" ", 'The sum of the ingredient upper bounds is '+str(sum_ing_upp)
+                                       +'. It should be at least 100. Increase one of the upper bounds by '+str(100-sum_ing_upp)
+                                       +' or more.')  
             return
          
         t0 = time.process_time()  
 
         with shelve.open("IngredientShelf") as ingredient_shelf:
-            ingredient_dict = dict(ingredient_shelf)
+            ingredient_dict = dict(ingredient_shelf)               # Might be better to include ingredient_dict as a parameter
+                                                                   # in calc_restrictions.
             
         for index in ingredient_dict:
             ing = 'ingredient_'+index
@@ -215,7 +232,8 @@ class Recipe:
             prob.constraints[ing+'_upper'] = lp_var[ing] <= ing_upp*lp_var['ingredient_total']      # ingredient upper bounds
 
 
-        t1 = time.process_time() # The next section takes a while, perhaps because the dictionary lp_var is long. May be better to split it.
+        t1 = time.process_time()      # The next section takes a while, perhaps because the dictionary lp_var is long.
+                                      # May be better to split it.
          
         for ox in oxide_dict:          
             if ox in self.oxides:     

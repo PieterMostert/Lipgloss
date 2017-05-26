@@ -28,7 +28,9 @@ pretty_dict = {'SiO2':'SiO\u2082',
                'TiO2':'TiO\u2082',
                'MnO2':'MnO\u2082',
                'SiO2_Al2O3':'SiO\u2082 : Al\u2082O\u2083',
-               'cost':'Cost'}
+               'cost':'Cost',
+               'mass_perc_':'% weight',
+               'mole_perc_':'% mole'}
 
 def prettify(text):
     try:
