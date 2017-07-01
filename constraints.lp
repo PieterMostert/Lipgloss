@@ -1,6 +1,6 @@
 \* Glaze recipe *\
 Maximize
-SiO2: mole_SiO2
+SiO2_Al2O3: - other_0
 Subject To
 Al2O3: 0.4021 ingredient_1 + 0.0602 ingredient_11 + 0.099 ingredient_12
  + 0.1198 ingredient_14 + 0.017 ingredient_18 + 0.1633 ingredient_19
@@ -16,8 +16,8 @@ B2O3: 0.0289 ingredient_11 + 0.1377 ingredient_12 + 0.2309 ingredient_13
  + 0.2262 ingredient_14 + 0.2449 ingredient_18 - mass_B2O3 = 0
 B2O3_mol_%_lower: mole_B2O3 >= 0
 B2O3_mol_%_upper: mole_B2O3 - ox_mole_total <= 0
-B2O3_umf_lower: mole_B2O3 >= 0
-B2O3_umf_upper: - fluxes_total + mole_B2O3 <= 0
+B2O3_umf_lower: - 0.15 fluxes_total + mole_B2O3 >= 0
+B2O3_umf_upper: - 0.15 fluxes_total + mole_B2O3 <= 0
 B2O3_wt_%_lower: mass_B2O3 >= 0
 B2O3_wt_%_upper: mass_B2O3 - ox_mass_total <= 0
 BaO: mass_BaO = 0
@@ -29,7 +29,7 @@ CaO_mol_%_lower: mole_CaO >= 0
 CaO_mol_%_upper: mole_CaO - ox_mole_total <= 0
 CaO_umf_lower: mole_CaO >= 0
 CaO_umf_upper: - fluxes_total + mole_CaO <= 0
-CaO_wt_%_lower: mass_CaO - 0.08 ox_mass_total >= 0
+CaO_wt_%_lower: mass_CaO >= 0
 CaO_wt_%_upper: mass_CaO - ox_mass_total <= 0
 Fe2O3: 0.95 ingredient_17 + 0.0019 ingredient_19 + 0.0102 ingredient_2
  + 0.001 ingredient_5 - mass_Fe2O3 = 0
@@ -67,7 +67,7 @@ Na2O_mol_%_lower: mole_Na2O >= 0
 Na2O_mol_%_upper: mole_Na2O - ox_mole_total <= 0
 Na2O_umf_lower: mole_Na2O >= 0
 Na2O_umf_upper: - fluxes_total + mole_Na2O <= 0
-Na2O_wt_%_lower: mass_Na2O - 0.8 ox_mass_total >= 0
+Na2O_wt_%_lower: mass_Na2O >= 0
 Na2O_wt_%_upper: mass_Na2O - ox_mass_total <= 0
 P2O5: 0.4578 ingredient_15 - mass_P2O5 = 0
 SiO2: ingredient_0 + 0.4729 ingredient_1 + 0.6688 ingredient_11
@@ -78,7 +78,7 @@ SiO2: ingredient_0 + 0.4729 ingredient_1 + 0.6688 ingredient_11
 SiO2_mol_%_lower: mole_SiO2 >= 0
 SiO2_mol_%_upper: mole_SiO2 - ox_mole_total <= 0
 SiO2_umf_lower: mole_SiO2 >= 0
-SiO2_umf_upper: - 100 fluxes_total + mole_SiO2 <= 0
+SiO2_umf_upper: - 4 fluxes_total + mole_SiO2 <= 0
 SiO2_wt_%_lower: mass_SiO2 >= 0
 SiO2_wt_%_upper: mass_SiO2 - ox_mass_total <= 0
 SrO: mass_SrO = 0
@@ -90,12 +90,6 @@ TiO2_umf_upper: - fluxes_total + mole_TiO2 <= 0
 TiO2_wt_%_lower: mass_TiO2 >= 0
 TiO2_wt_%_upper: mass_TiO2 - ox_mass_total <= 0
 ZnO: ingredient_10 - mass_ZnO = 0
-ZnO_mol_%_lower: mole_ZnO >= 0
-ZnO_mol_%_upper: mole_ZnO - ox_mole_total <= 0
-ZnO_umf_lower: mole_ZnO >= 0
-ZnO_umf_upper: - fluxes_total + mole_ZnO <= 0
-ZnO_wt_%_lower: mass_ZnO >= 0
-ZnO_wt_%_upper: mass_ZnO - ox_mass_total <= 0
 _C1: - mass_SiO2 + 60.085 mole_SiO2 = 0
 _C10: - mass_Na2O + 61.979 mole_Na2O = 0
 _C11: - mass_K2O + 94.196 mole_K2O = 0
@@ -136,7 +130,7 @@ ing_total: - ingredient_0 - ingredient_1 - ingredient_10 - ingredient_11
 ingredient_0_lower: ingredient_0 >= 0
 ingredient_0_upper: ingredient_0 - ingredient_total <= 0
 ingredient_10_lower: ingredient_10 >= 0
-ingredient_10_upper: ingredient_10 - ingredient_total <= 0
+ingredient_10_upper: ingredient_10 <= 0
 ingredient_11_lower: ingredient_11 >= 0
 ingredient_11_upper: ingredient_11 - ingredient_total <= 0
 ingredient_12_lower: ingredient_12 >= 0
@@ -171,7 +165,13 @@ ingredient_7_lower: ingredient_7 >= 0
 ingredient_7_upper: ingredient_7 - ingredient_total <= 0
 ingredient_8_lower: ingredient_8 >= 0
 ingredient_8_upper: ingredient_8 - ingredient_total <= 0
-ingredient_9_lower: ingredient_9 >= 0
+ingredient_9_lower: ingredient_9 - 0.19 ingredient_total >= 0
 ingredient_9_upper: ingredient_9 - ingredient_total <= 0
-normalization: fluxes_total = 1
+normalization: mole_Al2O3 = 1
+other_0_lower: - 3 mole_Al2O3 + other_0 >= 0
+other_0_upper: - 4 mole_Al2O3 + other_0 <= 0
+other_3_lower: - 0.7 fluxes_total + other_3 >= 0
+other_3_upper: - 0.7 fluxes_total + other_3 <= 0
+other_4_lower: - 0.15 ingredient_total + other_4 >= 0
+other_4_upper: - ingredient_total + other_4 <= 0
 End

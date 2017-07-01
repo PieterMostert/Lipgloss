@@ -273,7 +273,7 @@ class Recipe:
              
         t5 = time.process_time()
 
-# Finally, we are ready to calculate the upper and lower bounds imposed on all the variables
+# Finally, we're ready to calculate the upper and lower bounds imposed on all the variables
          
         for res in restrictions:    
             prob.constraints['normalization'] = eval(res.normalization) == 1  # Apply the normalization of the restriction in question
@@ -327,6 +327,16 @@ class Recipe:
             canvas = Canvas(proj_frame, width=450, height=450, bg = 'white', borderwidth = 1, relief = 'solid')
             canvas.create_polygon_plot(vertices)
             canvas.pack(expand='yes', fill='both')
+
+    def convert_to_recipe():
+        #Assumes calc_restrictions has been run
+        converted_recipe={}
+        for index in self.ingredients:
+            cb = restr_dict['ingredient_'+index].calc_bounds
+            converted_recipe[index] = (cb[1]+cb[-1])/2   # eval?
+        s = sum(converted_recipe)/100
+        for index in self.ingredients:
+            converted_recipe[index] /= s
 
     @staticmethod
     def get_default_recipe():
