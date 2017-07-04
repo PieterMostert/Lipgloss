@@ -1,6 +1,6 @@
 \* Glaze recipe *\
 Maximize
-SiO2_Al2O3: - other_0
+Frit_3110: - ingredient_11
 Subject To
 Al2O3: 0.4021 ingredient_1 + 0.0602 ingredient_11 + 0.099 ingredient_12
  + 0.1198 ingredient_14 + 0.017 ingredient_18 + 0.1633 ingredient_19
@@ -8,16 +8,16 @@ Al2O3: 0.4021 ingredient_1 + 0.0602 ingredient_11 + 0.099 ingredient_12
  + 0.233 ingredient_5 - mass_Al2O3 = 0
 Al2O3_mol_%_lower: mole_Al2O3 >= 0
 Al2O3_mol_%_upper: mole_Al2O3 - ox_mole_total <= 0
-Al2O3_umf_lower: mole_Al2O3 >= 0
-Al2O3_umf_upper: - 10 fluxes_total + mole_Al2O3 <= 0
+Al2O3_umf_lower: - 0.4 fluxes_total + mole_Al2O3 >= 0
+Al2O3_umf_upper: - 0.4 fluxes_total + mole_Al2O3 <= 0
 Al2O3_wt_%_lower: mass_Al2O3 >= 0
 Al2O3_wt_%_upper: mass_Al2O3 - ox_mass_total <= 0
 B2O3: 0.0289 ingredient_11 + 0.1377 ingredient_12 + 0.2309 ingredient_13
  + 0.2262 ingredient_14 + 0.2449 ingredient_18 - mass_B2O3 = 0
 B2O3_mol_%_lower: mole_B2O3 >= 0
 B2O3_mol_%_upper: mole_B2O3 - ox_mole_total <= 0
-B2O3_umf_lower: - 0.15 fluxes_total + mole_B2O3 >= 0
-B2O3_umf_upper: - 0.15 fluxes_total + mole_B2O3 <= 0
+B2O3_umf_lower: - 0.2 fluxes_total + mole_B2O3 >= 0
+B2O3_umf_upper: - 0.2 fluxes_total + mole_B2O3 <= 0
 B2O3_wt_%_lower: mass_B2O3 >= 0
 B2O3_wt_%_upper: mass_B2O3 - ox_mass_total <= 0
 BaO: mass_BaO = 0
@@ -27,7 +27,7 @@ CaO: 0.0564 ingredient_11 + 0.1407 ingredient_12 + 0.2013 ingredient_13
  + 0.4828 ingredient_6 + 0.561 ingredient_7 - mass_CaO = 0
 CaO_mol_%_lower: mole_CaO >= 0
 CaO_mol_%_upper: mole_CaO - ox_mole_total <= 0
-CaO_umf_lower: mole_CaO >= 0
+CaO_umf_lower: - 0.5 fluxes_total + mole_CaO >= 0
 CaO_umf_upper: - fluxes_total + mole_CaO <= 0
 CaO_wt_%_lower: mass_CaO >= 0
 CaO_wt_%_upper: mass_CaO - ox_mass_total <= 0
@@ -44,7 +44,7 @@ K2O: 0.0345 ingredient_11 + 0.0068 ingredient_12 + 0.043 ingredient_19
  = 0
 K2O_mol_%_lower: mole_K2O >= 0
 K2O_mol_%_upper: mole_K2O - ox_mole_total <= 0
-K2O_umf_lower: mole_K2O >= 0
+K2O_umf_lower: - 0.2 fluxes_total + mole_K2O >= 0
 K2O_umf_upper: - fluxes_total + mole_K2O <= 0
 K2O_wt_%_lower: mass_K2O >= 0
 K2O_wt_%_upper: mass_K2O - ox_mass_total <= 0
@@ -54,7 +54,7 @@ MgO: 0.039 ingredient_18 + 0.0014 ingredient_19 + 0.003 ingredient_2
  = 0
 MgO_mol_%_lower: mole_MgO >= 0
 MgO_mol_%_upper: mole_MgO - ox_mole_total <= 0
-MgO_umf_lower: mole_MgO >= 0
+MgO_umf_lower: - 0.2 fluxes_total + mole_MgO >= 0
 MgO_umf_upper: - fluxes_total + mole_MgO <= 0
 MgO_wt_%_lower: mass_MgO >= 0
 MgO_wt_%_upper: mass_MgO - ox_mass_total <= 0
@@ -65,7 +65,7 @@ Na2O: 0.1512 ingredient_11 + 0.0628 ingredient_12 + 0.1028 ingredient_13
  = 0
 Na2O_mol_%_lower: mole_Na2O >= 0
 Na2O_mol_%_upper: mole_Na2O - ox_mole_total <= 0
-Na2O_umf_lower: mole_Na2O >= 0
+Na2O_umf_lower: - 0.1 fluxes_total + mole_Na2O >= 0
 Na2O_umf_upper: - fluxes_total + mole_Na2O <= 0
 Na2O_wt_%_lower: mass_Na2O >= 0
 Na2O_wt_%_upper: mass_Na2O - ox_mass_total <= 0
@@ -77,18 +77,12 @@ SiO2: ingredient_0 + 0.4729 ingredient_1 + 0.6688 ingredient_11
  + 0.5172 ingredient_6 + 0.6338 ingredient_8 - mass_SiO2 = 0
 SiO2_mol_%_lower: mole_SiO2 >= 0
 SiO2_mol_%_upper: mole_SiO2 - ox_mole_total <= 0
-SiO2_umf_lower: mole_SiO2 >= 0
+SiO2_umf_lower: - 4 fluxes_total + mole_SiO2 >= 0
 SiO2_umf_upper: - 4 fluxes_total + mole_SiO2 <= 0
 SiO2_wt_%_lower: mass_SiO2 >= 0
 SiO2_wt_%_upper: mass_SiO2 - ox_mass_total <= 0
 SrO: mass_SrO = 0
 TiO2: 0.0015 ingredient_19 + 0.01 ingredient_2 - mass_TiO2 = 0
-TiO2_mol_%_lower: mole_TiO2 >= 0
-TiO2_mol_%_upper: mole_TiO2 - ox_mole_total <= 0
-TiO2_umf_lower: mole_TiO2 >= 0
-TiO2_umf_upper: - fluxes_total + mole_TiO2 <= 0
-TiO2_wt_%_lower: mass_TiO2 >= 0
-TiO2_wt_%_upper: mass_TiO2 - ox_mass_total <= 0
 ZnO: ingredient_10 - mass_ZnO = 0
 _C1: - mass_SiO2 + 60.085 mole_SiO2 = 0
 _C10: - mass_Na2O + 61.979 mole_Na2O = 0
@@ -134,9 +128,9 @@ ingredient_10_upper: ingredient_10 <= 0
 ingredient_11_lower: ingredient_11 >= 0
 ingredient_11_upper: ingredient_11 - ingredient_total <= 0
 ingredient_12_lower: ingredient_12 >= 0
-ingredient_12_upper: ingredient_12 - ingredient_total <= 0
+ingredient_12_upper: ingredient_12 <= 0
 ingredient_13_lower: ingredient_13 >= 0
-ingredient_13_upper: ingredient_13 - ingredient_total <= 0
+ingredient_13_upper: ingredient_13 <= 0
 ingredient_14_lower: ingredient_14 >= 0
 ingredient_14_upper: ingredient_14 - ingredient_total <= 0
 ingredient_15_lower: ingredient_15 >= 0
@@ -152,26 +146,20 @@ ingredient_19_upper: ingredient_19 <= 0
 ingredient_1_lower: ingredient_1 >= 0
 ingredient_1_upper: ingredient_1 - ingredient_total <= 0
 ingredient_2_lower: ingredient_2 >= 0
-ingredient_2_upper: ingredient_2 - ingredient_total <= 0
+ingredient_2_upper: ingredient_2 <= 0
 ingredient_3_lower: ingredient_3 >= 0
 ingredient_3_upper: ingredient_3 - ingredient_total <= 0
 ingredient_4_lower: ingredient_4 >= 0
-ingredient_4_upper: ingredient_4 - ingredient_total <= 0
+ingredient_4_upper: ingredient_4 <= 0
 ingredient_5_lower: ingredient_5 >= 0
 ingredient_5_upper: ingredient_5 - ingredient_total <= 0
 ingredient_6_lower: ingredient_6 >= 0
 ingredient_6_upper: ingredient_6 - ingredient_total <= 0
 ingredient_7_lower: ingredient_7 >= 0
-ingredient_7_upper: ingredient_7 - ingredient_total <= 0
+ingredient_7_upper: ingredient_7 <= 0
 ingredient_8_lower: ingredient_8 >= 0
 ingredient_8_upper: ingredient_8 - ingredient_total <= 0
-ingredient_9_lower: ingredient_9 - 0.19 ingredient_total >= 0
-ingredient_9_upper: ingredient_9 - ingredient_total <= 0
-normalization: mole_Al2O3 = 1
-other_0_lower: - 3 mole_Al2O3 + other_0 >= 0
-other_0_upper: - 4 mole_Al2O3 + other_0 <= 0
-other_3_lower: - 0.7 fluxes_total + other_3 >= 0
-other_3_upper: - 0.7 fluxes_total + other_3 <= 0
-other_4_lower: - 0.15 ingredient_total + other_4 >= 0
-other_4_upper: - ingredient_total + other_4 <= 0
+ingredient_9_lower: ingredient_9 >= 0
+ingredient_9_upper: ingredient_9 <= 0
+normalization: 0.01 ingredient_total = 1
 End
