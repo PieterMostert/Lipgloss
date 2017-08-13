@@ -571,4 +571,4 @@ open_recipe('0', restr_dict)
     
 root.config(menu=menubar)
 
-#root.mainloop()
+root.mainloop()
