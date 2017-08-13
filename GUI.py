@@ -255,10 +255,20 @@ def edit_oxides():
 # SECTION 4.2
 # Functions relating to the ingredient editor window (accessed through Options > Edit Ingredients)
 
+def update_basic_constraints(ingredient_compositions, ingredient_dict):   # We could make this depend on only ingredient_dict.
+                                                                          # I think current implementation is more efficient,
+                                                                          # but I'm not sure.
+    global prob
+    for ox in oxide_dict:
+        prob.constraints[ox] = sum(ingredient_compositions[index][ox]*lp_var['ingredient_'+index]/100 \
+                                   for index in ingredient_dict if ox in ingredient_compositions[index]) \
+                               == lp_var['mass_'+ox]     # relate ingredients and oxides
+
 def update_ingredient_dict():         # Run when updating ingredients. Needs improvement since it removes stars from
                                       # ingredients that correspond to x or y variables.
 
     global ingredient_dict
+    global ingredient_compositions
     global prob
 
     for index in ingredient_dict:
@@ -290,13 +300,9 @@ def update_ingredient_dict():         # Run when updating ingredients. Needs imp
     with shelve.open("IngredientShelf") as ingredient_shelf:
         for index in ingredient_shelf:
             ingredient_shelf[index] = ingredient_dict[index].pickleable_version()
-    ingredient_compositions = get_ing_comp()
-    
-    #make this a function update_basic_constraints
-    for ox in oxide_dict:
-        prob.constraints[ox] = sum(ingredient_compositions[index][ox]*lp_var['ingredient_'+index]/100 \
-                                   for index in ingredient_dict if ox in ingredient_compositions[index]) \
-                               == lp_var['mass_'+ox]     # relate ingredients and oxides
+    ingredient_compositions = get_ing_comp(ingredient_dict)
+
+    update_basic_constraints(ingredient_compositions, ingredient_dict)    
 
 def delete_ingredient(index):
 
@@ -304,14 +310,10 @@ def delete_ingredient(index):
 
     oxides_to_update = ingredient_dict[index].oxide_comp
 
-    ingredient_compositions = get_ing_comp()   # shouldn't be necessary
+    ingredient_compositions = get_ing_comp(ingredient_dict)   # shouldn't be necessary
     prob._variables.remove(lp_var['ingredient_'+index])     # somehow, this doesn't seem to be happening
 
-    #make this a function update_basic_constraints
-    for ox in oxides_to_update:
-        prob.constraints[ox] = sum(ingredient_compositions[index][ox]*lp_var['ingredient_'+index]/100 \
-                                   for index in ingredient_dict if ox in ingredient_compositions[index]) \
-                               == lp_var['mass_'+ox]     # relate ingredients and oxides
+    update_basic_constraints(ingredient_compositions, ingredient_dict)
 
     for widget in ['del', 'name'] + oxides + ['0', '1', '2']:
         ingredient_dict[index].display_widgets[widget].destroy()
@@ -446,7 +448,7 @@ def toggle_ingredient(index):     # adds or removes ingredient_dict[index] to or
                                   # depending on whether it isn't or is an ingredient already
     global current_recipe
     global ingredient_select_button
-    ingredient_compositions = get_ing_comp()
+    ingredient_compositions = get_ing_comp(ingredient_dict)
     
     if index in current_recipe.ingredients:
         current_recipe.ingredients.remove(index)
@@ -569,4 +571,4 @@ open_recipe('0', restr_dict)
     
 root.config(menu=menubar)
 
-root.mainloop()
+#root.mainloop()

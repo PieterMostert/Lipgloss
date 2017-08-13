@@ -24,17 +24,17 @@ import copy
 from pulp2dim import *
 from restrictions import *
 
-def get_ing_comp():                           # Redo. This function is defined in the main (gui) file
-    ingredient_compositions = {}
-    with shelve.open("IngredientShelf") as ingredient_shelf:
-        for index in ingredient_shelf:
-            ingredient_compositions[index] = ingredient_shelf[index].oxide_comp
-    return ingredient_compositions
+##def get_ing_comp():                           # Redo. This function is defined in the main (gui) file
+##    ingredient_compositions = {}
+##    with shelve.open("IngredientShelf") as ingredient_shelf:
+##        for index in ingredient_shelf:
+##            ingredient_compositions[index] = ingredient_shelf[index].oxide_comp
+##    return ingredient_compositions
 
 def associated_oxides(ingredients):
 
     assoc_oxides = set()
-    ingredient_compositions = get_ing_comp()
+    ingredient_compositions = get_ing_comp(ingredient_dict)
     for index in ingredients:
         assoc_oxides = assoc_oxides.union(set(ingredient_compositions[index]))  # update the available oxides. Probably not the most
                                                                                                       # efficient way to do this
@@ -151,7 +151,7 @@ class Recipe:
         with shelve.open("IngredientShelf") as ingredient_shelf:
             ingredient_dict = dict(ingredient_shelf)
 
-        ingredient_compositions = get_ing_comp()
+        ingredient_compositions = get_ing_comp(ingredient_dict)
         restrictions = [restr_dict[index] for index in restr_keys(self.oxides, self.ingredients, self.other)]
          
         # first, test for obvious errors

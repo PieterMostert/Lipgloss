@@ -318,13 +318,13 @@ else:
 
 ingredient_dict = update_ing()
 
-def get_ing_comp():
+def get_ing_comp(ingredient_dict):
     ingredient_compositions = {}
     for index in ingredient_dict:
         ingredient_compositions[index] = ingredient_dict[index].oxide_comp
     return ingredient_compositions
 
-ingredient_compositions = get_ing_comp()
+ingredient_compositions = get_ing_comp(ingredient_dict)
 
 # Initialize other
 
