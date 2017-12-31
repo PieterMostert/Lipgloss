@@ -140,15 +140,29 @@ with shelve.open("OxideShelf") as oxide_shelf:
     oxides = [ox for ox in oxide_shelf]
 
 # SECTION 3
-# Define Ingredient class
+# Define Other_Attribute class and initialize other attributes
 
-other_attr_names = {'0':'LOI', '1':'cost','2':'clay'}  # This should probably be a dictionary where the values are instances of
-                                                       # a yet-to-be-defined 'other_attribute' class. This class will have the
-                                                       # attributes pos and name.
+class Other_Attribute:
+    
+     def __init__(self, name, pos):
+         'LOI, cost, clay, etc'
+
+         self.name = name
+         self.pos = pos  # determines order in which other attributes are displayed
+
+other_attr_dict = {}     # once users are able to add their own attributes, other_attr_dict will be determined by the entries in
+                         # OtherAttributeShelf (yet to be defined). For now we just do things manually.
+other_attr_dict['0'] = Other_Attribute('LOI',0)
+other_attr_dict['1'] = Other_Attribute('cost',1)
+other_attr_dict['2'] = Other_Attribute('clay',2)
+
+
+# SECTION 4
+# Define Ingredient class
 
 class Ingredient:    # Ingredients will be referenced by their index, a string consisting of a unique natural number
     
-    def __init__(self, pos, name='New ingredient', notes = '', oxide_comp = {}, other_attributes = {'0':0, '1':0, '2':0}):
+    def __init__(self, pos, name='New ingredient', notes = '', oxide_comp = {}, other_attributes = {}):
 
         self.pos = pos      # position of the ingredient in the list of ingredients to choose from, and in the ingredient editor
         self.name = name
@@ -178,18 +192,18 @@ class Ingredient:    # Ingredients will be referenced by their index, a string c
                 pass
             c+=1
 
-        for i in other_attr_names: # If we allow users to define their own attributes, we should have them indexed
-                                                           # by positive integers, rather than the names of the attributes
-            sdw[i] = Entry(master = frame, width=5)
-            sdw[i].grid(row = r, column = c+int(i))             # replace int(i) by other_attr_dict[i].pos
-            sdw[i].insert(0, self.other_attributes[i])
+        for i, other_attr in other_attr_dict.items(): 
+            sdw['other_attr_'+i] = Entry(master = frame, width=5)
+            sdw['other_attr_'+i].grid(row = r, column = c+other_attr.pos)
+            if i in self.other_attributes:
+                sdw['other_attr_'+i].insert(0, self.other_attributes[i])
 
     def pickleable_version(self):
         temp = copy.copy(self)
         temp.display_widgets = {}    # the values in self.display_widgets that the ingredient editor introduces can't be pickled 
         return temp
 
-# SECTION 4
+# SECTION 5
 # Define Other class
 
 class Other:
@@ -210,7 +224,7 @@ class Other:
     def display(self, frame):     # To be used in the 'Edit other' window.
         pass
 
-# SECTION 5
+# SECTION 6
 # Initialize the restr_dict, oxide_dict, ingredient_dict, and other_dict dictionaries
 # Define default recipe bounds (optional)
 # Set up the linear programming problem. Define variables, and set constraints that always hold (unless any
@@ -239,7 +253,7 @@ with shelve.open("IngredientShelf") as ingredient_shelf:   # If there are a larg
     for index in ingredient_shelf:
         restr_dict['ingredient_'+index] = Restriction('ingredient_'+index, ingredient_shelf[index].name, 'ingredient_'+index, "0.01*lp_var['ingredient_total']", 0, 100)
 
-if 1 == 1:
+if True:
     with shelve.open("OtherShelf") as other_shelf:
         for index in other_shelf:
             del other_shelf[index]
@@ -247,11 +261,11 @@ if 1 == 1:
         other_shelf['1'] = Other(1,'KNaO UMF', {'mole_K2O':1, 'mole_Na2O':1}, "lp_var['fluxes_total']", 0, 1, 3)
         other_shelf['2'] = Other(2,'KNaO % mol', {'mole_K2O':1, 'mole_Na2O':1}, "0.01*lp_var['ox_mole_total']", 0, 100, 1)
         other_shelf['3'] = Other(3,'RO UMF', {'mole_MgO':1, 'mole_CaO':1, 'mole_BaO':1, 'mole_SrO':1}, "lp_var['fluxes_total']", 0, 1, 3)
-        other_att_4 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['2']) for index in ingredient_dict}
+        other_att_4 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['2']) for index in ingredient_dict if '2' in ingredient_dict[index].other_attributes}
         other_shelf['4'] = Other(4,'Total clay', {k:v for k,v in other_att_4.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
-        other_att_5 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['0']) for index in ingredient_dict}
+        other_att_5 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['0']) for index in ingredient_dict if '0' in ingredient_dict[index].other_attributes}
         other_shelf['5'] = Other(5,'LOI',  {k:v for k,v in other_att_5.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
-        other_att_6 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['1']) for index in ingredient_dict}
+        other_att_6 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['1']) for index in ingredient_dict if '1' in ingredient_dict[index].other_attributes}
         other_shelf['6'] = Other(6,'cost', {k:v for k,v in other_att_6.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
         
         other_dict = dict(other_shelf)
@@ -306,11 +320,9 @@ if initialize_ingredients == 1:
             ing_init = Ingredient(pos, name=ing, oxide_comp = dict([(ox, ingredient_compositions[ing][ox]) \
                                                                     for ox in oxides if ox in ingredient_compositions[ing]]))
 
-            for attr in ['0', '1', '2']:
+            for attr in other_attr_dict:
                 if attr in ingredient_compositions[ing]:
                     ing_init.other_attributes[attr] = ingredient_compositions[ing][attr]
-                else:
-                    ing_init.other_attributes[attr] = 0
             
             ingredient_shelf[str(pos)] = ing_init
 else:
@@ -367,7 +379,7 @@ for index in other_dict:
     linear_combo = [(lp_var[key], coefs[key]) for key in coefs]
     #print(linear_combo)
     lp_var[ot] = pulp.LpVariable(ot, 0, None, pulp.LpContinuous)
-    prob += lp_var[ot] == LpAffineExpression(linear_combo)         # relate this variable to the other variables.
+    prob += lp_var[ot] == LpAffineExpression(linear_combo), ot         # relate this variable to the other variables.
 
 prob += lp_var['ingredient_total'] == sum(lp_var['ingredient_'+index] for index in ingredient_dict), 'ing_total'
 prob += lp_var['fluxes_total'] == sum(oxide_dict[ox].flux*lp_var['mole_'+ox] for ox in oxide_dict)

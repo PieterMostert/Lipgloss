@@ -242,7 +242,7 @@ def save_new_recipe(r_s=0):
 json_load_recipes()
 
 # SECTION 4
-# Options in the Options menu: Edit Oxides, Edit Ingredients, Edit Other Rrestricitons, Restriction Settings.
+# Options in the Options menu: Edit Oxides, Edit Ingredients, Edit Other Restricitons, Restriction Settings.
 # Currently only Edit Ingredients does anything
 
 # SECTION 4.1
@@ -255,14 +255,23 @@ def edit_oxides():
 # SECTION 4.2
 # Functions relating to the ingredient editor window (accessed through Options > Edit Ingredients)
 
-def update_basic_constraints(ingredient_compositions, ingredient_dict):   # We could make this depend on only ingredient_dict.
-                                                                          # I think current implementation is more efficient,
-                                                                          # but I'm not sure.
+def update_basic_constraints(ingredient_compositions, ingredient_dict, other_dict):   # We could remove the dependence on ingredient_compositions.
+                                                                                      # I think the current implementation is more efficient,
+                                                                                      # but I'm not sure.
     global prob
     for ox in oxide_dict:
         prob.constraints[ox] = sum(ingredient_compositions[index][ox]*lp_var['ingredient_'+index]/100 \
                                    for index in ingredient_dict if ox in ingredient_compositions[index]) \
                                == lp_var['mass_'+ox]     # relate ingredients and oxides
+        
+
+    for index in other_dict:      # We only need to update the constraints that depend on the other attributes, since the ones depending only on the
+                                  # oxides have already been updated. However, I don't feel like writing code to identify these constraints, so I'm
+                                  # just going to update all other constraints
+        ot = 'other_'+index
+        coefs = other_dict[index].numerator_coefs
+        linear_combo = [(lp_var[key], coefs[key]) for key in coefs]
+        prob.constraints[ot] = lp_var[ot] == LpAffineExpression(linear_combo)         # relate this variable to the other variables.
 
 def update_ingredient_dict():         # Run when updating ingredients. Needs improvement since it removes stars from
                                       # ingredients that correspond to x or y variables.
@@ -273,8 +282,8 @@ def update_ingredient_dict():         # Run when updating ingredients. Needs imp
 
     for index in ingredient_dict:
         ing = ingredient_dict[index]
-        ing.name = ing.display_widgets['name'].get()
-        restr_dict['ingredient_'+index].name = ing.name              # update restriction name
+        ing.name = ing.display_widgets['name'].get()                 # update ingredient name
+        restr_dict['ingredient_'+index].name = ing.name              # update corresponding restriction name
         restr_dict['ingredient_'+index].left_label_text.set(ing.name+' : ')
         restr_dict['ingredient_'+index].right_label_text.set(' : '+ing.name)
         ingredient_select_button[index].config(text = ing.name)
@@ -292,8 +301,19 @@ def update_ingredient_dict():         # Run when updating ingredients. Needs imp
                 except:
                     pass
 
-        for attr in other_attr_names:
-            ing.other_attributes[attr] = ing.display_widgets[attr].get()
+        for i, attr in other_attr_dict.items():
+            try:
+                val = eval(ing.display_widgets['other_attr_'+i].get())
+            except:
+                val = 0
+            if isinstance(val,Number) and val != 0:
+                ing.other_attributes[i] = val
+            else:
+                ing.display_widgets['other_attr_'+i].delete(0,END)
+                try:
+                    del ing.other_attributes[i]
+                except:
+                    pass
 
         ingredient_dict[index] = ing
     
@@ -302,7 +322,7 @@ def update_ingredient_dict():         # Run when updating ingredients. Needs imp
             ingredient_shelf[index] = ingredient_dict[index].pickleable_version()
     ingredient_compositions = get_ing_comp(ingredient_dict)
 
-    update_basic_constraints(ingredient_compositions, ingredient_dict)    
+    update_basic_constraints(ingredient_compositions, ingredient_dict, other_dict)    
 
 def delete_ingredient(index):
 
@@ -312,10 +332,11 @@ def delete_ingredient(index):
 
     ingredient_compositions = get_ing_comp(ingredient_dict)   # shouldn't be necessary
     prob._variables.remove(lp_var['ingredient_'+index])     # somehow, this doesn't seem to be happening
+    
 
-    update_basic_constraints(ingredient_compositions, ingredient_dict)
+    update_basic_constraints(ingredient_compositions, ingredient_dict, other_dict)   # I should probably update other_dict, no?
 
-    for widget in ['del', 'name'] + oxides + ['0', '1', '2']:
+    for widget in ['del', 'name'] + oxides + ['other_attr_'+i for i in other_attr_dict]:
         ingredient_dict[index].display_widgets[widget].destroy()
 
     if index in current_recipe.ingredients:
@@ -349,7 +370,7 @@ def new_ingredient():
     with shelve.open("IngredientShelf") as ingredient_shelf:
         r = max([int(index) for index in ingredient_shelf]) + 1
         index = str(r)
-        ing = ingredient_shelf[str(r)] = Ingredient(r, 'Ingredient #'+index, notes = '', oxide_comp = {}, other_attributes = {'0':0, '1':0, '2':0})
+        ing = ingredient_shelf[str(r)] = Ingredient(r, 'Ingredient #'+index, notes = '', oxide_comp = {}, other_attributes = {})
                         # If we just had Ingredient(r, 'Ingredient #'+index) above, the default values of the notes, oxide_comp
                         # and other_attributes attributes would change when the last instance of the class defined had those
                         # attributes changed
@@ -398,8 +419,8 @@ def edit_ingredients():   # Opens window that lets you add, delete, and edit oxi
             Label(master=i_e_scrollframe.interior, text=prettify(ox), width=5).grid(row=0, column=c)
             c+=1
 
-        for i, attr in other_attr_names.items():
-            Label(master=i_e_scrollframe.interior, text=attr, width=5).grid(row=0, column=c+int(i))   # replace int(i) by other_attr_dict[attr].pos
+        for i, attr in other_attr_dict.items():
+            Label(master=i_e_scrollframe.interior, text=attr.name, width=5).grid(row=0, column=c+attr.pos)   # replace int(i) by other_attr_dict[attr].pos
         
         for index in ingredient_dict:
                 ingredient_dict[index].display(index, i_e_scrollframe.interior, delete_ingredient)  
@@ -420,7 +441,7 @@ def edit_other_restrictions():
 
 # SECTION 4.4
 # Set default user lower and upper bounds for all restrictions, and rearrange the order in which they are listed (with each group).
-# Also set the number of decimal places to display for calculated bounds
+# Also set the number of decimal places to display for calculated bounds.
         
 def restriction_settings():
     pass
@@ -571,4 +592,4 @@ open_recipe('0', restr_dict)
     
 root.config(menu=menubar)
 
-root.mainloop()
+#root.mainloop()
