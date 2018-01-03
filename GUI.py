@@ -420,7 +420,7 @@ def edit_ingredients():   # Opens window that lets you add, delete, and edit oxi
             c+=1
 
         for i, attr in other_attr_dict.items():
-            Label(master=i_e_scrollframe.interior, text=attr.name, width=5).grid(row=0, column=c+attr.pos)   # replace int(i) by other_attr_dict[attr].pos
+            Label(master=i_e_scrollframe.interior, text=attr.name, width=5).grid(row=0, column=c+attr.pos)
         
         for index in ingredient_dict:
                 ingredient_dict[index].display(index, i_e_scrollframe.interior, delete_ingredient)  

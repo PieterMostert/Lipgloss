@@ -164,7 +164,9 @@ class Ingredient:    # Ingredients will be referenced by their index, a string c
     
     def __init__(self, pos, name='New ingredient', notes = '', oxide_comp = {}, other_attributes = {}):
 
-        self.pos = pos      # position of the ingredient in the list of ingredients to choose from, and in the ingredient editor
+        self.pos = pos      # Position of the ingredient in the list of ingredients to choose from, and in the ingredient editor
+                            # For the purpose of rearranging the order in which the ingredients appear, it may be worth trying to
+                            # have a list, ingredient_list, for which ing.pos is the position of ing in ingredient_list
         self.name = name
         self.notes = notes  # not implemented yet. Intended to show up in the 'Edit ingredients' window.
         self.oxide_comp = oxide_comp  # dictionary giving weight percent of each oxide in the ingredient
@@ -221,7 +223,7 @@ class Other:
         self.def_upp = def_upp
         self.dec_pt = dec_pt
         
-    def display(self, frame):     # To be used in the 'Edit other' window.
+    def display(self, frame):     # To be used in the 'Edit other' window, once this is implemented.
         pass
 
 # SECTION 6
