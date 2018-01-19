@@ -592,4 +592,4 @@ open_recipe('0', restr_dict)
     
 root.config(menu=menubar)
 
-#root.mainloop()
+root.mainloop()  #can be commented out on windows, but not linux or mac, it seems
