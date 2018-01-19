@@ -136,7 +136,7 @@ class Oxide:
      def display(self, frame):     #To be used in the 'Edit oxides' window. Only apply this to copies of things in shelve
          pass
 
-with shelve.open("OxideShelf") as oxide_shelf:
+with shelve.open("./data/OxideShelf") as oxide_shelf:
     oxides = [ox for ox in oxide_shelf]
 
 # SECTION 3
@@ -234,7 +234,7 @@ class Other:
 
 restr_dict = {}  # a dictionary with keys of the form 'umf_'+ox, 'mass_perc_'+ox, 'mole_perc_'+ox, 'ingredient_'+index or 'other_'+index
 
-with shelve.open("OxideShelf") as oxide_shelf:
+with shelve.open("./data/OxideShelf") as oxide_shelf:
     for ox in oxide_shelf:   # create oxide restrictions
         def_upp = 1   # default upper bound for oxide UMF
         dp = 3
@@ -248,7 +248,7 @@ with shelve.open("OxideShelf") as oxide_shelf:
         restr_dict['mole_perc_'+ox] = Restriction('mole_perc_'+ox, ox, 'mole_'+ox, "0.01*lp_var['ox_mole_total']", 0, 100, dec_pt = 2)
 
 
-with shelve.open("IngredientShelf") as ingredient_shelf:   # If there are a large number of ingredients, maybe it's better to only create the corresponding restrictions
+with shelve.open("./data/IngredientShelf") as ingredient_shelf:   # If there are a large number of ingredients, maybe it's better to only create the corresponding restrictions
                                                          # once they're selected for a particular recipe.
     ingredient_dict = dict(ingredient_shelf)     # This is defined again in GUI.py. Will give trouble if initialize_ingredients == 1 in GUI.py.
                                                  # Need to rethink
@@ -256,7 +256,7 @@ with shelve.open("IngredientShelf") as ingredient_shelf:   # If there are a larg
         restr_dict['ingredient_'+index] = Restriction('ingredient_'+index, ingredient_shelf[index].name, 'ingredient_'+index, "0.01*lp_var['ingredient_total']", 0, 100)
 
 if True:
-    with shelve.open("OtherShelf") as other_shelf:
+    with shelve.open("./data/OtherShelf") as other_shelf:
         for index in other_shelf:
             del other_shelf[index]
         other_shelf['0'] = Other(0,'SiO2_Al2O3', {'mole_SiO2':1}, "lp_var['mole_Al2O3']", 3, 18, 2)   # Using 'SiO2:Al2O3' gives an error
@@ -274,7 +274,7 @@ if True:
 else:
     other_dict = update_other()
     
-with shelve.open("OtherShelf") as other_shelf:
+with shelve.open("./data/OtherShelf") as other_shelf:
     for index in other_shelf:
         ot = other_shelf[index]    # instance of 'Other' class
         restr_dict['other_'+index] = Restriction('other_'+index, ot.name, 'other_'+index, ot.normalization, ot.def_low, ot.def_upp, dec_pt=ot.dec_pt)
@@ -284,7 +284,7 @@ with shelve.open("OtherShelf") as other_shelf:
 if initialize_oxides == 1:
     import oxidefile
 
-    with shelve.open("OxideShelf") as oxide_shelf:
+    with shelve.open("./data/OxideShelf") as oxide_shelf:
         for ox in oxide_shelf:
             del oxide_shelf[ox]
         for (pos, ox) in enumerate(oxidefile.oxides):
@@ -299,7 +299,7 @@ else:
 def update_ox():
     global oxides
     global molar_masses
-    with shelve.open("OxideShelf") as oxide_shelf:
+    with shelve.open("./data/OxideShelf") as oxide_shelf:
         oxides = [ox for ox in oxide_shelf]
         molar_masses = {ox:oxide_shelf[ox].molar_mass for ox in oxide_shelf}
         return dict(oxide_shelf)
@@ -309,12 +309,12 @@ oxide_dict = update_ox()
 # Define ingredients.
 
 def update_ing():
-    with shelve.open("IngredientShelf") as ingredient_shelf:
+    with shelve.open("./data/IngredientShelf") as ingredient_shelf:
         return dict(ingredient_shelf)
 
 if initialize_ingredients == 1:
     from ingredientfile import *
-    with shelve.open("IngredientShelf") as ingredient_shelf:
+    with shelve.open("./data/IngredientShelf") as ingredient_shelf:
         for index in ingredient_shelf:
             del ingredient_shelf[index]
         for (pos, ing) in enumerate(ingredient_names):  # Here we're taking the position to be the index
@@ -343,7 +343,7 @@ ingredient_compositions = get_ing_comp(ingredient_dict)
 # Initialize other
 
 def update_other():
-    with shelve.open("OtherShelf") as other_shelf:
+    with shelve.open("./data/OtherShelf") as other_shelf:
         other_dict = dict(other_shelf)
         return other_dict
         

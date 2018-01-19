@@ -317,7 +317,7 @@ def update_ingredient_dict():         # Run when updating ingredients. Needs imp
 
         ingredient_dict[index] = ing
     
-    with shelve.open("IngredientShelf") as ingredient_shelf:
+    with shelve.open("./data/IngredientShelf") as ingredient_shelf:
         for index in ingredient_shelf:
             ingredient_shelf[index] = ingredient_dict[index].pickleable_version()
     ingredient_compositions = get_ing_comp(ingredient_dict)
@@ -343,7 +343,7 @@ def delete_ingredient(index):
         toggle_ingredient(index)
 
     del ingredient_dict[index]
-    with shelve.open("IngredientShelf") as ingredient_shelf:
+    with shelve.open("./data/IngredientShelf") as ingredient_shelf:
         del ingredient_shelf[index]
     
     ingredient_select_button[index].destroy()   # remove the deleted ingredient from the list of ingredients to select from
@@ -367,7 +367,7 @@ def new_ingredient():
 
     global ingredient_dict
     
-    with shelve.open("IngredientShelf") as ingredient_shelf:
+    with shelve.open("./data/IngredientShelf") as ingredient_shelf:
         r = max([int(index) for index in ingredient_shelf]) + 1
         index = str(r)
         ing = ingredient_shelf[str(r)] = Ingredient(r, 'Ingredient #'+index, notes = '', oxide_comp = {}, other_attributes = {})

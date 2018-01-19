@@ -26,7 +26,7 @@ from restrictions import *
 
 ##def get_ing_comp():                           # Redo. This function is defined in the main (gui) file
 ##    ingredient_compositions = {}
-##    with shelve.open("IngredientShelf") as ingredient_shelf:
+##    with shelve.open("./data/IngredientShelf") as ingredient_shelf:
 ##        for index in ingredient_shelf:
 ##            ingredient_compositions[index] = ingredient_shelf[index].oxide_comp
 ##    return ingredient_compositions
@@ -46,7 +46,7 @@ def associated_oxides(ingredients):
 
 def fluxes_subset(oxides):
 
-    with shelve.open("OxideShelf") as oxide_shelf:
+    with shelve.open("./data/OxideShelf") as oxide_shelf:
         fluxes = [ox for ox in oxides if oxide_shelf[ox].flux == 1]
     return fluxes
 
@@ -137,7 +137,7 @@ class Recipe:
         else:                # in this case we're adding the quantity
             self.other.append(index)
             other_select_button[ot].state(['pressed'])
-            with shelve.open("OtherShelf") as other_shelf:
+            with shelve.open("./data/OtherShelf") as other_shelf:
                 restr_dict['other_'+index].display(1001 + other_shelf[index].pos)
 
 
@@ -145,10 +145,10 @@ class Recipe:
                                                                           # in self.prob are defined elsewhere, except for the restrictions  
                                                                           # defined by the user
         
-        with shelve.open("OxideShelf") as oxide_shelf:
+        with shelve.open("./data/OxideShelf") as oxide_shelf:
             oxide_dict = dict(oxide_shelf)
 
-        with shelve.open("IngredientShelf") as ingredient_shelf:
+        with shelve.open("./data/IngredientShelf") as ingredient_shelf:
             ingredient_dict = dict(ingredient_shelf)
 
         ingredient_compositions = get_ing_comp(ingredient_dict)
@@ -216,7 +216,7 @@ class Recipe:
          
         t0 = time.process_time()  
 
-        with shelve.open("IngredientShelf") as ingredient_shelf:
+        with shelve.open("./data/IngredientShelf") as ingredient_shelf:
             ingredient_dict = dict(ingredient_shelf)               # Might be better to include ingredient_dict as a parameter
                                                                    # in calc_restrictions.
             
