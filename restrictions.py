@@ -247,13 +247,34 @@ with shelve.open("./data/OxideShelf") as oxide_shelf:
         restr_dict['mass_perc_'+ox] = Restriction('mass_perc_'+ox, ox, 'mass_'+ox, "0.01*lp_var['ox_mass_total']", 0, 100, dec_pt = 2) 
         restr_dict['mole_perc_'+ox] = Restriction('mole_perc_'+ox, ox, 'mole_'+ox, "0.01*lp_var['ox_mole_total']", 0, 100, dec_pt = 2)
 
+if initialize_ingredients == 1:  
+    from ingredientfile import *
+    with shelve.open("./data/IngredientShelf") as ingredient_shelf:
+        for index in ingredient_shelf:
+            del ingredient_shelf[index]
+        temp = {}
+        for (pos, ing) in enumerate(ingredient_names):  # Here we're taking the position to be the index
+
+            ing_init = Ingredient(pos, name=ing, oxide_comp = dict([(ox, ingredient_compositions[ing][ox]) \
+                                                                    for ox in oxides if ox in ingredient_compositions[ing]]))
+
+            for attr in other_attr_dict:
+                if attr in ingredient_compositions[ing]:
+                    ing_init.other_attributes[attr] = ingredient_compositions[ing][attr]
+            
+            temp[str(pos)] = ing_init
+
+        ingredient_shelf['dict'] = temp
+else:
+    pass
 
 with shelve.open("./data/IngredientShelf") as ingredient_shelf:   # If there are a large number of ingredients, maybe it's better to only create the corresponding restrictions
                                                          # once they're selected for a particular recipe.
-    ingredient_dict = dict(ingredient_shelf)     # This is defined again in GUI.py. Will give trouble if initialize_ingredients == 1 in GUI.py.
-                                                 # Need to rethink
-    for index in ingredient_shelf:
-        restr_dict['ingredient_'+index] = Restriction('ingredient_'+index, ingredient_shelf[index].name, 'ingredient_'+index, "0.01*lp_var['ingredient_total']", 0, 100)
+    ing_shelf_dict = ingredient_shelf['dict']
+    ingredient_dict = dict(ing_shelf_dict)     # This is defined again in GUI.py. Will give trouble if initialize_ingredients == 1 in GUI.py.
+                                                         # Need to rethink
+    for index in ing_shelf_dict:
+        restr_dict['ingredient_'+index] = Restriction('ingredient_'+index, ing_shelf_dict[index].name, 'ingredient_'+index, "0.01*lp_var['ingredient_total']", 0, 100)
 
 if True:
     with shelve.open("./data/OtherShelf") as other_shelf:
@@ -310,25 +331,7 @@ oxide_dict = update_ox()
 
 def update_ing():
     with shelve.open("./data/IngredientShelf") as ingredient_shelf:
-        return dict(ingredient_shelf)
-
-if initialize_ingredients == 1:
-    from ingredientfile import *
-    with shelve.open("./data/IngredientShelf") as ingredient_shelf:
-        for index in ingredient_shelf:
-            del ingredient_shelf[index]
-        for (pos, ing) in enumerate(ingredient_names):  # Here we're taking the position to be the index
-
-            ing_init = Ingredient(pos, name=ing, oxide_comp = dict([(ox, ingredient_compositions[ing][ox]) \
-                                                                    for ox in oxides if ox in ingredient_compositions[ing]]))
-
-            for attr in other_attr_dict:
-                if attr in ingredient_compositions[ing]:
-                    ing_init.other_attributes[attr] = ingredient_compositions[ing][attr]
-            
-            ingredient_shelf[str(pos)] = ing_init
-else:
-    pass
+        return dict(ingredient_shelf['dict'])
 
 ingredient_dict = update_ing()
 

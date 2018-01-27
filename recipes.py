@@ -149,7 +149,7 @@ class Recipe:
             oxide_dict = dict(oxide_shelf)
 
         with shelve.open("./data/IngredientShelf") as ingredient_shelf:
-            ingredient_dict = dict(ingredient_shelf)
+            ingredient_dict = dict(ingredient_shelf['dict'])
 
         ingredient_compositions = get_ing_comp(ingredient_dict)
         restrictions = [restr_dict[index] for index in restr_keys(self.oxides, self.ingredients, self.other)]
@@ -217,7 +217,7 @@ class Recipe:
         t0 = time.process_time()  
 
         with shelve.open("./data/IngredientShelf") as ingredient_shelf:
-            ingredient_dict = dict(ingredient_shelf)               # Might be better to include ingredient_dict as a parameter
+            ingredient_dict = dict(ingredient_shelf['dict'])       # Might be better to include ingredient_dict as a parameter
                                                                    # in calc_restrictions.
             
         for index in ingredient_dict:
