@@ -390,10 +390,13 @@ def new_ingredient():
     ingredient_select_button[index] = ttk.Button(vsf.interior, text = ing.name, width=20,
                                                  command = partial(toggle_ingredient, index))
     ingredient_select_button[index].grid(row = ing.pos)
+
+    #i_e_scrollframe.vscrollbar.set(100,0)  # Doesn't do anything
+    i_e_scrollframe.canvas.yview_moveto(1)  # Supposed to move the scrollbar to the bottom, but misses the last row
     
     restr = restr_dict['ingredient_'+index]
     restr.left_label.bind("<Button-1>", partial(update_var, current_recipe, restr, 'x'))
-    restr.right_label.bind("<Button-1>", partial(update_var, current_recipe, restr, 'y'))  
+    restr.right_label.bind("<Button-1>", partial(update_var, current_recipe, restr, 'y'))
 
 def edit_ingredients():   # Opens window that lets you add, delete, and edit oxide compositions of ingredients. Turn this into a class?
     global ingredient_dict   # Get rid of this eventually?
@@ -423,7 +426,10 @@ def edit_ingredients():   # Opens window that lets you add, delete, and edit oxi
             Label(master=i_e_scrollframe.interior, text=attr.name, width=5).grid(row=0, column=c+attr.pos)
         
         for index in ingredient_dict:
-                ingredient_dict[index].display(index, i_e_scrollframe.interior, delete_ingredient)  
+                ingredient_dict[index].display(index, i_e_scrollframe.interior, delete_ingredient)
+
+        Label(master=i_e_scrollframe.interior).grid(row=9000) # A hack to make sure that when a new ingredient is added,
+                                                              # you don't have to scroll down to see it.
 
         new_ingr_button = ttk.Button(ingredient_editor_buttons, text = 'New ingredient', width=20, command = new_ingredient)
         new_ingr_button.pack(side = 'left')   
@@ -524,6 +530,7 @@ def toggle_other(index):          # adds or removes other_dict[index] to or from
         current_recipe.other.append(index)
         other_select_button[index].state(['pressed'])         
         restr_dict['other_'+index].display(1001 + other_dict[index].pos)
+        restriction_sf.canvas.yview_moveto(1)
 
 for index in other_dict:
     ot = other_dict[index]
@@ -592,4 +599,4 @@ open_recipe('0', restr_dict)
     
 root.config(menu=menubar)
 
-root.mainloop()  #can be commented out on windows, but not linux or mac, it seems
+#root.mainloop()  #can be commented out on windows, but not linux or mac, it seems

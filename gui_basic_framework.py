@@ -50,6 +50,8 @@ recipe_name_frame = ttk.Frame(main_frame, padding=(5, 5, 12, 12)) # window for d
 restriction_frame = ttk.Frame(main_frame, padding=(5, 5, 12, 12)) # window for entering restrictions
 restriction_sf = VerticalScrolledFrame(restriction_frame)
 restriction_sf.frame_height = 500
+Label(master=restriction_sf.interior).grid(row=9000) # A hack to make sure that when a new 'other restriction' is added,
+                                                      # you don't have to scroll down to see it.
 calc_frame = ttk.Frame(main_frame, padding=(15, 5, 10, 5))      # window holding the Calc button
 message_frame = ttk.Frame(main_frame, padding=(15, 5, 10, 5))   # window displaying messages. At the moment, this isn't used
 #proj_frame = ttk.Frame(root, padding=(15, 5, 10, 5))            # window holding canvas displaying the 2-d projection
