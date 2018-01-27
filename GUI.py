@@ -318,10 +318,8 @@ def update_ingredient_dict():         # Run when updating ingredients. Needs imp
         ingredient_dict[index] = ing
     
     with shelve.open("./data/IngredientShelf") as ingredient_shelf:
-        temp = {}
-        for index in ingredient_shelf['dict']:
-            temp[index] = ingredient_dict[index].pickleable_version()
-        ingredient_shelf['dict'] = temp
+        for index in ingredient_shelf:
+            ingredient_shelf[index] = ingredient_dict[index].pickleable_version()
     ingredient_compositions = get_ing_comp(ingredient_dict)
 
     update_basic_constraints(ingredient_compositions, ingredient_dict, other_dict)    
@@ -346,9 +344,7 @@ def delete_ingredient(index):
 
     del ingredient_dict[index]
     with shelve.open("./data/IngredientShelf") as ingredient_shelf:
-        temp = ingredient_shelf['dict']
-        del temp[index]
-        ingredient_shelf['dict'] = temp
+        del ingredient_shelf[index]
     
     ingredient_select_button[index].destroy()   # remove the deleted ingredient from the list of ingredients to select from
     
@@ -372,15 +368,16 @@ def new_ingredient():
     global ingredient_dict
     
     with shelve.open("./data/IngredientShelf") as ingredient_shelf:
-        r = max([int(index) for index in ingredient_shelf['dict']]) + 1
+        r = max([int(index) for index in ingredient_shelf]) + 1
         index = str(r)
-        ing  = Ingredient(r, 'Ingredient #'+index, notes = '', oxide_comp = {}, other_attributes = {})
+        ing = ingredient_shelf[str(r)] = Ingredient(r, 'Ingredient #'+index, notes = '', oxide_comp = {}, other_attributes = {})
                         # If we just had Ingredient(r, 'Ingredient #'+index) above, the default values of the notes, oxide_comp
                         # and other_attributes attributes would change when the last instance of the class defined had those
                         # attributes changed
-        ing_shelf_dict = ingredient_shelf['dict']
-        ing_shelf_dict[str(r)] = ing
-        ingredient_shelf['dict'] = ing_shelf_dict
+##        ing = Ingredient(r, 'Ingredient #'+index, oxide_comp = {})
+##        print(ing.oxide_comp)
+##        print(ing.name)
+##        ingredient_shelf[str(r)] = copy.deepcopy(ing)
     ingredient_dict[index] = ing
 
     lp_var['ingredient_'+index] = pulp.LpVariable('ingredient_'+index, 0, None, pulp.LpContinuous)
