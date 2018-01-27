@@ -188,7 +188,9 @@ def open_recipe_menu():   # Opens window that lets you select a recipe to open
 
 def update_shelf(name, dictionary):
     with shelve.open(name) as shelf:
-        shelf = dictionary
+        for item in shelf:
+            del shelf[item]
+        shelf.update(dictionary)
         
 def json_load_recipes():
     """Load recipes from a JSON file using our deserializer"""
