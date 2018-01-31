@@ -155,7 +155,7 @@ To maximize or minimize the variable associated with a restriction \blue{res}, w
 
 \subsection{Storing user-defined data}
 
-To save data entered by the user, I\'ve been using the \href{https://docs.python.org/3.6/library/shelve.html}{shelve} module. This results in several data files: \green{IngredientShelf.dat}, \green{OtherShelf.dat}, and \green{OxideShelf.dat} (these all have associated bak and dir files). Derek Au is in the process of switching to JSON instead. The JSON files will be stored in the `data' folder.
+To save data entered by the user, I\'ve been using the \href{https://docs.python.org/3.6/library/shelve.html}{shelve} module. This results in several data files: \green{IngredientShelf.dat}, \green{OtherShelf.dat}, and \green{OxideShelf.dat} (these all have associated bak and dir files). These are stored in the `data' folder. Derek Au is in the process of switching to JSON instead. So far, only the list of recipe bounds is stored as a JSON file, \green{JSONRecipeShelf}.
 
 At the moment, we could do without the \green{OxideShelf} files, since there's no way for the user to modify any data related to the oxides, but it may be possible in future versions.
 

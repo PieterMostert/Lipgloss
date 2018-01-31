@@ -21,6 +21,7 @@ from numbers import Number
 
 from recipes import *
 from polyplot import *
+from dragmanager import *
 
 from serializers.recipeserializer import RecipeSerializer
 
@@ -33,8 +34,6 @@ if False:  # Set to True whenever the Recipe class is changed
     
 ## SECTION 1
 # Create stuff for restriction window
-
-# oxides
 
 entry_type = StringVar()
 
@@ -114,7 +113,7 @@ def open_recipe(index, restr_dict, r_s=0):   # to be used when opening a recipe,
     
     recipe_name.set(current_recipe.name)      # update the displayed recipe name
 
-    #for i in restr_keys(oxide_dict, ingredient_dict, other_dict):
+##    for i in restr_keys(oxide_dict, ingredient_dict, other_dict):
     for i in restr_dict:
         restr_dict[i].remove(current_recipe)    # clear the entries from previous recipes, if opening a new recipe
 
@@ -244,10 +243,12 @@ def save_new_recipe(r_s=0):
 json_load_recipes()
 
 # SECTION 4
+#
 # Options in the Options menu: Edit Oxides, Edit Ingredients, Edit Other Restricitons, Restriction Settings.
 # Currently only Edit Ingredients does anything
 
 # SECTION 4.1
+#
 # Come back to this later. Include the option to only display an oxide when at least one of the ingredients contains at
 # least x% of that oxide, where x can be modified by the user. Might not include this at all.
 
@@ -257,26 +258,27 @@ def edit_oxides():
 # SECTION 4.2
 # Functions relating to the ingredient editor window (accessed through Options > Edit Ingredients)
 
-def update_basic_constraints(ingredient_compositions, ingredient_dict, other_dict):   # We could remove the dependence on ingredient_compositions.
-                                                                                      # I think the current implementation is more efficient,
-                                                                                      # but I'm not sure.
+def update_basic_constraints(ingredient_compositions, ingredient_dict, other_dict):
+    # We could remove the dependence on ingredient_compositions.
+    # I think the current implementation is more efficient, but I'm not sure.
+    
     global prob
     for ox in oxide_dict:
         prob.constraints[ox] = sum(ingredient_compositions[index][ox]*lp_var['ingredient_'+index]/100 \
                                    for index in ingredient_dict if ox in ingredient_compositions[index]) \
                                == lp_var['mass_'+ox]     # relate ingredients and oxides
         
-
-    for index in other_dict:      # We only need to update the constraints that depend on the other attributes, since the ones depending only on the
-                                  # oxides have already been updated. However, I don't feel like writing code to identify these constraints, so I'm
-                                  # just going to update all other constraints
+    # We only need to update the constraints that depend on the other attributes, since the ones depending only on the
+    # oxides have already been updated.  However, I don't feel like writing code to identify these constraints, so I'm
+    # just going to update all other constraints.
+    for index in other_dict:      
         ot = 'other_'+index
         coefs = other_dict[index].numerator_coefs
         linear_combo = [(lp_var[key], coefs[key]) for key in coefs]
         prob.constraints[ot] = lp_var[ot] == LpAffineExpression(linear_combo)         # relate this variable to the other variables.
 
-def update_ingredient_dict():         # Run when updating ingredients. Needs improvement since it removes stars from
-                                      # ingredients that correspond to x or y variables.
+def update_ingredient_dict():
+    # Run when updating ingredients.  Needs improvement since it removes stars from ingredients that correspond to x or y variables.
 
     global ingredient_dict
     global ingredient_compositions
@@ -347,8 +349,9 @@ def delete_ingredient(index):
     del ingredient_dict[index]
     with shelve.open("./data/IngredientShelf") as ingredient_shelf:
         del ingredient_shelf[index]
-    
-    ingredient_select_button[index].destroy()   # remove the deleted ingredient from the list of ingredients to select from
+
+    # Remove the deleted ingredient from the list of ingredients to select from:
+    ingredient_select_button[index].destroy()
     
     try:
         del prob.constraints['ingredient_'+index+'_lower']  # Is this necessary?
@@ -362,7 +365,7 @@ def delete_ingredient(index):
 
     del restr_dict['ingredient_'+index]
   
-    # To Do: delete the ingredient from all recipes. If there are any recipes containing this ingredient, get confirmation from the user
+    # To Do: delete the ingredient from all recipes.  If there are any recipes containing this ingredient, get confirmation from the user
     # before doing this
   
 def new_ingredient():
@@ -393,14 +396,15 @@ def new_ingredient():
                                                  command = partial(toggle_ingredient, index))
     ingredient_select_button[index].grid(row = ing.pos)
 
-    #i_e_scrollframe.vscrollbar.set(100,0)  # Doesn't do anything
+##    i_e_scrollframe.vscrollbar.set(100,0)  # Doesn't do anything
     i_e_scrollframe.canvas.yview_moveto(1)  # Supposed to move the scrollbar to the bottom, but misses the last row
     
     restr = restr_dict['ingredient_'+index]
     restr.left_label.bind("<Button-1>", partial(update_var, current_recipe, restr, 'x'))
     restr.right_label.bind("<Button-1>", partial(update_var, current_recipe, restr, 'y'))
 
-def edit_ingredients():   # Opens window that lets you add, delete, and edit oxide compositions of ingredients. Turn this into a class?
+def edit_ingredients():
+    # Opens window that lets you add, delete, and edit oxide compositions of ingredients. Turn this into a class?
     global ingredient_dict   # Get rid of this eventually?
     global ingredient_editor
     global i_e_scrollframe
@@ -426,12 +430,23 @@ def edit_ingredients():   # Opens window that lets you add, delete, and edit oxi
 
         for i, attr in other_attr_dict.items():
             Label(master=i_e_scrollframe.interior, text=attr.name, width=5).grid(row=0, column=c+attr.pos)
-        
+
+##        ing_dnd = DragManager("IngredientShelf", lambda ing, i: ing.display(i,index, i_e_scrollframe, delete_ingredient_fn))
+
         for index in ingredient_dict:
                 ingredient_dict[index].display(index, i_e_scrollframe.interior, delete_ingredient)
+##                ing_dnd.add_dragable(ingredient_dict[item].display_widgets['name'])    
 
-        Label(master=i_e_scrollframe.interior).grid(row=9000) # A hack to make sure that when a new ingredient is added,
-                                                              # you don't have to scroll down to see it.
+        
+##        with shelve.open("IngredientShelf") as item_shelf:
+##            item_shelf_copy = dict(item_shelf)
+##            for i,item in enumerate(list(item_shelf)):
+##                item_shelf_copy[item].create_label(top)
+##                item_shelf_copy[item].widgets['label'].grid(row=i)
+##                dnd.add_dragable(item_shelf_copy[item].widgets['label'])    
+                
+        # This label is hack to make sure that when a new ingredient is added, you don't have to scroll down to see it.
+        Label(master=i_e_scrollframe.interior).grid(row=9000) 
 
         new_ingr_button = ttk.Button(ingredient_editor_buttons, text = 'New ingredient', width=20, command = new_ingredient)
         new_ingr_button.pack(side = 'left')   
@@ -441,7 +456,8 @@ def edit_ingredients():   # Opens window that lets you add, delete, and edit oxi
         i_e_scrollframe.interior.focus_force()
 
 # SECTION 4.3
-# Introduce the option of adding custom restrictions. Users will define the numerator and denominator, which will be linear
+#
+# Introduce the option of adding custom restrictions.  Users will define the numerator and denominator, which will be linear
 # combinations of the lp_var[] variables.
 
 def edit_other_restrictions():
@@ -469,12 +485,13 @@ option_menu.add_command(label="Restriction Settings", command=restriction_settin
 menubar.add_cascade(label="Options", menu=option_menu)
 
 # SECTION 6:
-# defines structures for the window on the left which allows users to add and remove ingredients and other restrictions to the problem.
+#
+# Defines structures for the window on the left which allows users to add and remove ingredients and other restrictions to the problem.
 
 ingredient_select_button={}
 
-def toggle_ingredient(index):     # adds or removes ingredient_dict[index] to or from the current recipe
-                                  # depending on whether it isn't or is an ingredient already
+def toggle_ingredient(index):
+    # Adds or removes ingredient_dict[index] to or from the current recipe, depending on whether it isn't or is an ingredient already.
     global current_recipe
     global ingredient_select_button
     ingredient_compositions = get_ing_comp(ingredient_dict)
@@ -487,10 +504,11 @@ def toggle_ingredient(index):     # adds or removes ingredient_dict[index] to or
 
 ##        if 'Na2O' in selected_oxides and 'K2O' in selected_oxides:
 ##            selected_oxides.add('KNaO')
-            
+
+        # Remove the restrictions on the oxides no longer present:
         for ox in set(ingredient_compositions[index]) - current_recipe.oxides:
             for et in ['umf_', 'mass_perc_', 'mole_perc_']:
-                restr_dict[et+ox].remove(current_recipe)                     # remove the restrictions on the oxides no longer present
+                restr_dict[et+ox].remove(current_recipe)
 
     else:
         current_recipe.ingredients.append(index)
@@ -518,8 +536,9 @@ grid_ingr_select_buttons(vsf.interior)
 
 other_select_button={}
 
-def toggle_other(index):          # adds or removes other_dict[index] to or from the current recipe
-                                   # depending on whether it isn't or is an other restriction already
+def toggle_other(index):
+    # Adds or removes other_dict[index] to or from the current recipe, depending on whether it isn't or is an other restriction already.
+    
     global current_recipe
     global other_select_button
 
@@ -541,13 +560,13 @@ for index in other_dict:
     other_select_button[index].grid(row = ot.pos+1) 
 
 # SECTION 7
+#
 # Calculations. See the recipe_class file for definitions of calc_restrictions and calc_2d_projection
 
 proj_frame = ttk.Frame(main_frame, padding=(15, 5, 10, 5))  # this just needs to have been defined somewhere
 
-# when you click on 'Calculate restrictions' (calcButton), this happens:
-
 def calc():
+    # Runs when you click on 'Calculate restrictions' (calcButton)
 
     root.lift()  # If this isn't here, the ingredient editor covers the main window whenever it's open. Sometimes it still does this.
                  # Don't ask me why.
@@ -565,17 +584,18 @@ def calc():
 
     current_recipe.calc_2d_projection(prob, lp_var, proj_frame)
     
-calc_button = ttk.Button(main_frame, text = 'Calculate restrictions', command = calc)   # Calc button
+calc_button = ttk.Button(main_frame, text = 'Calculate restrictions', command = calc)
 
 # SECTION 8
-# Grid remaining widgets
+#
+# Grid remaining widgets.
 
-# grid oxide part of restriction frame
+# Grid oxide part of restriction frame:
 oxide_heading_frame = ttk.Frame(restriction_sf.interior)
 oxide_heading_frame.grid(row = 0, column = 0, columnspan = 7)
 Label(oxide_heading_frame, text = 'Oxides', font = ('Helvetica', 12)).grid(column = 0, row = 0, columnspan = 3)
 
-# Percent/unity radio buttons
+# Create and grid the percent/unity radio buttons:
 unity_radio_button = Radiobutton(oxide_heading_frame, text="UMF", variable = entry_type, value = 'umf_',
                                  command = partial(update_oxide_entry_type, current_recipe, 'umf_'))
 unity_radio_button.grid(column = 0, row = 1)
@@ -590,13 +610,13 @@ percent_mol_radio_button.grid(column = 2, row = 1)
 
 unity_radio_button.select()
 
-# grid calc button
+# Grid calc button:
 calc_button.grid()
 
-# grid message frame. At the moment, this isn't used
+# Grid the message frame.  At the moment, this isn't used.
 message_frame.grid(row = 3)
 
-# display first (default) recipe in list
+# Display the first (default) recipe in list.
 open_recipe('0', restr_dict)
     
 root.config(menu=menubar)

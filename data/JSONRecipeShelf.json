@@ -22,15 +22,15 @@
         "other": [],
         "oxides": [
             "SiO2",
-            "K2O",
-            "Al2O3",
-            "B2O3",
-            "ZnO",
-            "CaO",
             "TiO2",
+            "Al2O3",
+            "ZnO",
+            "K2O",
+            "CaO",
+            "B2O3",
+            "Na2O",
             "MgO",
-            "Fe2O3",
-            "Na2O"
+            "Fe2O3"
         ],
         "lower_bounds": {
             "umf_Na2O": 0.0,
@@ -127,6 +127,54 @@
             "ingredient_0": 100.0
         },
         "pos": 0,
+        "variables": {}
+    },
+    "8": {
+        "name": "Salt Glaze",
+        "entry_type": "umf_",
+        "ingredients": [
+            "1",
+            "0",
+            "20",
+            "4"
+        ],
+        "other": [],
+        "oxides": [
+            "SiO2",
+            "Na2O",
+            "Al2O3"
+        ],
+        "lower_bounds": {
+            "umf_SiO2": 2.6,
+            "umf_Na2O": 0.0,
+            "umf_Al2O3": 0.6,
+            "mass_perc_SiO2": 0.0,
+            "mass_perc_Na2O": 0.0,
+            "mass_perc_Al2O3": 0.0,
+            "mole_perc_SiO2": 0.0,
+            "mole_perc_Na2O": 0.0,
+            "mole_perc_Al2O3": 0.0,
+            "ingredient_1": 0.0,
+            "ingredient_0": 0.0,
+            "ingredient_20": 0.0,
+            "ingredient_4": 0.0
+        },
+        "upper_bounds": {
+            "umf_SiO2": 2.6,
+            "umf_Na2O": 1.0,
+            "umf_Al2O3": 0.6,
+            "mass_perc_SiO2": 100.0,
+            "mass_perc_Na2O": 100.0,
+            "mass_perc_Al2O3": 100.0,
+            "mole_perc_SiO2": 100.0,
+            "mole_perc_Na2O": 100.0,
+            "mole_perc_Al2O3": 100.0,
+            "ingredient_1": 100.0,
+            "ingredient_0": 100.0,
+            "ingredient_20": 100.0,
+            "ingredient_4": 100.0
+        },
+        "pos": 8,
         "variables": {}
     }
 }

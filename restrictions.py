@@ -16,7 +16,7 @@
 
 # Contact: pi.mostert@gmail.com
 
-# We define the Restriction, Oxide, Ingredient,and Other classes
+# We define the Restriction, Oxide, Ingredient,and Other classes.
 
 from tkinter import *
 from pretty_names import *
@@ -27,9 +27,9 @@ import copy
 from gui_basic_framework import *  # we really just want restriction_sf.interior
 from pulp import *
 
-initialize_oxides = 0       # Run script with initialize_oxides = 1 whenever the Oxide class is changed
-initialize_ingredients = 0  # Run script with initialize_ingredients = 1 whenever the Ingredient class is changed
-initialize_other = 0        # Run script with initialize_other = 1 whenever the Other class is changed
+initialize_oxides = 0       # Run script with initialize_oxides = 1 whenever the Oxide class is changed.
+initialize_ingredients = 0  # Run script with initialize_ingredients = 1 whenever the Ingredient class is changed.
+initialize_other = 0        # Run script with initialize_other = 1 whenever the Other class is changed.
 
 # SECTION 1
 # Define Restriction class
@@ -54,20 +54,20 @@ class Restriction:
         self.left_label = Label(restriction_sf.interior, textvariable = self.left_label_text)
         
         self.low = DoubleVar()
-        self.lower_bound = Entry(restriction_sf.interior, textvariable = self.low, width=5, fg = 'blue') #user lower bound
+        self.lower_bound = Entry(restriction_sf.interior, textvariable = self.low, width=5, fg='blue') #user lower bound
         self.low.set(self.default_low)
 
         self.upp = DoubleVar()
-        self.upper_bound = Entry(restriction_sf.interior, textvariable = self.upp, width=5, fg = 'blue') #user upper bound
+        self.upper_bound = Entry(restriction_sf.interior, textvariable = self.upp, width=5, fg='blue') #user upper bound
         self.upp.set(self.default_upp)
 
         for eps in [-1,1]:
-            self.calc_bounds[eps] = Label(restriction_sf.interior, bg = 'white', fg = 'red', width = 5) #calculated lower and upper bounds
-            self.calc_bounds[eps].config(text = ' ')
+            self.calc_bounds[eps] = Label(restriction_sf.interior, bg='white', fg='red', width=5) #calculated lower and upper bounds
+            self.calc_bounds[eps].config(text=' ')
 
         self.right_label_text = StringVar()
         self.right_label_text.set(' : '+prettify(self.name)+'   ')
-        self.right_label = Label(restriction_sf.interior, textvariable = self.right_label_text)
+        self.right_label = Label(restriction_sf.interior, textvariable=self.right_label_text)
 
     def select(self, t):
         if t == 'x':
@@ -87,15 +87,15 @@ class Restriction:
                     
     def display(self, line):
 
-        self.left_label.grid(row = line, column=0, sticky=E)        # grid left restriction name
+        self.left_label.grid(row=line, column=0, sticky=E)        # grid left restriction name
         
-        self.lower_bound.grid(row = line, column=1)                 # grid lower bound entry box      
-        self.upper_bound.grid(row = line, column=2)                 # grid upper bound entry box
+        self.lower_bound.grid(row=line, column=1)                 # grid lower bound entry box      
+        self.upper_bound.grid(row=line, column=2)                 # grid upper bound entry box
     
-        self.calc_bounds[-1].grid(row = line, column=4)             # grid calculated lower bound box
-        self.calc_bounds[1].grid(row = line, column=5)             # grid calculated upper bound box
+        self.calc_bounds[-1].grid(row=line, column=4)             # grid calculated lower bound box
+        self.calc_bounds[1].grid(row=line, column=5)             # grid calculated upper bound box
 
-        self.right_label.grid(row = line, column=6, sticky=W)       # grid right restriction name
+        self.right_label.grid(row=line, column=6, sticky=W)       # grid right restriction name
 
     def remove(self, recipe):
         for widget in [self.left_label, self.lower_bound, self.upper_bound, self.calc_bounds[-1], self.calc_bounds[1],
@@ -104,7 +104,7 @@ class Restriction:
         self.low.set(self.default_low)
         self.upp.set(self.default_upp)
         for eps in [-1,1]:
-            self.calc_bounds[eps].config(text = '')
+            self.calc_bounds[eps].config(text='')
         v = dict(recipe.variables)
         for t in v:
             if self == recipe.variables[t]:
@@ -118,9 +118,10 @@ class Restriction:
 
     def display_calc_bounds(self):
         for eps in [-1,1]:
-            self.calc_bounds[eps].config(text = ('%.'+str(self.dec_pt)+'f') % self.calc_value[eps])
+            self.calc_bounds[eps].config(text=('%.' + str(self.dec_pt) + 'f') % self.calc_value[eps])
 
 # SECTION 2
+#
 # Define Oxide class and initialize oxides
 
 class Oxide:
@@ -128,18 +129,19 @@ class Oxide:
      def __init__(self, pos, molar_mass, flux, min_threshhold=0):
          'SiO2, Al2O3, B2O3, MgO, CaO, etc'
 
-         self.pos = pos  # determines order in which oxides are displayed
+         self.pos = pos  # Determines order in which oxides are displayed.
          self.molar_mass = molar_mass
-         self.flux = flux  # either 0 or 1 (for now)
-         self.min_threshhold = min_threshhold  # don't display this oxide if none of the selected ingredients has more than min_threshhold % wt of that oxide
+         self.flux = flux  # Either 0 or 1 (for now).
+         self.min_threshhold = min_threshhold  # Don't display this oxide if none of the selected ingredients has more than min_threshhold % wt of that oxide
 
-     def display(self, frame):     #To be used in the 'Edit oxides' window. Only apply this to copies of things in shelve
+     def display(self, frame):     # To be used in the 'Edit oxides' window. Only apply this to copies of things in shelve.
          pass
 
 with shelve.open("./data/OxideShelf") as oxide_shelf:
     oxides = [ox for ox in oxide_shelf]
 
 # SECTION 3
+#
 # Define Other_Attribute class and initialize other attributes
 
 class Other_Attribute:
@@ -148,64 +150,72 @@ class Other_Attribute:
          'LOI, cost, clay, etc'
 
          self.name = name
-         self.pos = pos  # determines order in which other attributes are displayed
+         self.pos = pos  # Determines order in which other attributes are displayed.
 
-other_attr_dict = {}     # once users are able to add their own attributes, other_attr_dict will be determined by the entries in
-                         # OtherAttributeShelf (yet to be defined). For now we just do things manually.
-other_attr_dict['0'] = Other_Attribute('LOI',0)
-other_attr_dict['1'] = Other_Attribute('cost',1)
-other_attr_dict['2'] = Other_Attribute('clay',2)
+# Once users are able to add their own attributes, other_attr_dict will be determined by the entries in
+# OtherAttributeShelf (yet to be defined).  For now we just do things manually.
+other_attr_dict = {}     
+other_attr_dict['0'] = Other_Attribute('LOI', 0)
+other_attr_dict['1'] = Other_Attribute('cost', 1)
+other_attr_dict['2'] = Other_Attribute('clay', 2)
 
 
 # SECTION 4
-# Define Ingredient class
-
-class Ingredient:    # Ingredients will be referenced by their index, a string consisting of a unique natural number
+#
+# Define Ingredient class.  Ingredients will be referenced by their index, a string consisting of a unique natural number.
+class Ingredient:    
     
-    def __init__(self, pos, name='New ingredient', notes = '', oxide_comp = {}, other_attributes = {}):
+    def __init__(self, pos, name='New ingredient', notes='', oxide_comp={}, other_attributes={}):
 
         self.pos = pos      # Position of the ingredient in the list of ingredients to choose from, and in the ingredient editor
                             # For the purpose of rearranging the order in which the ingredients appear, it may be worth trying to
-                            # have a list, ingredient_list, for which ing.pos is the position of ing in ingredient_list
+                            # have a list, ingredient_list, for which ing.pos is the position of ing in ingredient_list.
+                            # Actually, pos will be replaced by the position of the ingredient in IngredientShelf.
         self.name = name
-        self.notes = notes  # not implemented yet. Intended to show up in the 'Edit ingredients' window.
-        self.oxide_comp = oxide_comp  # dictionary giving weight percent of each oxide in the ingredient
+        # notes not implemented yet. Intended to show up in the 'Edit ingredients' window.
+        self.notes = notes
+        # oxide_comp is a dictionary giving the weight percent of each oxide in the ingredient.
+        self.oxide_comp = oxide_comp  
         self.other_attributes = other_attributes
         self.display_widgets = {}
 
-    def display(self, index, frame, delete_ingredient_fn):     #To be used in the 'Edit ingredients' window. Only apply this to copies of things in shelve
+    def display(self, index, frame, delete_ingredient_fn):
+        # To be used in the 'Edit ingredients' window.  Only apply this to copies of things in shelve.
         r = self.pos + 1
         sdw = self.display_widgets
-        sdw['del'] =  ttk.Button(master=frame, text = 'X', width=2,
-                                 command = partial(delete_ingredient_fn, index))   
+        sdw['del'] =  ttk.Button(master=frame, text='X', width=2, command=partial(delete_ingredient_fn, index))   
         sdw['del'].grid(row=r, column=0)
         sdw['name'] = Entry(master=frame, width=25)
         sdw['name'].grid(row = r, column=1)
         sdw['name'].insert(0, self.name)
 
-        c=3
+        c = 3
+        
         for ox in oxides:
-            sdw[ox] = Entry(master = frame,  width=5)  #percent weight of the oxide that the ingredient contains
-            sdw[ox].grid(row = r, column=c)
-            sdw[ox].delete(0,END)
+            # Use this entry widget to input the percent weight of the oxide that the ingredient contains.
+            sdw[ox] = Entry(master=frame,  width=5)  
+            sdw[ox].grid(row=r, column=c)
+            sdw[ox].delete(0, END)
             if ox in self.oxide_comp:
                 sdw[ox].insert(0, self.oxide_comp[ox])
             else:
                 pass
-            c+=1
+            c += 1
 
         for i, other_attr in other_attr_dict.items(): 
-            sdw['other_attr_'+i] = Entry(master = frame, width=5)
-            sdw['other_attr_'+i].grid(row = r, column = c+other_attr.pos)
+            sdw['other_attr_'+i] = Entry(master=frame, width=5)
+            sdw['other_attr_'+i].grid(row=r, column=c+other_attr.pos)
             if i in self.other_attributes:
                 sdw['other_attr_'+i].insert(0, self.other_attributes[i])
 
-    def pickleable_version(self):
+    def pickleable_version(self):   
         temp = copy.copy(self)
-        temp.display_widgets = {}    # the values in self.display_widgets that the ingredient editor introduces can't be pickled 
+        # The values in self.display_widgets that the ingredient editor introduces can't be pickled, so we discard them:
+        temp.display_widgets = {}    
         return temp
 
 # SECTION 5
+#
 # Define Other class
 
 class Other:
@@ -213,45 +223,60 @@ class Other:
     def __init__(self, pos, name, numerator_coefs, normalization, def_low, def_upp, dec_pt):
         'SiO2:Al2O3, LOI, cost, total clay, etc'
 
-        self.pos = pos  # determines order in which other restrictions are displayed
+        # pos determines order in which other restrictions are displayed.
+        self.pos = pos
+           
         self.name = name
-        self.numerator_coefs = numerator_coefs   # a dictionary with keys of the form mass_ox, mole_ox, ingredient_i,
-                                                 # and values real numbers that are the coefficients in the linear
-                                                 # combination of basic variables that define the numerator.
-        self.normalization = normalization     # For now, just a text string of the form 'lp_var[...]'
-        self.def_low = def_low
-        self.def_upp = def_upp
-        self.dec_pt = dec_pt
         
-    def display(self, frame):     # To be used in the 'Edit other' window, once this is implemented.
+        # numerator_coefs is a dictionary with keys of the form mass_ox, mole_ox, ingredient_i,
+        # and values real numbers that are the coefficients in the linear combination of basic
+        # variables that define the numerator.
+        self.numerator_coefs = numerator_coefs
+        
+        # For now, normlization is just a text string of the form 'lp_var[...]'.
+        self.normalization = normalization
+        
+        self.def_low = def_low
+        
+        self.def_upp = def_upp
+        
+        self.dec_pt = dec_pt
+ 
+    def display(self, frame):
+        # To be used in the 'Edit other' window, once this is implemented.
         pass
 
 # SECTION 6
-# Initialize the restr_dict, oxide_dict, ingredient_dict, and other_dict dictionaries
-# Define default recipe bounds (optional)
+#
+# Initialize the restr_dict, oxide_dict, ingredient_dict, and other_dict dictionaries.
+# Define default recipe bounds (optional).
 # Set up the linear programming problem. Define variables, and set constraints that always hold (unless any
-# of the dictionaries above are modified)
+# of the dictionaries above are modified).
 
-restr_dict = {}  # a dictionary with keys of the form 'umf_'+ox, 'mass_perc_'+ox, 'mole_perc_'+ox, 'ingredient_'+index or 'other_'+index
+# restr_dict is a dictionary with keys of the form 'umf_'+ox, 'mass_perc_'+ox, 'mole_perc_'+ox, 'ingredient_'+index or 'other_'+index.
+restr_dict = {}  
 
 with shelve.open("./data/OxideShelf") as oxide_shelf:
-    for ox in oxide_shelf:   # create oxide restrictions
-        def_upp = 1   # default upper bound for oxide UMF
+    # Create oxide restrictions.
+    for ox in oxide_shelf:   
+        def_upp = 1   # Default upper bound for oxide UMF.
         dp = 3
         if ox == 'SiO2':
             def_upp = 100
             dp = 2
         elif ox == 'Al2O3':
             def_upp = 10
-        restr_dict['umf_'+ox] = Restriction('umf_'+ox, ox, 'mole_'+ox, "lp_var['fluxes_total']", 0, def_upp, dec_pt = dp)
-        restr_dict['mass_perc_'+ox] = Restriction('mass_perc_'+ox, ox, 'mass_'+ox, "0.01*lp_var['ox_mass_total']", 0, 100, dec_pt = 2) 
-        restr_dict['mole_perc_'+ox] = Restriction('mole_perc_'+ox, ox, 'mole_'+ox, "0.01*lp_var['ox_mole_total']", 0, 100, dec_pt = 2)
+        restr_dict['umf_'+ox] = Restriction('umf_'+ox, ox, 'mole_'+ox, "lp_var['fluxes_total']", 0, def_upp, dec_pt=dp)
+        restr_dict['mass_perc_'+ox] = Restriction('mass_perc_'+ox, ox, 'mass_'+ox, "0.01*lp_var['ox_mass_total']", 0, 100, dec_pt=2) 
+        restr_dict['mole_perc_'+ox] = Restriction('mole_perc_'+ox, ox, 'mole_'+ox, "0.01*lp_var['ox_mole_total']", 0, 100, dec_pt=2)
 
+# If there are a large number of ingredients, maybe it's better to only create
+# the corresponding restrictions once they're selected for a particular recipe.
+with shelve.open("./data/IngredientShelf") as ingredient_shelf:   
 
-with shelve.open("./data/IngredientShelf") as ingredient_shelf:   # If there are a large number of ingredients, maybe it's better to only create the corresponding restrictions
-                                                         # once they're selected for a particular recipe.
-    ingredient_dict = dict(ingredient_shelf)     # This is defined again in GUI.py. Will give trouble if initialize_ingredients == 1 in GUI.py.
-                                                 # Need to rethink
+    # This is defined again in GUI.py. Will give trouble if initialize_ingredients == 1 in GUI.py. Need to rethink.
+    ingredient_dict = dict(ingredient_shelf)
+    
     for index in ingredient_shelf:
         restr_dict['ingredient_'+index] = Restriction('ingredient_'+index, ingredient_shelf[index].name, 'ingredient_'+index, "0.01*lp_var['ingredient_total']", 0, 100)
 
@@ -289,9 +314,9 @@ if initialize_oxides == 1:
             del oxide_shelf[ox]
         for (pos, ox) in enumerate(oxidefile.oxides):
             if ox in oxidefile.fluxes:
-                ox_init = Oxide(pos, molar_mass = oxidefile.molar_mass_dict[ox], flux = 1)
+                ox_init = Oxide(pos, molar_mass=oxidefile.molar_mass_dict[ox], flux=1)
             else:
-                ox_init = Oxide(pos, molar_mass = oxidefile.molar_mass_dict[ox], flux = 0)
+                ox_init = Oxide(pos, molar_mass=oxidefile.molar_mass_dict[ox], flux=0)
             oxide_shelf[ox] = ox_init
 else:
     pass
@@ -319,8 +344,8 @@ if initialize_ingredients == 1:
             del ingredient_shelf[index]
         for (pos, ing) in enumerate(ingredient_names):  # Here we're taking the position to be the index
 
-            ing_init = Ingredient(pos, name=ing, oxide_comp = dict([(ox, ingredient_compositions[ing][ox]) \
-                                                                    for ox in oxides if ox in ingredient_compositions[ing]]))
+            ing_init = Ingredient(pos, name=ing, oxide_comp=dict([(ox, ingredient_compositions[ing][ox]) \
+                                                                   for ox in oxides if ox in ingredient_compositions[ing]]))
 
             for attr in other_attr_dict:
                 if attr in ingredient_compositions[ing]:
@@ -340,7 +365,7 @@ def get_ing_comp(ingredient_dict):
 
 ingredient_compositions = get_ing_comp(ingredient_dict)
 
-# Initialize other
+# Initialize other.
 
 def update_other():
     with shelve.open("./data/OtherShelf") as other_shelf:
@@ -350,13 +375,16 @@ def update_other():
 other_dict = update_other()
 
 
-# Set up variables and universal restrictions for LP problem
+# Set up variables and universal restrictions for LP problem.
 
 prob = pulp.LpProblem('Glaze recipe', pulp.LpMaximize)
-lp_var = {}     # dictionary for the variables in the linear programming problem prob. Should this be an instance of the Restr_Index class?
 
+# lp_var is a dictionary for the variables in the linear programming problem prob.  Should this be an instance of the Restr_Index class?
+lp_var = {}     
+
+# Create variables used to normalize:
 for total in ['ingredient_total', 'fluxes_total', 'ox_mass_total', 'ox_mole_total']:
-    lp_var[total] = pulp.LpVariable(total, 0, None, pulp.LpContinuous)           # used to normalize
+    lp_var[total] = pulp.LpVariable(total, 0, None, pulp.LpContinuous)
 
 for index in ingredient_dict:
     ing = 'ingredient_'+index
@@ -365,10 +393,12 @@ for index in ingredient_dict:
 for ox in oxide_dict:
     lp_var['mole_'+ox] = pulp.LpVariable('mole_'+ox, 0, None, pulp.LpContinuous)
     lp_var['mass_'+ox] = pulp.LpVariable('mass_'+ox, 0, None, pulp.LpContinuous)
-    prob += lp_var['mole_'+ox]*oxide_dict[ox].molar_mass == lp_var['mass_'+ox]   # relate mole percent and unity
+    # Relate mole percent and unity:
+    prob += lp_var['mole_'+ox]*oxide_dict[ox].molar_mass == lp_var['mass_'+ox]   
+    # Relate ingredients and oxides:
     prob += sum(ingredient_compositions[index][ox]*lp_var['ingredient_'+index]/100 \
                 for index in ingredient_dict if ox in ingredient_compositions[index]) \
-            == lp_var['mass_'+ox], ox     # relate ingredients and oxides
+            == lp_var['mass_'+ox], ox
 
 ##for index in other_attributes:
 ##    lp_var['other_attr_'+index] = pulp.LpVariable('other_attr_'+index, 0, None, pulp.LpContinuous)
@@ -377,11 +407,12 @@ for ox in oxide_dict:
 for index in other_dict:
     ot = 'other_'+index
     coefs = other_dict[index].numerator_coefs
-    #print(coefs)
+    ##print(coefs)
     linear_combo = [(lp_var[key], coefs[key]) for key in coefs]
-    #print(linear_combo)
+    ##print(linear_combo)
     lp_var[ot] = pulp.LpVariable(ot, 0, None, pulp.LpContinuous)
-    prob += lp_var[ot] == LpAffineExpression(linear_combo), ot         # relate this variable to the other variables.
+    # Relate this variable to the other variables:
+    prob += lp_var[ot] == LpAffineExpression(linear_combo), ot         
 
 prob += lp_var['ingredient_total'] == sum(lp_var['ingredient_'+index] for index in ingredient_dict), 'ing_total'
 prob += lp_var['fluxes_total'] == sum(oxide_dict[ox].flux*lp_var['mole_'+ox] for ox in oxide_dict)
