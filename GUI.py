@@ -365,8 +365,8 @@ def delete_ingredient(index):
 
     del restr_dict['ingredient_'+index]
   
-    # To Do: delete the ingredient from all recipes.  If there are any recipes containing this ingredient, get confirmation from the user
-    # before doing this
+    # To Do: delete the ingredient from all recipes.  If there are any recipes containing this ingredient, get confirmation from
+    # the user before doing this.
   
 def new_ingredient():
 
@@ -383,14 +383,14 @@ def new_ingredient():
 ##        print(ing.oxide_comp)
 ##        print(ing.name)
 ##        ingredient_shelf[str(r)] = copy.deepcopy(ing)
+    
     ingredient_dict[index] = ing
+    ing.displayable_version(index, i_e_scrollframe.interior, delete_ingredient)
+    ing.display(index)
+    restr_dict['ingredient_'+index] = Restriction('ingredient_'+index, ing.name, 'ingredient_'+index, "0.01*lp_var['ingredient_total']", 0, 100)
 
     lp_var['ingredient_'+index] = pulp.LpVariable('ingredient_'+index, 0, None, pulp.LpContinuous)
     prob.constraints['ing_total'] = lp_var['ingredient_total'] == sum(lp_var['ingredient_'+index] for index in ingredient_dict)
-    
-    ingredient_dict[index] = ing
-    ing.display(index, i_e_scrollframe.interior, delete_ingredient)
-    restr_dict['ingredient_'+index] = Restriction('ingredient_'+index, ing.name, 'ingredient_'+index, "0.01*lp_var['ingredient_total']", 0, 100)
 
     ingredient_select_button[index] = ttk.Button(vsf.interior, text = ing.name, width=20,
                                                  command = partial(toggle_ingredient, index))
@@ -431,21 +431,22 @@ def edit_ingredients():
         for i, attr in other_attr_dict.items():
             Label(master=i_e_scrollframe.interior, text=attr.name, width=5).grid(row=0, column=c+attr.pos)
 
-##        ing_dnd = DragManager("IngredientShelf", lambda ing, i: ing.display(i,index, i_e_scrollframe, delete_ingredient_fn))
+##        ing_dnd = DragManager(ingredient_dict, "OrderShelf", 'ingredients', lambda ing, i: ing.display(i,index, i_e_scrollframe, delete_ingredient_fn))
 
         for index in ingredient_dict:
-                ingredient_dict[index].display(index, i_e_scrollframe.interior, delete_ingredient)
-##                ing_dnd.add_dragable(ingredient_dict[item].display_widgets['name'])    
+            ingredient_dict[index].displayable_version(index, i_e_scrollframe.interior, delete_ingredient)
+            ingredient_dict[index].display(index)
+##                ing_dnd.add_dragable(ingredient_dict[index].display_widgets['name'])    
 
         
-##        with shelve.open("IngredientShelf") as item_shelf:
-##            item_shelf_copy = dict(item_shelf)
+##        with shelve.open("OrderShelf") as order_shelf:
+##            ingredient_order = order_shelf['ingredients']
 ##            for i,item in enumerate(list(item_shelf)):
 ##                item_shelf_copy[item].create_label(top)
 ##                item_shelf_copy[item].widgets['label'].grid(row=i)
 ##                dnd.add_dragable(item_shelf_copy[item].widgets['label'])    
                 
-        # This label is hack to make sure that when a new ingredient is added, you don't have to scroll down to see it.
+        # This label is hack to make sure that when a new ingredient is added, you don't have to scroll down to see it:
         Label(master=i_e_scrollframe.interior).grid(row=9000) 
 
         new_ingr_button = ttk.Button(ingredient_editor_buttons, text = 'New ingredient', width=20, command = new_ingredient)

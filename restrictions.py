@@ -179,14 +179,11 @@ class Ingredient:
         self.other_attributes = other_attributes
         self.display_widgets = {}
 
-    def display(self, index, frame, delete_ingredient_fn):
+    def displayable_version(self, index, frame, delete_ingredient_fn):
         # To be used in the 'Edit ingredients' window.  Only apply this to copies of things in shelve.
-        r = self.pos + 1
         sdw = self.display_widgets
         sdw['del'] =  ttk.Button(master=frame, text='X', width=2, command=partial(delete_ingredient_fn, index))   
-        sdw['del'].grid(row=r, column=0)
         sdw['name'] = Entry(master=frame, width=25)
-        sdw['name'].grid(row = r, column=1)
         sdw['name'].insert(0, self.name)
 
         c = 3
@@ -194,7 +191,6 @@ class Ingredient:
         for ox in oxides:
             # Use this entry widget to input the percent weight of the oxide that the ingredient contains.
             sdw[ox] = Entry(master=frame,  width=5)  
-            sdw[ox].grid(row=r, column=c)
             sdw[ox].delete(0, END)
             if ox in self.oxide_comp:
                 sdw[ox].insert(0, self.oxide_comp[ox])
@@ -204,9 +200,23 @@ class Ingredient:
 
         for i, other_attr in other_attr_dict.items(): 
             sdw['other_attr_'+i] = Entry(master=frame, width=5)
-            sdw['other_attr_'+i].grid(row=r, column=c+other_attr.pos)
             if i in self.other_attributes:
                 sdw['other_attr_'+i].insert(0, self.other_attributes[i])
+
+    def display(self, pos):
+        r = self.pos + 1    # Replace this by r = pos, effectively
+        sdw = self.display_widgets
+        sdw['del'].grid(row=r, column=0)
+        sdw['name'].grid(row = r, column=1)
+
+        c = 3
+        
+        for ox in oxides:
+            sdw[ox].grid(row=r, column=c)
+            c += 1
+
+        for i, other_attr in other_attr_dict.items(): 
+            sdw['other_attr_'+i].grid(row=r, column=c+other_attr.pos)
 
     def pickleable_version(self):   
         temp = copy.copy(self)
