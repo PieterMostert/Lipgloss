@@ -280,7 +280,7 @@ def update_basic_constraints(ingredient_compositions, ingredient_dict, other_dic
         linear_combo = [(lp_var[key], coefs[key]) for key in coefs]
         prob.constraints[ot] = lp_var[ot] == LpAffineExpression(linear_combo)         # relate this variable to the other variables.
 
-def reorder_ingredients(list0):
+def reorder_ingredients(ing_list):
     # Run when reordering the ingredients using dragmanager.
 
     #Regrid ingredients in selection window and those that have been selected.
@@ -288,16 +288,16 @@ def reorder_ingredients(list0):
     global ingredient_order
     
     #print(current_recipe.ingredients)
-    for i, index0 in enumerate(list0):
-        #print(index0)
-        ingredient_select_button[index0].grid(row = i)
-        if index0 in current_recipe.ingredients:
-            #print(index0)
-            restr_dict['ingredient_'+index0].display(101 + i)
+    for i, j in enumerate(ing_list):
+        #print(j)
+        ingredient_select_button[j].grid(row = i)
+        if j in current_recipe.ingredients:
+            #print(j)
+            restr_dict['ingredient_'+j].display(101 + i)
         else:
             pass
 
-    ingredient_order = list0
+    ingredient_order = ing_list
 
 def update_ingredient_dict():
     # Run when updating ingredients.  Needs improvement since it removes stars from ingredients that correspond to x or y variables.
@@ -353,6 +353,7 @@ def update_ingredient_dict():
 def delete_ingredient(index):
 
     global ingredient_dict
+    global ingredient_order
 
     oxides_to_update = ingredient_dict[index].oxide_comp
 
@@ -371,6 +372,12 @@ def delete_ingredient(index):
     del ingredient_dict[index]
     with shelve.open("./data/IngredientShelf") as ingredient_shelf:
         del ingredient_shelf[index]
+
+    with shelve.open("./data/OrderShelf") as order_shelf:
+        temp_list = order_shelf['ingredients']
+        temp_list.remove(index)
+        order_shelf['ingredients'] = temp_list
+        ingredient_order = temp_list
 
     # Remove the deleted ingredient from the list of ingredients to select from:
     ingredient_select_button[index].destroy()
@@ -393,6 +400,7 @@ def delete_ingredient(index):
 def new_ingredient():
 
     global ingredient_dict
+    global ingredient_order
     
     with shelve.open("./data/IngredientShelf") as ingredient_shelf:
         r = max([int(index) for index in ingredient_shelf]) + 1
@@ -405,10 +413,17 @@ def new_ingredient():
 ##        print(ing.oxide_comp)
 ##        print(ing.name)
 ##        ingredient_shelf[str(r)] = copy.deepcopy(ing)
+
+    with shelve.open("./data/OrderShelf") as order_shelf:
+        temp_list = order_shelf['ingredients']
+        temp_list.append(index)
+        order_shelf['ingredients'] = temp_list
+        ingredient_order = temp_list
     
     ingredient_dict[index] = ing
     ing.displayable_version(index, i_e_scrollframe.interior, delete_ingredient)
     ing.display(index)
+    ing_dnd.add_dragable(ingredient_dict[index].display_widgets['name'])    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
     restr_dict['ingredient_'+index] = Restriction('ingredient_'+index, ing.name, 'ingredient_'+index, "0.01*lp_var['ingredient_total']", 0, 100)
 
     lp_var['ingredient_'+index] = pulp.LpVariable('ingredient_'+index, 0, None, pulp.LpContinuous)
@@ -430,6 +445,7 @@ def edit_ingredients():
     global ingredient_dict   # Get rid of this eventually?
     global ingredient_editor
     global i_e_scrollframe
+    global ing_dnd
 
     try:
         ingredient_editor.winfo_exists()

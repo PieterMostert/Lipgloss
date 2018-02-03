@@ -47,7 +47,6 @@ class DragManager():
             with shelve.open(self.order_shelf) as order_shelf:
                 temp_list = order_shelf[self.family_name]
                 temp_list.insert(yr,temp_list.pop(y0))
-                print(temp_list)
                 order_shelf[self.family_name] = temp_list
 
             #new_family_dict = {}

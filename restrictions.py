@@ -87,7 +87,6 @@ class Restriction:
                     
     def display(self, line):
 
-        print(line)
         self.left_label.grid(row=line, column=0, sticky=E)        # grid left restriction name
         
         self.lower_bound.grid(row=line, column=1)                 # grid lower bound entry box      
