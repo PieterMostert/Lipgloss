@@ -134,10 +134,13 @@ def open_recipe(index, restr_dict, r_s=0):   # to be used when opening a recipe,
     for ox in current_recipe.oxides:
         restr_dict[et+ox].display(1 + oxide_dict[ox].pos)
 
-    for i in ingredient_dict:
+    with shelve.open("./data/OrderShelf") as order_shelf:    # We shouldn't have to open the shelf each time
+        ingredient_order = order_shelf['ingredients']
+        
+    for i in ingredient_order:
         if i in current_recipe.ingredients:
             ingredient_select_button[i].state(['pressed'])
-            restr_dict['ingredient_'+i].display(101 + ingredient_dict[i].pos)
+            restr_dict['ingredient_'+i].display(101 + ingredient_order.index(i))
         else:
             ingredient_select_button[i].state(['!pressed'])
 
@@ -277,6 +280,25 @@ def update_basic_constraints(ingredient_compositions, ingredient_dict, other_dic
         linear_combo = [(lp_var[key], coefs[key]) for key in coefs]
         prob.constraints[ot] = lp_var[ot] == LpAffineExpression(linear_combo)         # relate this variable to the other variables.
 
+def reorder_ingredients(list0):
+    # Run when reordering the ingredients using dragmanager.
+
+    #Regrid ingredients in selection window and those that have been selected.
+
+    global ingredient_order
+    
+    #print(current_recipe.ingredients)
+    for i, index0 in enumerate(list0):
+        #print(index0)
+        ingredient_select_button[index0].grid(row = i)
+        if index0 in current_recipe.ingredients:
+            #print(index0)
+            restr_dict['ingredient_'+index0].display(101 + i)
+        else:
+            pass
+
+    ingredient_order = list0
+
 def update_ingredient_dict():
     # Run when updating ingredients.  Needs improvement since it removes stars from ingredients that correspond to x or y variables.
 
@@ -414,45 +436,44 @@ def edit_ingredients():
         ingredient_editor.lift()
     except:
         ingredient_editor = Toplevel()
-    
+
+        ingredient_editor_headings = Frame(ingredient_editor)
+        ingredient_editor_headings.pack()
         i_e_scrollframe = VerticalScrolledFrame(ingredient_editor)
         i_e_scrollframe.frame_height = 500
         i_e_scrollframe.pack()
         ingredient_editor_buttons = Frame(ingredient_editor)
         ingredient_editor_buttons.pack()
 
-        Label(master=i_e_scrollframe.interior, text='Ingredient', width=15).grid(row=0, column=1)
+        # Place the headings on the ingredient_editor:
+
+        Label(master=ingredient_editor_headings, text='', width=5).grid(row=0, column=0)  # Blank label above the delete buttons
+        Label(master=ingredient_editor_headings, text='Ingredient', width=15).grid(row=0, column=1)
 
         c=3
         for ox in oxides:
-            Label(master=i_e_scrollframe.interior, text=prettify(ox), width=5).grid(row=0, column=c)
+            Label(master=ingredient_editor_headings, text=prettify(ox), width=5).grid(row=0, column=c)
             c+=1
 
         for i, attr in other_attr_dict.items():
-            Label(master=i_e_scrollframe.interior, text=attr.name, width=5).grid(row=0, column=c+attr.pos)
+            Label(master=ingredient_editor_headings, text=attr.name, width=5).grid(row=0, column=c+attr.pos)
 
-##        ing_dnd = DragManager(ingredient_dict, "OrderShelf", 'ingredients', lambda ing, i: ing.display(i,index, i_e_scrollframe, delete_ingredient_fn))
+        # Create drag manager for ingredient rows:
+        ing_dnd = DragManager(ingredient_dict, "./data/OrderShelf", 'ingredients', lambda ing, i: ing.display(i), reorder_ingredients) # replace lambda.. by display?
 
-        for index in ingredient_dict:
+        # Create and display the rows:
+        for i, index in enumerate(ingredient_order):
             ingredient_dict[index].displayable_version(index, i_e_scrollframe.interior, delete_ingredient)
-            ingredient_dict[index].display(index)
-##                ing_dnd.add_dragable(ingredient_dict[index].display_widgets['name'])    
-
-        
-##        with shelve.open("OrderShelf") as order_shelf:
-##            ingredient_order = order_shelf['ingredients']
-##            for i,item in enumerate(list(item_shelf)):
-##                item_shelf_copy[item].create_label(top)
-##                item_shelf_copy[item].widgets['label'].grid(row=i)
-##                dnd.add_dragable(item_shelf_copy[item].widgets['label'])    
+            ingredient_dict[index].display(i)
+            ing_dnd.add_dragable(ingredient_dict[index].display_widgets['name'])    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
                 
         # This label is hack to make sure that when a new ingredient is added, you don't have to scroll down to see it:
         Label(master=i_e_scrollframe.interior).grid(row=9000) 
 
         new_ingr_button = ttk.Button(ingredient_editor_buttons, text = 'New ingredient', width=20, command = new_ingredient)
-        new_ingr_button.pack(side = 'left')   
+        new_ingr_button.pack(side='left')   
         update_button = ttk.Button(ingredient_editor_buttons, text = 'Update', width=20, command = update_ingredient_dict)
-        update_button.pack(side = 'right')
+        update_button.pack(side='right')
 
         i_e_scrollframe.interior.focus_force()
 
@@ -514,7 +535,8 @@ def toggle_ingredient(index):
     else:
         current_recipe.ingredients.append(index)
         ingredient_select_button[index].state(['pressed'])
-        restr_dict['ingredient_'+index].display(101 + ingredient_dict[index].pos)
+        with shelve.open("./data/OrderShelf") as order_shelf:    # We shouldn't have to open the shelf each time
+            restr_dict['ingredient_'+index].display(101 + order_shelf['ingredients'].index(index))
         current_recipe.oxides = current_recipe.oxides.union(set(ingredient_compositions[index]))    # update the available oxides
            
         et = entry_type.get()
@@ -526,10 +548,10 @@ def grid_ingr_select_buttons(frame):
     for child in frame.winfo_children():
         child.destroy()
 
-    for index in ingredient_dict:
+    for i, index in enumerate(ingredient_order):
         ingredient_select_button[index] = ttk.Button(frame, text = ingredient_dict[index].name, width=20,
                                                      command = partial(toggle_ingredient, index))
-        ingredient_select_button[index].grid(row = ingredient_dict[index].pos)
+        ingredient_select_button[index].grid(row = i)
 
 grid_ingr_select_buttons(vsf.interior)
 

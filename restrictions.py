@@ -87,6 +87,7 @@ class Restriction:
                     
     def display(self, line):
 
+        print(line)
         self.left_label.grid(row=line, column=0, sticky=E)        # grid left restriction name
         
         self.lower_bound.grid(row=line, column=1)                 # grid lower bound entry box      
@@ -182,7 +183,9 @@ class Ingredient:
     def displayable_version(self, index, frame, delete_ingredient_fn):
         # To be used in the 'Edit ingredients' window.  Only apply this to copies of things in shelve.
         sdw = self.display_widgets
-        sdw['del'] =  ttk.Button(master=frame, text='X', width=2, command=partial(delete_ingredient_fn, index))   
+        sdw['del'] =  ttk.Button(master=frame, text='X', width=2, command = partial(delete_ingredient_fn, index))
+##        sdw['del'] =  ttk.Label(master=frame, text='X', width=2)
+##        sdw['del'].bind('<Button-1>', partial(delete_ingredient_fn, index))
         sdw['name'] = Entry(master=frame, width=25)
         sdw['name'].insert(0, self.name)
 
@@ -204,7 +207,8 @@ class Ingredient:
                 sdw['other_attr_'+i].insert(0, self.other_attributes[i])
 
     def display(self, pos):
-        r = self.pos + 1    # Replace this by r = pos, effectively
+        #r = self.pos + 1    # Replace this by r = pos, effectively
+        r = pos
         sdw = self.display_widgets
         sdw['del'].grid(row=r, column=0)
         sdw['name'].grid(row = r, column=1)
@@ -349,10 +353,15 @@ def update_ing():
 
 if initialize_ingredients == 1:
     from ingredientfile import *
+        
     with shelve.open("./data/IngredientShelf") as ingredient_shelf:
         for index in ingredient_shelf:
             del ingredient_shelf[index]
-        for (pos, ing) in enumerate(ingredient_names):  # Here we're taking the position to be the index
+
+        temp_order_list = []
+        for (pos, ing) in enumerate(ingredient_names):
+
+            temp_order_list.append(str(pos))
 
             ing_init = Ingredient(pos, name=ing, oxide_comp=dict([(ox, ingredient_compositions[ing][ox]) \
                                                                    for ox in oxides if ox in ingredient_compositions[ing]]))
@@ -362,10 +371,17 @@ if initialize_ingredients == 1:
                     ing_init.other_attributes[attr] = ingredient_compositions[ing][attr]
             
             ingredient_shelf[str(pos)] = ing_init
+
+    with shelve.open("./data/OrderShelf") as order_shelf:
+        order_shelf['ingredients'] = temp_order_list
+        
 else:
     pass
 
 ingredient_dict = update_ing()
+
+with shelve.open("./data/OrderShelf") as order_shelf:
+    ingredient_order = order_shelf['ingredients']
 
 def get_ing_comp(ingredient_dict):
     ingredient_compositions = {}
