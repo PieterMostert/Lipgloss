@@ -1,6 +1,7 @@
 \documentclass[a4paper,10pt]{article}
 \def\chapno{1}
-\usepackage{lmodern}
+\usepackage{lmodern, listings}
+\lstset{basicstyle=\ttfamily\color{blue}}
 
 % (2) specify encoding
 \usepackage[T1]{fontenc}
@@ -53,7 +54,7 @@ If you want to restrict the bounds for two variables simultaneously, you have th
 
 A collection of ingredient and other restrictions with lower and upper bounds will be referred to as a bounded recipe. Bounded recipes can be saved, or saved as new bounded recipes. If you start with the default bounds and narrow them down to a recipe - i.e. all upper and lower bounds are effectively the same - you should save this as a new bounded recipe, otherwise you'll have to undo all your restrictions when you start working on a new problem. Saved bounded recipes can be opened through the File menu.
 
-LIPGLOSS will come pre-installed with common types of ingredients, but most of these should be updated to reflect the analyses of the ingredients in your studio. To do this, click Options $>$ Edit Ingredients to open the ingredient editor.
+LIPGLOSS will come pre-installed with common types of ingredients, but most of these should be updated to reflect the analyses of the ingredients in your studio. To do this, click Options $>$ Edit Ingredients to open the ingredient editor. The order in which ingredients are displayed can be changed by dragging (with a right-click) and dropping the names of ingredients.
 
 \section{Code Structure}
 In an attempt to make things clearer, any text below that is used as code will be printed in blue. File names will be printed in purple.
@@ -70,9 +71,10 @@ As noted before, the \green{GUI.py} file launches the gui. The following diagram
 %	gui_basic_framework -> restriction_class;
 %	restriction_class -> recipe_class;
 %	pretty_names -> restriction_class ;
-%	pulp2dim -> recipe_class ;
-%	polyplot -> GUI 
+%	pulp2dim -> recipe_class;
+%	polyplot -> GUI; 
 %	recipe_class -> GUI;
+% dragmanager -> GUI;
 %}
 
 \begin{figure}[ht!]
@@ -155,9 +157,20 @@ To maximize or minimize the variable associated with a restriction \blue{res}, w
 
 \subsection{Storing user-defined data}
 
-To save data entered by the user, I\'ve been using the \href{https://docs.python.org/3.6/library/shelve.html}{shelve} module. This results in several data files: \green{IngredientShelf.dat}, \green{OtherShelf.dat}, and \green{OxideShelf.dat} (these all have associated bak and dir files). These are stored in the `data' folder. Derek Au is in the process of switching to JSON instead. So far, only the list of recipe bounds is stored as a JSON file, \green{JSONRecipeShelf}.
+To save data entered by the user, I\'ve been using the \href{https://docs.python.org/3.6/library/shelve.html}{shelve} module. This results in several data files: \green{IngredientShelf.dat}, \green{OtherShelf.dat}, \green{OxideShelf.dat}, and \green{OrderShelf.dat} (these all have associated bak and dir files). These are stored in the `data' folder. Derek Au is in the process of switching to JSON instead. So far, only the list of recipe bounds is stored as a JSON file, \green{JSONRecipeShelf}.
 
 At the moment, we could do without the \green{OxideShelf} files, since there's no way for the user to modify any data related to the oxides, but it may be possible in future versions.
+
+The \green{IngredientShelf}, \green{OtherShelf}, \green{OxideShelf} files are essentially copies of the dictionaries \blue{ingredient\_dict}, \blue{other\_dict}, and \blue{oxide\_dict}. The order in which ingredients are displayed is saved in \green{OrderShelf}; the code
+\begin{flushleft}
+%\begin{verbatim}
+\begin{lstlisting}
+with shelve.open("./data/OrderShelf") as order_shelf:
+    print(order_shelf[`ingredients'])
+\end{lstlisting}
+%\end{verbatim}
+\end{flushleft}
+will print a list of all ingredient indices, in the order the ingredients are displayed in the ingredient selection window and the ingredient editor. Once users are able to change the order of oxides and other restrictions, \green{OrderShelf} will record these orders too, using the keys \blue{`oxides'} and \blue{`other\_restr'}.
 
 \section{Known bugs}
 \begin{itemize}
@@ -175,7 +188,7 @@ At the moment, we could do without the \green{OxideShelf} files, since there's n
 \item Clicking Options $>$ Edit restriction settings, should open a window that allows you to set default lower and upper bounds for each oxide, ingredient and other restriction.
 \item Allow users to define custom `other restrictions'. Users would need to specify an objective function, and a normalization.
 \item Implement the ability to add other attributes to ingredients, using the restriction editor. Each other attribute will be assigned a variable, and an `other restriction' corresponding to that attribute will automatically be added. For example, an other attribute could be the percentage of an ingredient having particle diameters between two bounds.
-\item Fix the headings when scrolling down in the ingredient editor. Add a horizontal scrollbar, and fix the ingredient names when scrolling sideways.
+\item Make the headings in the ingredient editor align with their respective columns. Add a horizontal scrollbar, and fix the ingredient names when scrolling sideways.
 \item Import recipes (or oxide compositions of recipes) from external software, and automatically generate a recipe problem where the oxides are constrained to have the same composition as the imported recipe.
 \item Convert recipe bounds to actual recipes, and export these to external software. This should only be used when the upper and lower bounds on all ingredients are sufficiently close together.
 \item Include an `about box'. 
