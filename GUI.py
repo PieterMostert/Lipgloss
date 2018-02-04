@@ -379,6 +379,9 @@ def delete_ingredient(index):
         order_shelf['ingredients'] = temp_list
         ingredient_order = temp_list
 
+    for i,j in enumerate(ingredient_order):
+        ingredient_dict[j].display(i)    # We actually only need to do this for the rows that are below the one that was deleted
+
     # Remove the deleted ingredient from the list of ingredients to select from:
     ingredient_select_button[index].destroy()
     
@@ -401,6 +404,7 @@ def new_ingredient():
 
     global ingredient_dict
     global ingredient_order
+    #global ing_dnd
     
     with shelve.open("./data/IngredientShelf") as ingredient_shelf:
         r = max([int(index) for index in ingredient_shelf]) + 1
@@ -422,7 +426,7 @@ def new_ingredient():
     
     ingredient_dict[index] = ing
     ing.displayable_version(index, i_e_scrollframe.interior, delete_ingredient)
-    ing.display(index)
+    ing.display(len(temp_list)-1)
     ing_dnd.add_dragable(ingredient_dict[index].display_widgets['name'])    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
     restr_dict['ingredient_'+index] = Restriction('ingredient_'+index, ing.name, 'ingredient_'+index, "0.01*lp_var['ingredient_total']", 0, 100)
 
@@ -461,12 +465,13 @@ def edit_ingredients():
         ingredient_editor_buttons = Frame(ingredient_editor)
         ingredient_editor_buttons.pack()
 
-        # Place the headings on the ingredient_editor:
-
+        # Place the headings on the ingredient_editor. There is some not-entirely-successful fiddling involved to try to get the headings
+        # to match up with their respective columns:
         Label(master=ingredient_editor_headings, text='', width=5).grid(row=0, column=0)  # Blank label above the delete buttons
-        Label(master=ingredient_editor_headings, text='Ingredient', width=15).grid(row=0, column=1)
+        Label(master=ingredient_editor_headings, text='', width=5).grid(row=0, column=1)  # Blank label above the delete buttons
+        Label(master=ingredient_editor_headings, text='    Ingredient', width=20).grid(row=0, column=2)
 
-        c=3
+        c=3+1
         for ox in oxides:
             Label(master=ingredient_editor_headings, text=prettify(ox), width=5).grid(row=0, column=c)
             c+=1
@@ -474,8 +479,11 @@ def edit_ingredients():
         for i, attr in other_attr_dict.items():
             Label(master=ingredient_editor_headings, text=attr.name, width=5).grid(row=0, column=c+attr.pos)
 
+        Label(master=ingredient_editor_headings, text='', width=5).grid(row=0, column=99)  # Blank label above the scrollbar
+        Label(master=ingredient_editor_headings, text='', width=5).grid(row=0, column=100)  # Blank label above the scrollbar
+
         # Create drag manager for ingredient rows:
-        ing_dnd = DragManager(ingredient_dict, "./data/OrderShelf", 'ingredients', lambda ing, i: ing.display(i), reorder_ingredients) # replace lambda.. by display?
+        ing_dnd = DragManager(ingredient_dict, "./data/OrderShelf", 'ingredients', lambda ing, i: ing.display(i), reorder_ingredients)
 
         # Create and display the rows:
         for i, index in enumerate(ingredient_order):
@@ -660,4 +668,4 @@ open_recipe('0', restr_dict)
     
 root.config(menu=menubar)
 
-#root.mainloop()  #can be commented out on windows, but not linux or mac, it seems
+root.mainloop()  #can be commented out on windows, but not linux or mac, it seems

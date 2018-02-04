@@ -185,7 +185,7 @@ class Ingredient:
         sdw['del'] =  ttk.Button(master=frame, text='X', width=2, command = partial(delete_ingredient_fn, index))
 ##        sdw['del'] =  ttk.Label(master=frame, text='X', width=2)
 ##        sdw['del'].bind('<Button-1>', partial(delete_ingredient_fn, index))
-        sdw['name'] = Entry(master=frame, width=25)
+        sdw['name'] = Entry(master=frame, width=20)
         sdw['name'].insert(0, self.name)
 
         c = 3
@@ -210,16 +210,16 @@ class Ingredient:
         r = pos
         sdw = self.display_widgets
         sdw['del'].grid(row=r, column=0)
-        sdw['name'].grid(row = r, column=1)
+        sdw['name'].grid(row = r, column=1, padx=3, pady=3)
 
         c = 3
         
         for ox in oxides:
-            sdw[ox].grid(row=r, column=c)
+            sdw[ox].grid(row=r, column=c, padx=3, pady=1)
             c += 1
 
         for i, other_attr in other_attr_dict.items(): 
-            sdw['other_attr_'+i].grid(row=r, column=c+other_attr.pos)
+            sdw['other_attr_'+i].grid(row=r, column=c+other_attr.pos, padx=3, pady=3)
 
     def pickleable_version(self):   
         temp = copy.copy(self)
