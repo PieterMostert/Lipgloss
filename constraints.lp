@@ -1,6 +1,6 @@
 \* Glaze recipe *\
 Maximize
-Strontium_Carbonate: - ingredient_20
+Frit_3195: - ingredient_14
 Subject To
 Al2O3: 0.4021 ingredient_1 + 0.0602 ingredient_11 + 0.099 ingredient_12
  + 0.1198 ingredient_14 + 0.017 ingredient_18 + 0.1633 ingredient_19
@@ -81,13 +81,7 @@ SiO2_umf_lower: mole_SiO2 >= 0
 SiO2_umf_upper: - 100 fluxes_total + mole_SiO2 <= 0
 SiO2_wt_%_lower: mass_SiO2 >= 0
 SiO2_wt_%_upper: mass_SiO2 - ox_mass_total <= 0
-SrO: 0.702 ingredient_20 - mass_SrO = 0
-SrO_mol_%_lower: mole_SrO >= 0
-SrO_mol_%_upper: mole_SrO - ox_mole_total <= 0
-SrO_umf_lower: - 0.5 fluxes_total + mole_SrO >= 0
-SrO_umf_upper: - fluxes_total + mole_SrO <= 0
-SrO_wt_%_lower: mass_SrO >= 0
-SrO_wt_%_upper: mass_SrO - ox_mass_total <= 0
+SrO: mass_SrO = 0
 TiO2: 0.0015 ingredient_19 + 0.01 ingredient_2 - mass_TiO2 = 0
 TiO2_mol_%_lower: mole_TiO2 >= 0
 TiO2_mol_%_upper: mole_TiO2 - ox_mole_total <= 0
@@ -128,9 +122,8 @@ _C9: - mass_Li2O + 29.881 mole_Li2O = 0
 ing_total: - ingredient_0 - ingredient_1 - ingredient_10 - ingredient_11
  - ingredient_12 - ingredient_13 - ingredient_14 - ingredient_15
  - ingredient_16 - ingredient_17 - ingredient_18 - ingredient_19
- - ingredient_2 - ingredient_20 - ingredient_3 - ingredient_4 - ingredient_5
- - ingredient_6 - ingredient_7 - ingredient_8 - ingredient_9
- + ingredient_total = 0
+ - ingredient_2 - ingredient_3 - ingredient_4 - ingredient_5 - ingredient_6
+ - ingredient_7 - ingredient_8 - ingredient_9 + ingredient_total = 0
 ingredient_0_lower: ingredient_0 >= 0
 ingredient_0_upper: ingredient_0 - ingredient_total <= 0
 ingredient_10_lower: ingredient_10 >= 0
@@ -155,8 +148,6 @@ ingredient_19_lower: ingredient_19 >= 0
 ingredient_19_upper: ingredient_19 <= 0
 ingredient_1_lower: ingredient_1 >= 0
 ingredient_1_upper: ingredient_1 - ingredient_total <= 0
-ingredient_20_lower: ingredient_20 >= 0
-ingredient_20_upper: ingredient_20 - ingredient_total <= 0
 ingredient_2_lower: ingredient_2 >= 0
 ingredient_2_upper: ingredient_2 - ingredient_total <= 0
 ingredient_3_lower: ingredient_3 >= 0

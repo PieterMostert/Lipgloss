@@ -133,9 +133,6 @@ def open_recipe(index, restr_dict, r_s=0):   # to be used when opening a recipe,
 
     for ox in current_recipe.oxides:
         restr_dict[et+ox].display(1 + oxide_dict[ox].pos)
-
-    with shelve.open("./data/OrderShelf") as order_shelf:    # We shouldn't have to open the shelf each time
-        ingredient_order = order_shelf['ingredients']
         
     for i in ingredient_order:
         if i in current_recipe.ingredients:
@@ -283,16 +280,12 @@ def update_basic_constraints(ingredient_compositions, ingredient_dict, other_dic
 def reorder_ingredients(ing_list):
     # Run when reordering the ingredients using dragmanager.
 
-    #Regrid ingredients in selection window and those that have been selected.
-
     global ingredient_order
     
-    #print(current_recipe.ingredients)
+    #Regrid ingredients in selection window and those that have been selected.
     for i, j in enumerate(ing_list):
-        #print(j)
         ingredient_select_button[j].grid(row = i)
         if j in current_recipe.ingredients:
-            #print(j)
             restr_dict['ingredient_'+j].display(101 + i)
         else:
             pass
@@ -358,8 +351,12 @@ def delete_ingredient(index):
     oxides_to_update = ingredient_dict[index].oxide_comp
 
     ingredient_compositions = get_ing_comp(ingredient_dict)   # shouldn't be necessary
-    prob._variables.remove(lp_var['ingredient_'+index])     # somehow, this doesn't seem to be happening
-    
+##    prob._variables.remove(lp_var['ingredient_'+index])
+    # The commented-out line above doesn't work in general since lp_var['ingredient_'+index] is regarded as
+    # being equal to all entries of prob._variables, so it removes the first entry. Instead, we need to use 'is'.
+    for i,j in enumerate(prob._variables):
+        if j is lp_var['ingredient_'+index]:
+            del prob._variables[i]  
 
     update_basic_constraints(ingredient_compositions, ingredient_dict, other_dict)   # I should probably update other_dict, no?
 
@@ -404,7 +401,6 @@ def new_ingredient():
 
     global ingredient_dict
     global ingredient_order
-    #global ing_dnd
     
     with shelve.open("./data/IngredientShelf") as ingredient_shelf:
         r = max([int(index) for index in ingredient_shelf]) + 1

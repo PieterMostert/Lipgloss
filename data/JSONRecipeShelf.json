@@ -21,16 +21,16 @@
         ],
         "other": [],
         "oxides": [
+            "Na2O",
             "Al2O3",
-            "TiO2",
+            "ZnO",
+            "MgO",
+            "K2O",
             "Fe2O3",
+            "B2O3",
             "SiO2",
             "CaO",
-            "Na2O",
-            "B2O3",
-            "K2O",
-            "MgO",
-            "ZnO"
+            "TiO2"
         ],
         "lower_bounds": {
             "umf_TiO2": 0.0,
