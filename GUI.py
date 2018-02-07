@@ -275,7 +275,7 @@ def update_basic_constraints(ingredient_compositions, ingredient_dict, other_dic
         ot = 'other_'+index
         coefs = other_dict[index].numerator_coefs
         linear_combo = [(lp_var[key], coefs[key]) for key in coefs]
-        prob.constraints[ot] = lp_var[ot] == LpAffineExpression(linear_combo)         # relate this variable to the other variables.
+        prob.constraints[ot] = lp_var[ot] == LpAffineExpression(linear_combo)         # Relate this variable to the other variables.
 
 def reorder_ingredients(ing_list):
     # Run when reordering the ingredients using dragmanager.
@@ -405,11 +405,11 @@ def new_ingredient():
     with shelve.open("./data/IngredientShelf") as ingredient_shelf:
         r = max([int(index) for index in ingredient_shelf]) + 1
         index = str(r)
-        ing = ingredient_shelf[str(r)] = Ingredient(r, 'Ingredient #'+index, notes = '', oxide_comp = {}, other_attributes = {})
-                        # If we just had Ingredient(r, 'Ingredient #'+index) above, the default values of the notes, oxide_comp
+        ing = ingredient_shelf[str(r)] = Ingredient('Ingredient #'+index, notes = '', oxide_comp = {}, other_attributes = {})
+                        # If we just had Ingredient('Ingredient #'+index) above, the default values of the notes, oxide_comp
                         # and other_attributes attributes would change when the last instance of the class defined had those
                         # attributes changed
-##        ing = Ingredient(r, 'Ingredient #'+index, oxide_comp = {})
+##        ing = Ingredient('Ingredient #'+index, oxide_comp = {})
 ##        print(ing.oxide_comp)
 ##        print(ing.name)
 ##        ingredient_shelf[str(r)] = copy.deepcopy(ing)
@@ -431,7 +431,7 @@ def new_ingredient():
 
     ingredient_select_button[index] = ttk.Button(vsf.interior, text = ing.name, width=20,
                                                  command = partial(toggle_ingredient, index))
-    ingredient_select_button[index].grid(row = ing.pos)
+    ingredient_select_button[index].grid(row = r)
 
 ##    i_e_scrollframe.vscrollbar.set(100,0)  # Doesn't do anything
     i_e_scrollframe.canvas.yview_moveto(1)  # Supposed to move the scrollbar to the bottom, but misses the last row
@@ -532,32 +532,31 @@ menubar.add_cascade(label="Options", menu=option_menu)
 
 ingredient_select_button={}
 
-def toggle_ingredient(index):
-    # Adds or removes ingredient_dict[index] to or from the current recipe, depending on whether it isn't or is an ingredient already.
+def toggle_ingredient(i):
+    # Adds or removes ingredient_dict[i] to or from the current recipe, depending on whether it isn't or is an ingredient already.
     global current_recipe
     global ingredient_select_button
     ingredient_compositions = get_ing_comp(ingredient_dict)
     
-    if index in current_recipe.ingredients:
-        current_recipe.ingredients.remove(index)
-        ingredient_select_button[index].state(['!pressed'])
-        restr_dict['ingredient_'+index].remove(current_recipe)
+    if i in current_recipe.ingredients:
+        current_recipe.ingredients.remove(i)
+        ingredient_select_button[i].state(['!pressed'])
+        restr_dict['ingredient_'+i].remove(current_recipe)
         current_recipe.update_oxides()
 
 ##        if 'Na2O' in selected_oxides and 'K2O' in selected_oxides:
 ##            selected_oxides.add('KNaO')
 
         # Remove the restrictions on the oxides no longer present:
-        for ox in set(ingredient_compositions[index]) - current_recipe.oxides:
+        for ox in set(ingredient_compositions[i]) - current_recipe.oxides:
             for et in ['umf_', 'mass_perc_', 'mole_perc_']:
                 restr_dict[et+ox].remove(current_recipe)
 
     else:
-        current_recipe.ingredients.append(index)
-        ingredient_select_button[index].state(['pressed'])
-        with shelve.open("./data/OrderShelf") as order_shelf:    # We shouldn't have to open the shelf each time
-            restr_dict['ingredient_'+index].display(101 + order_shelf['ingredients'].index(index))
-        current_recipe.oxides = current_recipe.oxides.union(set(ingredient_compositions[index]))    # update the available oxides
+        current_recipe.ingredients.append(i)
+        ingredient_select_button[i].state(['pressed'])
+        restr_dict['ingredient_'+i].display(101 + ingredient_order.index(i))
+        current_recipe.oxides = current_recipe.oxides.union(set(ingredient_compositions[i]))    # update the available oxides
            
         et = entry_type.get()
         for ox in current_recipe.oxides:

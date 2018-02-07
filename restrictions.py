@@ -165,12 +165,8 @@ other_attr_dict['2'] = Other_Attribute('clay', 2)
 # Define Ingredient class.  Ingredients will be referenced by their index, a string consisting of a unique natural number.
 class Ingredient:    
     
-    def __init__(self, pos, name='New ingredient', notes='', oxide_comp={}, other_attributes={}):
+    def __init__(self, name='New ingredient', notes='', oxide_comp={}, other_attributes={}):
 
-        self.pos = pos      # Position of the ingredient in the list of ingredients to choose from, and in the ingredient editor
-                            # For the purpose of rearranging the order in which the ingredients appear, it may be worth trying to
-                            # have a list, ingredient_list, for which ing.pos is the position of ing in ingredient_list.
-                            # Actually, pos will be replaced by the position of the ingredient in IngredientShelf.
         self.name = name
         # notes not implemented yet. Intended to show up in the 'Edit ingredients' window.
         self.notes = notes
@@ -206,20 +202,18 @@ class Ingredient:
                 sdw['other_attr_'+i].insert(0, self.other_attributes[i])
 
     def display(self, pos):
-        #r = self.pos + 1    # Replace this by r = pos, effectively
-        r = pos
         sdw = self.display_widgets
-        sdw['del'].grid(row=r, column=0)
-        sdw['name'].grid(row = r, column=1, padx=3, pady=3)
+        sdw['del'].grid(row=pos, column=0)
+        sdw['name'].grid(row=pos, column=1, padx=3, pady=3)
 
         c = 3
         
         for ox in oxides:
-            sdw[ox].grid(row=r, column=c, padx=3, pady=1)
+            sdw[ox].grid(row=pos, column=c, padx=3, pady=1)
             c += 1
 
         for i, other_attr in other_attr_dict.items(): 
-            sdw['other_attr_'+i].grid(row=r, column=c+other_attr.pos, padx=3, pady=3)
+            sdw['other_attr_'+i].grid(row=pos, column=c+other_attr.pos, padx=3, pady=3)
 
     def pickleable_version(self):   
         temp = copy.copy(self)
@@ -362,7 +356,7 @@ if initialize_ingredients == 1:
 
             temp_order_list.append(str(pos))
 
-            ing_init = Ingredient(pos, name=ing, oxide_comp=dict([(ox, ingredient_compositions[ing][ox]) \
+            ing_init = Ingredient(name=ing, oxide_comp=dict([(ox, ingredient_compositions[ing][ox]) \
                                                                    for ox in oxides if ox in ingredient_compositions[ing]]))
 
             for attr in other_attr_dict:
