@@ -40,7 +40,7 @@ entry_type = StringVar()
 def update_oxide_entry_type(recipe, entry_type):
 
     global current_recipe
-    current_recipe.update_oxides()
+    current_recipe.update_oxides(restr_dict, entry_type)
 
     for et in ['umf_', 'mass_perc_', 'mole_perc_']:
         if et == entry_type:
@@ -109,11 +109,10 @@ def open_recipe(index, restr_dict, r_s=0):   # to be used when opening a recipe,
     for t, res in current_recipe.variables.items():
         restr_dict[res].deselect(t)            # remove stars from old variables
     current_recipe = copy.deepcopy(recipe_dict[index])
-    current_recipe.update_oxides()            # in case the oxide compositions have changed
+    current_recipe.update_oxides(restr_dict, entry_type.get())            # in case the oxide compositions have changed
     
     recipe_name.set(current_recipe.name)      # update the displayed recipe name
 
-##    for i in restr_keys(oxide_dict, ingredient_dict, other_dict):
     for i in restr_dict:
         restr_dict[i].remove(current_recipe)    # clear the entries from previous recipes, if opening a new recipe
 
@@ -244,7 +243,7 @@ json_load_recipes()
 
 # SECTION 4
 #
-# Options in the Options menu: Edit Oxides, Edit Ingredients, Edit Other Restricitons, Restriction Settings.
+# Options in the Options menu: Edit Oxides, Edit Ingredients, Edit Other Restrictions, Restriction Settings.
 # Currently only Edit Ingredients does anything
 
 # SECTION 4.1
@@ -294,12 +293,14 @@ def reorder_ingredients(ing_list):
 
 def update_ingredient_dict():
     # Run when updating ingredients.  Needs improvement since it removes stars from ingredients that correspond to x or y variables.
+    # Also doesn't update oxides.
 
     global ingredient_dict
     global ingredient_compositions
     global prob
 
     for index in ingredient_dict:
+        # Maybe the restriction class should have an update_data method
         ing = ingredient_dict[index]
         ing.name = ing.display_widgets['name'].get()                 # update ingredient name
         restr_dict['ingredient_'+index].name = ing.name              # update corresponding restriction name
@@ -319,6 +320,9 @@ def update_ingredient_dict():
                     del ing.oxide_comp[ox]
                 except:
                     pass
+
+##        for t, i in current_recipe.variables.items():
+##            restr_dict[i].select(t)
 
         for i, attr in other_attr_dict.items():
             try:
@@ -341,16 +345,52 @@ def update_ingredient_dict():
             ingredient_shelf[index] = ingredient_dict[index].pickleable_version()
     ingredient_compositions = get_ing_comp(ingredient_dict)
 
-    update_basic_constraints(ingredient_compositions, ingredient_dict, other_dict)    
+    update_basic_constraints(ingredient_compositions, ingredient_dict, other_dict)
 
-def delete_ingredient(index):
+    current_recipe.update_oxides(restr_dict, entry_type.get())
+
+def close_conf_window_and_delete_ing(index, window, recipes_affected):
+    delete_ingredient(index, recipes_affected)
+    window.destroy()
+
+def pre_delete_ingredient(index):
+    """Deletes ingredient if not in any recipes, otherwise opens dialogue window asking for confirmation."""
+    recipes_affected = [i for i in recipe_dict if index in recipe_dict[i].ingredients]
+    n = len(recipes_affected)
+    if n > 0:
+        confirmation_window = Toplevel()
+        question_frame = Frame(confirmation_window)
+        question_frame.grid()
+        if n == 1:
+            Label(master=question_frame, text=ingredient_dict[index].name+' occurs in '+recipe_dict[recipes_affected[0]].name+'.').grid(row=0)
+            Label(master=question_frame, text='Are you sure you want to delete '+ingredient_dict[index].name+'?').grid(row=1)
+        elif n == 2:
+            Label(master=question_frame, text=ingredient_dict[index].name+' occurs in '+recipe_dict[recipes_affected[0]].name+' and '+recipe_dict[recipes_affected[1]].name+'.').grid(row=0)
+            Label(master=question_frame, text='Are you sure you want to delete '+ingredient_dict[index].name+'?').grid(row=1)
+        elif n == 3:
+            Label(master=question_frame, text=ingredient_dict[index].name+' occurs in '+recipe_dict[recipes_affected[0]].name+', '+recipe_dict[recipes_affected[1]].name).grid(row=0)
+            Label(master=question_frame, text=' and 1 other recipe.').grid(row=1)
+            Label(master=question_frame, text='Are you sure you want to delete '+ingredient_dict[index].name+'?').grid(row=2)
+        else:
+            Label(master=question_frame, text=ingredient_dict[index].name+' occurs in '+recipe_dict[recipes_affected[0]].name+', '+recipe_dict[recipes_affected[1]].name).grid(row=0)
+            Label(master=question_frame, text=' and '+str(n-2)+' other recipes.').grid(row=1)
+            Label(master=question_frame, text='Are you sure you want to delete '+ingredient_dict[index].name+'?').grid(row=2)  
+        answer_frame = Frame(confirmation_window)
+        answer_frame.grid()
+        ttk.Button(answer_frame, text='Yes', width=10, command=partial(close_conf_window_and_delete_ing, index, confirmation_window, recipes_affected)).grid(column=0, row=0)
+        ttk.Button(answer_frame, text='No', width=10, command=lambda : confirmation_window.destroy()).grid(column=1, row=0)
+    else:
+        delete_ingredient(index, [])
+
+def delete_ingredient(index, recipes_affected):
 
     global ingredient_dict
     global ingredient_order
 
+    print('Ingredient deleted')
+
     oxides_to_update = ingredient_dict[index].oxide_comp
 
-    ingredient_compositions = get_ing_comp(ingredient_dict)   # shouldn't be necessary
 ##    prob._variables.remove(lp_var['ingredient_'+index])
     # The commented-out line above doesn't work in general since lp_var['ingredient_'+index] is regarded as
     # being equal to all entries of prob._variables, so it removes the first entry. Instead, we need to use 'is'.
@@ -393,9 +433,15 @@ def delete_ingredient(index):
     prob.constraints['ing_total'] = lp_var['ingredient_total'] == sum(lp_var['ingredient_'+i] for i in ingredient_dict)
 
     del restr_dict['ingredient_'+index]
-  
-    # To Do: delete the ingredient from all recipes.  If there are any recipes containing this ingredient, get confirmation from
-    # the user before doing this.
+
+    # Remove the ingredient from all recipes that contain it.
+    for i in recipes_affected:
+        rec = recipe_dict[i]
+        rec.ingredients.remove(index)
+        rec.update_oxides(restr_dict, entry_type.get())
+        #recipe_dict[i]=rec
+        rec.update_variables(restr_keys(rec.oxides, rec.ingredients, rec.other))
+    json_write_recipes()
   
 def new_ingredient():
 
@@ -405,7 +451,7 @@ def new_ingredient():
     with shelve.open("./data/IngredientShelf") as ingredient_shelf:
         r = max([int(index) for index in ingredient_shelf]) + 1
         index = str(r)
-        ing = ingredient_shelf[str(r)] = Ingredient('Ingredient #'+index, notes = '', oxide_comp = {}, other_attributes = {})
+        ing = ingredient_shelf[str(r)] = Ingredient('Ingredient #'+index, notes='', oxide_comp={}, other_attributes={})
                         # If we just had Ingredient('Ingredient #'+index) above, the default values of the notes, oxide_comp
                         # and other_attributes attributes would change when the last instance of the class defined had those
                         # attributes changed
@@ -421,7 +467,7 @@ def new_ingredient():
         ingredient_order = temp_list
     
     ingredient_dict[index] = ing
-    ing.displayable_version(index, i_e_scrollframe.interior, delete_ingredient)
+    ing.displayable_version(index, i_e_scrollframe.interior, pre_delete_ingredient)
     ing.display(len(temp_list)-1)
     ing_dnd.add_dragable(ingredient_dict[index].display_widgets['name'])    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
     restr_dict['ingredient_'+index] = Restriction('ingredient_'+index, ing.name, 'ingredient_'+index, "0.01*lp_var['ingredient_total']", 0, 100)
@@ -461,8 +507,8 @@ def edit_ingredients():
         ingredient_editor_buttons = Frame(ingredient_editor)
         ingredient_editor_buttons.pack()
 
-        # Place the headings on the ingredient_editor. There is some not-entirely-successful fiddling involved to try to get the headings
-        # to match up with their respective columns:
+        # Place the headings on the ingredient_editor. There is some not-entirely-successful fiddling involved to try
+        # to get the headings to match up with their respective columns:
         Label(master=ingredient_editor_headings, text='', width=5).grid(row=0, column=0)  # Blank label above the delete buttons
         Label(master=ingredient_editor_headings, text='', width=5).grid(row=0, column=1)  # Blank label above the delete buttons
         Label(master=ingredient_editor_headings, text='    Ingredient', width=20).grid(row=0, column=2)
@@ -483,7 +529,7 @@ def edit_ingredients():
 
         # Create and display the rows:
         for i, index in enumerate(ingredient_order):
-            ingredient_dict[index].displayable_version(index, i_e_scrollframe.interior, delete_ingredient)
+            ingredient_dict[index].displayable_version(index, i_e_scrollframe.interior, pre_delete_ingredient)
             ingredient_dict[index].display(i)
             ing_dnd.add_dragable(ingredient_dict[index].display_widgets['name'])    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
                 
@@ -542,7 +588,7 @@ def toggle_ingredient(i):
         current_recipe.ingredients.remove(i)
         ingredient_select_button[i].state(['!pressed'])
         restr_dict['ingredient_'+i].remove(current_recipe)
-        current_recipe.update_oxides()
+        current_recipe.update_oxides(restr_dict, entry_type.get())
 
 ##        if 'Na2O' in selected_oxides and 'K2O' in selected_oxides:
 ##            selected_oxides.add('KNaO')
@@ -552,15 +598,24 @@ def toggle_ingredient(i):
             for et in ['umf_', 'mass_perc_', 'mole_perc_']:
                 restr_dict[et+ox].remove(current_recipe)
 
+        # TO DO: remove star(s) if this was a variable, or any of the ingredients removed were variables.
+
     else:
         current_recipe.ingredients.append(i)
         ingredient_select_button[i].state(['pressed'])
         restr_dict['ingredient_'+i].display(101 + ingredient_order.index(i))
+        for ox in ingredient_compositions[i]:
+            if ox not in current_recipe.oxides:  # i.e. if we're introducing a new oxide
+                for t in ['umf_', 'mass_perc_', 'mole_perc_']:
+                    current_recipe.lower_bounds[t+ox] = restr_dict[t+ox].default_low
+                    current_recipe.upper_bounds[t+ox] = restr_dict[t+ox].default_upp
         current_recipe.oxides = current_recipe.oxides.union(set(ingredient_compositions[i]))    # update the available oxides
            
         et = entry_type.get()
         for ox in current_recipe.oxides:
             restr_dict[et+ox].display(1 + oxide_dict[ox].pos)
+
+    
 
 def grid_ingr_select_buttons(frame):
     global ingredient_select_button
@@ -568,9 +623,9 @@ def grid_ingr_select_buttons(frame):
         child.destroy()
 
     for i, index in enumerate(ingredient_order):
-        ingredient_select_button[index] = ttk.Button(frame, text = ingredient_dict[index].name, width=20,
-                                                     command = partial(toggle_ingredient, index))
-        ingredient_select_button[index].grid(row = i)
+        ingredient_select_button[index] = ttk.Button(frame, text=ingredient_dict[index].name, width=20,
+                                                     command=partial(toggle_ingredient, index))
+        ingredient_select_button[index].grid(row=i)
 
 grid_ingr_select_buttons(vsf.interior)
 
@@ -588,6 +643,7 @@ def toggle_other(index):
         current_recipe.other.remove(index)
         other_select_button[index].state(['!pressed'])
         restr_dict['other_'+index].remove(current_recipe)
+        # TO DO: remove star if this was a variable
 
     else:
         current_recipe.other.append(index)
@@ -597,9 +653,9 @@ def toggle_other(index):
 
 for index in other_dict:
     ot = other_dict[index]
-    other_select_button[index] = ttk.Button(other_selection_window, text = prettify(ot.name),
-                                               width=18, command = partial(toggle_other, index))
-    other_select_button[index].grid(row = ot.pos+1) 
+    other_select_button[index] = ttk.Button(other_selection_window, text=prettify(ot.name),
+                                               width=18, command=partial(toggle_other, index))
+    other_select_button[index].grid(row=ot.pos+1) 
 
 # SECTION 7
 #
@@ -634,21 +690,21 @@ calc_button = ttk.Button(main_frame, text = 'Calculate restrictions', command = 
 
 # Grid oxide part of restriction frame:
 oxide_heading_frame = ttk.Frame(restriction_sf.interior)
-oxide_heading_frame.grid(row = 0, column = 0, columnspan = 7)
-Label(oxide_heading_frame, text = 'Oxides', font = ('Helvetica', 12)).grid(column = 0, row = 0, columnspan = 3)
+oxide_heading_frame.grid(row=0, column=0, columnspan=7)
+Label(oxide_heading_frame, text='Oxides', font=('Helvetica', 12)).grid(column=0, row=0, columnspan=3)
 
 # Create and grid the percent/unity radio buttons:
-unity_radio_button = Radiobutton(oxide_heading_frame, text="UMF", variable = entry_type, value = 'umf_',
-                                 command = partial(update_oxide_entry_type, current_recipe, 'umf_'))
-unity_radio_button.grid(column = 0, row = 1)
+unity_radio_button = Radiobutton(oxide_heading_frame, text="UMF", variable=entry_type, value='umf_',
+                                 command=partial(update_oxide_entry_type, current_recipe, 'umf_'))
+unity_radio_button.grid(column=0, row=1)
 
-percent_wt_radio_button = Radiobutton(oxide_heading_frame, text="% weight", variable = entry_type, value = 'mass_perc_', \
-                                      command = partial(update_oxide_entry_type, current_recipe, 'mass_perc_'))
-percent_wt_radio_button.grid(column = 1, row = 1)
+percent_wt_radio_button = Radiobutton(oxide_heading_frame, text="% weight", variable=entry_type, value='mass_perc_', \
+                                      command=partial(update_oxide_entry_type, current_recipe, 'mass_perc_'))
+percent_wt_radio_button.grid(column=1, row=1)
 
-percent_mol_radio_button = Radiobutton(oxide_heading_frame, text="% mol", variable = entry_type, value = 'mole_perc_', \
-                                       command = partial(update_oxide_entry_type, current_recipe, 'mole_perc_'))
-percent_mol_radio_button.grid(column = 2, row = 1)
+percent_mol_radio_button = Radiobutton(oxide_heading_frame, text="% mol", variable=entry_type, value='mole_perc_', \
+                                       command=partial(update_oxide_entry_type, current_recipe, 'mole_perc_'))
+percent_mol_radio_button.grid(column=2, row=1)
 
 unity_radio_button.select()
 
@@ -663,4 +719,4 @@ open_recipe('0', restr_dict)
     
 root.config(menu=menubar)
 
-root.mainloop()  #can be commented out on windows, but not linux or mac, it seems
+#root.mainloop()  #can be commented out on windows, but not linux or mac, it seems

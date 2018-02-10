@@ -109,7 +109,7 @@ class Restriction:
         for t in v:
             if self == recipe.variables[t]:
                 self.deselect(t)
-                del recipe.variables[t]
+                del recipe.variables[t]   # doesn't work
 
     def hide(self):  # to be used with oxide options
         for widget in [self.left_label, self.lower_bound, self.upper_bound, self.calc_bounds[-1], self.calc_bounds[1],
@@ -279,6 +279,35 @@ with shelve.open("./data/OxideShelf") as oxide_shelf:
 
 # If there are a large number of ingredients, maybe it's better to only create
 # the corresponding restrictions once they're selected for a particular recipe.
+
+if initialize_ingredients == 1:
+    from ingredientfile import *
+        
+    with shelve.open("./data/IngredientShelf") as ingredient_shelf:
+        for index in ingredient_shelf:
+            del ingredient_shelf[index]
+
+        temp_order_list = []
+        for (pos, ing) in enumerate(ingredient_names):
+
+            temp_order_list.append(str(pos))
+
+            ing_init = Ingredient(name=ing, oxide_comp=dict([(ox, ingredient_compositions[ing][ox]) \
+                                                                   for ox in oxides if ox in ingredient_compositions[ing]]),\
+                                  other_attributes={})
+
+            for attr in other_attr_dict:
+                if attr in ingredient_compositions[ing]:
+                    ing_init.other_attributes[attr] = ingredient_compositions[ing][attr]
+            
+            ingredient_shelf[str(pos)] = ing_init
+
+    with shelve.open("./data/OrderShelf") as order_shelf:
+        order_shelf['ingredients'] = temp_order_list
+        
+else:
+    pass
+
 with shelve.open("./data/IngredientShelf") as ingredient_shelf:   
 
     # This is defined again in GUI.py. Will give trouble if initialize_ingredients == 1 in GUI.py. Need to rethink.
@@ -295,6 +324,7 @@ if True:
         other_shelf['1'] = Other(1,'KNaO UMF', {'mole_K2O':1, 'mole_Na2O':1}, "lp_var['fluxes_total']", 0, 1, 3)
         other_shelf['2'] = Other(2,'KNaO % mol', {'mole_K2O':1, 'mole_Na2O':1}, "0.01*lp_var['ox_mole_total']", 0, 100, 1)
         other_shelf['3'] = Other(3,'RO UMF', {'mole_MgO':1, 'mole_CaO':1, 'mole_BaO':1, 'mole_SrO':1}, "lp_var['fluxes_total']", 0, 1, 3)
+
         other_att_4 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['2']) for index in ingredient_dict if '2' in ingredient_dict[index].other_attributes}
         other_shelf['4'] = Other(4,'Total clay', {k:v for k,v in other_att_4.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
         other_att_5 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['0']) for index in ingredient_dict if '0' in ingredient_dict[index].other_attributes}
@@ -357,7 +387,8 @@ if initialize_ingredients == 1:
             temp_order_list.append(str(pos))
 
             ing_init = Ingredient(name=ing, oxide_comp=dict([(ox, ingredient_compositions[ing][ox]) \
-                                                                   for ox in oxides if ox in ingredient_compositions[ing]]))
+                                                                   for ox in oxides if ox in ingredient_compositions[ing]]),\
+                                  other_attributes = {})
 
             for attr in other_attr_dict:
                 if attr in ingredient_compositions[ing]:

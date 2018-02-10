@@ -38,10 +38,6 @@ def associated_oxides(ingredients):
     for index in ingredients:
         assoc_oxides = assoc_oxides.union(set(ingredient_compositions[index]))  # update the available oxides. Probably not the most
                                                                                                       # efficient way to do this
-
-    #if 'Na2O' in assoc_oxides and 'K2O' in assoc_oxides:
-     #   assoc_oxides.add('KNaO')
-
     return assoc_oxides
 
 def fluxes_subset(oxides):
@@ -67,7 +63,8 @@ def restr_keys(oxides, ingredients, other):
            ['other_'+ot for ot in other]
 
 class Recipe:
-    'This is actually a set of bounds on a collection of ingredients, together with bounds on the oxides present, and possibly bounds on other quantities'
+    """This is actually a set of bounds on a collection of ingredients, together with bounds on the oxides present, \\
+    and possibly bounds on other quantities"""
 
     def __init__(self, name, pos, ingredients, other, lower_bounds, upper_bounds, entry_type, variables = {}):
 
@@ -107,20 +104,31 @@ class Recipe:
             self.lower_bounds['other_'+ot] = restr_dict['other_'+ot].low.get()
             self.upper_bounds['other_'+ot] = restr_dict['other_'+ot].upp.get()
 
-    def update_oxides(self):             # to be run whenever the ingredients are changed
+    def update_oxides(self, restr_dict, et):   # to be run whenever the ingredients are changed
         old_oxides = copy.copy(self.oxides)
         ass_oxides = associated_oxides(self.ingredients)
         for ox in self.oxides:
             if ox not in ass_oxides:
                 for t in ['umf_', 'mass_perc_', 'mole_perc_']:
-                    try:
-                        del self.lower_bounds[t+ox]
-                    except:
-                        pass
+                    del self.lower_bounds[t+ox]
+                    restr_dict[t+ox].remove(self)
+##                    try:
+##                        del self.lower_bounds[t+ox]
+##                        restr_dict[t+ox].remove(self)
+##                        print('deleted '+ox+' lower bound')
+##                    except:
+##                        pass
                     try:
                         del self.upper_bounds[t+ox]
                     except:
                         pass
+
+        for ox in ass_oxides:
+            if ox not in old_oxides:
+                for t in ['umf_', 'mass_perc_', 'mole_perc_']:
+                    self.lower_bounds[t+ox] = restr_dict[t+ox].default_low
+                    self.upper_bounds[t+ox] = restr_dict[t+ox].default_upp
+                restr_dict[et+ox].display(1 + oxide_dict[ox].pos)  # probably won't work
 
         self.oxides = ass_oxides
 
@@ -140,6 +148,12 @@ class Recipe:
             with shelve.open("./data/OtherShelf") as other_shelf:
                 restr_dict['other_'+index].display(1001 + other_shelf[index].pos)
 
+    def update_variables(self, restr_keys):    # delete variables no longer present
+
+        var = copy.copy(self.variables)
+        for v in var:
+            if var[v] not in restr_keys:
+                del self.variables[v]
 
     def calc_restrictions(self, prob, lp_var, restr_dict, proj_frame):    # This should be redone, so that all the variables and restrictions
                                                                           # in self.prob are defined elsewhere, except for the restrictions  
