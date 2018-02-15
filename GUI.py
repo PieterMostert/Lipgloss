@@ -387,8 +387,6 @@ def delete_ingredient(index, recipes_affected):
     global ingredient_dict
     global ingredient_order
 
-    print('Ingredient deleted')
-
     oxides_to_update = ingredient_dict[index].oxide_comp
 
 ##    prob._variables.remove(lp_var['ingredient_'+index])
@@ -676,7 +674,7 @@ def calc():
         proj_frame.grid_forget()
     except:
         pass
-    if len(current_recipe.variables) == 2 and restr_dict[current_recipe.variables['x']].normalization == restr_dict[current_recipe.variables['y']].normalization:
+    if len(current_recipe.variables) == 2: # and restr_dict[current_recipe.variables['x']].normalization == restr_dict[current_recipe.variables['y']].normalization:
         proj_frame = ttk.Frame(main_frame, padding=(15, 5, 10, 5))
         proj_frame.grid(column = 1, row = 1, rowspan=1000, sticky = 'nw')
 
@@ -719,4 +717,4 @@ open_recipe('0', restr_dict)
     
 root.config(menu=menubar)
 
-#root.mainloop()  #can be commented out on windows, but not linux or mac, it seems
+root.mainloop()  # Can be commented out on windows, but not linux or mac, it seems

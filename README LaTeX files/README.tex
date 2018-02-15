@@ -174,8 +174,6 @@ will print a list of all ingredient indices, in the order the ingredients are di
 
 \section{Known bugs}
 \begin{itemize}
-\item If you delete an ingredient using the ingredient editor, it will only be deleted from the current recipe (assuming it\'s one of the ingredients in the recipe). When you attempt to open a recipe that contains the deleted ingredient, you'll get an error (unless you've subsequently added a new ingredient which happens to have the same index).
-\item If you edit the oxide composition of an ingredient that has been selected, and then click `Update', the list of oxides shown doesn't change to reflect this.
 \item On my computer, the PuLP API causes a window to open and close each time a linear function is optimized, resulting in a delay of around 10 seconds, even though the actual calculation usually takes under 2 seconds. There may be a fix for this, but I haven't been able to implement it.
 \end{itemize}
 

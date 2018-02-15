@@ -321,19 +321,19 @@ class Recipe:
         if len(self.variables) == 2:
             x_var = restr_dict[self.variables['x']]
             y_var = restr_dict[self.variables['y']]
-            if x_var.normalization == y_var.normalization:
-                prob.constraints['normalization'] =  eval(x_var.normalization) == 1
-                var_x = lp_var[x_var.objective_func]
-                var_y = lp_var[y_var.objective_func]
+##            if x_var.normalization == y_var.normalization:
+##                prob.constraints['normalization'] =  eval(x_var.normalization) == 1
+##                var_x = lp_var[x_var.objective_func]
+##                var_y = lp_var[y_var.objective_func]
 
-            else:
-                messagebox.showwarning(" ", '2-dim projection of restrictions with different normalizations not implemented yet')
-                tdp = 0
+##            else:
+##                messagebox.showwarning(" ", '2-dim projection of restrictions with different normalizations not implemented yet')
+##                tdp = 0
         else:
             tdp = 0
              
         if tdp == 1:
-            vertices = prob.two_dim_projection(var_x, var_y)            # defined in pulp2dim file
+            vertices = prob.two_dim_projection(lp_var, lp_var[x_var.objective_func], lp_var[y_var.objective_func], x_var.normalization, y_var.normalization)            # defined in pulp2dim file
             #print(vertices)
 
      # Display 2-d projection of feasible region onto 'x'-'y' axes
