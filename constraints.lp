@@ -1,6 +1,6 @@
 \* Glaze recipe *\
 Maximize
-Zinc_Oxide: - ingredient_10
+Total_clay: - other_4
 Subject To
 Al2O3: 0.4021 ingredient_1 + 0.0602 ingredient_11 + 0.099 ingredient_12
  + 0.1198 ingredient_14 + 0.017 ingredient_18 + 0.1633 ingredient_19
@@ -170,6 +170,8 @@ other_1: - mole_K2O - mole_Na2O + other_1 = 0
 other_2: - mole_K2O - mole_Na2O + other_2 = 0
 other_3: - mole_BaO - mole_CaO - mole_MgO - mole_SrO + other_3 = 0
 other_4: - ingredient_1 - ingredient_2 + other_4 = 0
+other_4_lower: other_4 >= 0
+other_4_upper: - ingredient_total + other_4 <= 0
 other_5: - 0.125 ingredient_1 - 0.5926 ingredient_16 - 0.05 ingredient_17
  - 0.309 ingredient_18 - 0.12 ingredient_2 - 0.007 ingredient_5
  - 0.439 ingredient_7 - 0.0475 ingredient_8 - 0.522 ingredient_9 + other_5 = 0
