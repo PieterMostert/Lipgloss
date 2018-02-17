@@ -36,4 +36,14 @@ def prettify(text):
     try:
         return pretty_dict[text]
     except:
-        return text  
+        return text
+
+def pretty_entry_type(text):
+    if text == 'um':
+        return ' UMF'
+    elif text == 'ma':
+        return ' % weight'
+    elif text == 'mo':
+        return ' % mole'
+    else:
+        return ''

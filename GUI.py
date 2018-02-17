@@ -293,7 +293,6 @@ def reorder_ingredients(ing_list):
 
 def update_ingredient_dict():
     # Run when updating ingredients.  Needs improvement since it removes stars from ingredients that correspond to x or y variables.
-    # Also doesn't update oxides.
 
     global ingredient_dict
     global ingredient_compositions
@@ -659,28 +658,20 @@ for index in other_dict:
 #
 # Calculations. See the recipe_class file for definitions of calc_restrictions and calc_2d_projection
 
-proj_frame = ttk.Frame(main_frame, padding=(15, 5, 10, 5))  # this just needs to have been defined somewhere
-
 def calc():
     # Runs when you click on 'Calculate restrictions' (calcButton)
 
     root.lift()  # If this isn't here, the ingredient editor covers the main window whenever it's open. Sometimes it still does this.
                  # Don't ask me why.
 
-    current_recipe.calc_restrictions(prob, lp_var, restr_dict, ttk.Frame(main_frame, padding=(15, 5, 10, 5)))
+    current_recipe.calc_restrictions(prob, lp_var, restr_dict)
 
-    global proj_frame
-    try:
-        proj_frame.grid_forget()
-    except:
-        pass
-    if len(current_recipe.variables) == 2: # and restr_dict[current_recipe.variables['x']].normalization == restr_dict[current_recipe.variables['y']].normalization:
-        proj_frame = ttk.Frame(main_frame, padding=(15, 5, 10, 5))
-        proj_frame.grid(column = 1, row = 1, rowspan=1000, sticky = 'nw')
+##    if len(current_recipe.variables) == 2: # and restr_dict[current_recipe.variables['x']].normalization == restr_dict[current_recipe.variables['y']].normalization:
+##        proj_frame = ttk.Frame(main_frame, padding=(15, 5, 10, 5))       
 
-    current_recipe.calc_2d_projection(prob, lp_var, proj_frame)
+    current_recipe.calc_2d_projection(prob, lp_var, proj_canvas)
     
-calc_button = ttk.Button(main_frame, text = 'Calculate restrictions', command = calc)
+calc_button = ttk.Button(main_frame, text='Calculate restrictions', command=calc)
 
 # SECTION 8
 #
@@ -717,4 +708,4 @@ open_recipe('0', restr_dict)
     
 root.config(menu=menubar)
 
-root.mainloop()  # Can be commented out on windows, but not linux or mac, it seems
+#root.mainloop()  # Can be commented out on windows, but not linux or mac, it seems

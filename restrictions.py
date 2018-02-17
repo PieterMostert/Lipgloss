@@ -72,16 +72,20 @@ class Restriction:
     def select(self, t):
         if t == 'x':
             self.left_label_text.set('* '+prettify(self.name)+' : ')
+            x_lab.config(text='x variable: '+prettify(self.name)+pretty_entry_type(self.index[0:2]))
         elif t == 'y':
             self.right_label_text.set(' : '+prettify(self.name)+' *')
+            y_lab.config(text='y variable: '+prettify(self.name)+pretty_entry_type(self.index[0:2]))
         else:
             print('Something\'s wrong')
 
     def deselect(self, t):
         if t == 'x':
             self.left_label_text.set('  '+prettify(self.name)+' : ')
+            x_lab.config(text='x variable: Click right restriction name to select')
         elif t == 'y':
             self.right_label_text.set(' : '+prettify(self.name)+'  ')
+            y_lab.config(text='y variable: Click left restriction name to select')
         else:
             print('Something\'s wrong')
                     

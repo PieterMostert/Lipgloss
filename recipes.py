@@ -155,7 +155,7 @@ class Recipe:
             if var[v] not in restr_keys:
                 del self.variables[v]
 
-    def calc_restrictions(self, prob, lp_var, restr_dict, proj_frame):    # This should be redone, so that all the variables and restrictions
+    def calc_restrictions(self, prob, lp_var, restr_dict):    # This should be redone, so that all the variables and restrictions
                                                                           # in self.prob are defined elsewhere, except for the restrictions  
                                                                           # defined by the user
         
@@ -309,46 +309,32 @@ class Recipe:
         t6 = time.process_time()
         #print(t1-t0, t5-t1, t6-t5)
 
-    def calc_2d_projection(self, prob, lp_var, proj_frame):  # This is designed to be run when only the x and y variables have changed; it does not take
+    def calc_2d_projection(self, prob, lp_var, proj_canvas):  # This is designed to be run when only the x and y variables have changed; it does not take
                                                # into account changes to upper and lower bounds. It should be possible to detect when the
                                                # user has clicked in one of the entry boxes since the last time calc_restrictions was run,
                                                # and give a warning in this case. Something like, if you have changed any bounds, click
                                                # 'Calculate restrictions' to apply them.
-         
-        #Need this for 2d projection
-        tdp = 1
 
         if len(self.variables) == 2:
             x_var = restr_dict[self.variables['x']]
             y_var = restr_dict[self.variables['y']]
-##            if x_var.normalization == y_var.normalization:
-##                prob.constraints['normalization'] =  eval(x_var.normalization) == 1
-##                var_x = lp_var[x_var.objective_func]
-##                var_y = lp_var[y_var.objective_func]
 
-##            else:
-##                messagebox.showwarning(" ", '2-dim projection of restrictions with different normalizations not implemented yet')
-##                tdp = 0
-        else:
-            tdp = 0
-             
-        if tdp == 1:
             vertices = prob.two_dim_projection(lp_var, lp_var[x_var.objective_func], lp_var[y_var.objective_func], x_var.normalization, y_var.normalization)            # defined in pulp2dim file
-            #print(vertices)
 
-     # Display 2-d projection of feasible region onto 'x'-'y' axes
-        if tdp == 1:
-            canvas = Canvas(proj_frame, width=450, height=450, bg = 'white', borderwidth = 1, relief = 'solid')
-            canvas.create_polygon_plot(vertices)
-            canvas.pack(expand='yes', fill='both')
+            # Display 2-d projection of feasible region onto 'x'-'y' axes
+            proj_canvas.delete("all")
+            proj_canvas.create_polygon_plot(vertices)
+
+        else:
+            pass
 
     def convert_to_recipe(self):
-        #Assumes calc_restrictions has been run
+        # Assumes calc_restrictions has been run
         converted_recipe={}
         s = 0   # sum of averages
         for index in self.ingredients:
             cb = restr_dict['ingredient_'+index].calc_bounds
-            avg = (float(cb[1]['text'])+float(cb[-1]['text']))/2    
+            avg = (float(cb[1]['text']) + float(cb[-1]['text'])) / 2    
             converted_recipe[index] =  avg
             s += avg
         s *= 0.01
