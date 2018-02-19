@@ -31,8 +31,8 @@ def two_dim_projection(self, lp_var, var0, var1, var2, var3):   # Calculates a s
     self.constraints['normalization'] = eval(var2) == 1
 
     initial_vertices = []
-    for eps in [-1,1]:
-        self += eps*var0
+    for eps in [-1, 1]:
+        self += eps * var0
         self.solve(solver)
         initial_vertices.append([pulp.value(var0), pulp.value(var1)]) 
     
@@ -54,10 +54,10 @@ def two_dim_projection(self, lp_var, var0, var1, var2, var3):   # Calculates a s
 
                 if v0 == v1:
                     print('points coincide')
-                    return
+                    return   # Change this
                 
                 v = [v1[0] - v0[0], v1[1] - v0[1]]
-                d = abs(v[0])+abs(v[1])+1
+                d = abs(v[0]) + abs(v[1]) + 1
                 #print(d)
                 s = - v[1]/d*var0 + v[0]/d*var1
                 self += s
@@ -66,7 +66,7 @@ def two_dim_projection(self, lp_var, var0, var1, var2, var3):   # Calculates a s
 
                 #print(pulp.value(self.objective))
                 #print('Difference = : '+str(pulp.value(self.objective) + (v[1]*v0[0] - v[0]*v0[1])/d))
-                if abs(pulp.value(self.objective) + (v[1]*v0[0] - v[0]*v0[1])/d) < 0.1**5:   #Look into what error bounds PuLP uses
+                if abs(pulp.value(self.objective) + (v[1]*v0[0] - v[0]*v0[1])/d) < 0.1**5:   # Look into what error bounds PuLP uses
                     vertices_pre.remove(v0)                     
                     vertices_post.append(v0)                 
                 else:

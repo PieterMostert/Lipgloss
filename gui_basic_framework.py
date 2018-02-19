@@ -58,6 +58,7 @@ message_frame = ttk.Frame(main_frame, padding=(15, 5, 10, 5))   # window display
 
 proj_frame = ttk.Frame(root, padding=(15, 5, 10, 5))            # window holding canvas displaying the 2-d projection
 
+proj_heading = ttk.Frame(proj_frame, padding=(5, 5, 5, 15))
 variable_info = ttk.Frame(proj_frame)
 proj_canvas = Canvas(proj_frame, width=450, height=450, bg='white', borderwidth=1, relief='solid')
 
@@ -92,7 +93,7 @@ restriction_sf.pack()
 # grid oxide part of restriction frame
 oxide_heading_frame = ttk.Frame(restriction_sf.interior)
 oxide_heading_frame.grid(row = 0, column = 0, columnspan = 7)
-Label(oxide_heading_frame, text = 'Oxides', font = ('Helvetica', 12)).grid(column = 0, row = 0, columnspan = 3)
+Label(oxide_heading_frame, text = 'Oxides', font = ('Helvetica', 12)).grid(column=0, row=0, columnspan=3)
 
 # grid ingredient part of restriction frame
 ingredient_heading_frame = ttk.Frame(restriction_sf.interior)
@@ -112,8 +113,10 @@ message_frame.grid(row = 3)
 
 # grid 2d projection frame
 proj_frame.pack(side='right', fill='y') #grid(column = 1, row = 1, rowspan=1000, sticky = 'nw')
-variable_info.grid(row=0)
-proj_canvas.grid(row=1)
+proj_heading.grid(row=0)
+Label(proj_heading, text='2-dimensional projection', font = ('Helvetica', 12)).grid()
+variable_info.grid(row=1, sticky=W)
+proj_canvas.grid(row=2)
 x_lab.grid(row=0, sticky=W)
 y_lab.grid(row=1, sticky=W)
 

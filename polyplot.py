@@ -42,10 +42,10 @@ def ticks(a,b):   #Unless a and b are too close together, generates an arithmeti
                   #with the first being roughly a, and the last being roughly b.  
     ss = stepsize(max((b-a)/4, 0.01))
     p = ss*floor(a/ss)
-    return [round(p+ss*k,8) for k in range(floor((b-p)/ss)+1)]
+    return [round(p+ss*k,8) for k in range(floor((b-p)/ss)+2)]
     #return pts
 
-def create_polygon_plot(self, data):
+def create_polygon_plot(self, data, scaling):
         
     plotFont = ('Helv', 12)
     
@@ -53,13 +53,13 @@ def create_polygon_plot(self, data):
     self.height = eval(self.config('height')[4])
 
     x_pts = [p[0] for p in data]
-    y_pts = [p[1] for p in data]
+    y_pts = [p[1] * scaling for p in data]
     x_min = min(x_pts)
     y_min = min(y_pts)
     x_max = max(x_pts)
     y_max = max(y_pts)
-    delta_x = x_max-x_min
-    delta_y = y_max-y_min
+    delta_x = x_max - x_min
+    delta_y = y_max - y_min
 
     d1x = 80
     d1y = 50
@@ -70,21 +70,21 @@ def create_polygon_plot(self, data):
     y0 = max(0,y_min/s - 10)
 
     x_ticks = [t for t in ticks(x_min,x_max) if t/s>=x0]
-    y_ticks = [t for t in ticks(y_min,y_max) if t/s>=y0]
+    y_ticks = [t for t in ticks(y_min/scaling,y_max/scaling) if t/s*scaling>=y0]
 
-    data1 = [(p0/s, -p1/s) for p0, p1 in data]
+    data1 = [(px / s, -py / s * scaling) for px, py in data]
 
     pgon = self.create_polygon(data1, fill = 'green', outline = 'green')
 
-    self.point = self.create_oval(-d1x,-d1y-6,-d1x-6,-d1y,fill = "red", outline = 'red')
-    self.show_pos = self.create_text(self.width + x0 - d1x - 70, -self.height + d1y - y0 +30, text='', font=plotFont)
+    self.point = self.create_oval(-d1x, -d1y - 6, -d1x - 6, -d1y, fill = "red", outline = 'red')
+    self.show_pos = self.create_text(self.width + x0 - d1x - 70, -self.height + d1y - y0 + 30, text='', font=plotFont)
 
     def showxy(event):
         xm = event.x
         ym = event.y
-        str1 = "x=%.2f, y=%.2f" % (s*(xm - d1x+x0), -s*(ym - self.height + d1y - y0))
-        self.itemconfig(self.show_pos,text=str1)
-        self.coords(self.point,[xm-3,ym-3,xm+3,ym+3])
+        str1 = "x=%.2f, y=%.2f" % (s * (xm - d1x+x0), -s / scaling * (ym - self.height + d1y - y0))
+        self.itemconfig(self.show_pos, text=str1)
+        self.coords(self.point,[xm - 3, ym - 3, xm + 3, ym + 3])
 
     def hide_point(event):
         self.itemconfig(self.point, state='hidden')
@@ -97,19 +97,19 @@ def create_polygon_plot(self, data):
 
     # create axes
     x_axis = self.create_line(x0, -y0, self.width - d2 + x0 - d1x, -y0, width=1)  #x-axis
-    y_axis = self.create_line(x0, -y0, x0, -y_ticks[-1]/s, width=1)  #y-axis
+    y_axis = self.create_line(x0, -y0, x0, -y_ticks[-1]/s*scaling, width=1)  #y-axis
 
     # create x-axis labels
     for x in x_ticks:
         xs = x/s
-        self.create_line(xs, -y0, xs, -y0-5, width=2)
+        self.create_line(xs, -y0, xs, -y0 - 5, width=2)
         self.create_text(xs, -y0 + 4, text='{}'.format( (x) ),
                       anchor='n', font=plotFont)
      
     # create y-axis labels
     for y in y_ticks:
-        ys = -y/s
-        self.create_line(x0, ys, x0+5, ys, width=2)
+        ys = -y/s*scaling
+        self.create_line(x0, ys, x0 + 5, ys, width=2)
         self.create_text(x0-4, ys, text='{}'.format( (y)  ),
                       anchor='e', font=plotFont)
      
@@ -126,12 +126,12 @@ if 1==0:
     root = Tk()
     window = Frame(root)
     window.grid()
-    dat = [[20, 94], [33, 98], [32, 120], [61, 180],[75,160],[98,223]]
+    dat = [[20, 94], [33, 98], [32, 120], [61, 180],[75,160],[398,223]]
 
-    can = Canvas(window,width=300,height=300)
+    can = Canvas(window, width=300, height=300)
 
     can.grid(column=2)
-    can.create_polygon_plot(dat)
+    can.create_polygon_plot(dat, 0.52)
 
     root.mainloop()
 

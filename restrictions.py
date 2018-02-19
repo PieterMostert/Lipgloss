@@ -111,9 +111,9 @@ class Restriction:
             self.calc_bounds[eps].config(text='')
         v = dict(recipe.variables)
         for t in v:
-            if self == recipe.variables[t]:
+            if self.index == v[t]:
                 self.deselect(t)
-                del recipe.variables[t]   # doesn't work
+                del recipe.variables[t]
 
     def hide(self):  # to be used with oxide options
         for widget in [self.left_label, self.lower_bound, self.upper_bound, self.calc_bounds[-1], self.calc_bounds[1],

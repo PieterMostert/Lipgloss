@@ -318,12 +318,27 @@ class Recipe:
         if len(self.variables) == 2:
             x_var = restr_dict[self.variables['x']]
             y_var = restr_dict[self.variables['y']]
+            x_norm = x_var.normalization
+            y_norm = y_var.normalization
 
-            vertices = prob.two_dim_projection(lp_var, lp_var[x_var.objective_func], lp_var[y_var.objective_func], x_var.normalization, y_var.normalization)            # defined in pulp2dim file
+            vertices = prob.two_dim_projection(lp_var, lp_var[x_var.objective_func], lp_var[y_var.objective_func], x_norm, y_norm)   # defined in pulp2dim file
+
+            if x_norm == y_norm:
+                scaling = 1
+            else:
+                x_pts = [p[0] for p in vertices]
+                y_pts = [p[1] for p in vertices]
+                delta_x = max(x_pts) - min(x_pts)
+                delta_y = max(y_pts) - min(y_pts)
+                if delta_y == 0 or delta_x == 0:
+                    scaling = 1
+                else:
+                    scaling = delta_x / delta_y
+
 
             # Display 2-d projection of feasible region onto 'x'-'y' axes
             proj_canvas.delete("all")
-            proj_canvas.create_polygon_plot(vertices)
+            proj_canvas.create_polygon_plot(vertices, scaling)
 
         else:
             pass

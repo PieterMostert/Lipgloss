@@ -595,8 +595,6 @@ def toggle_ingredient(i):
             for et in ['umf_', 'mass_perc_', 'mole_perc_']:
                 restr_dict[et+ox].remove(current_recipe)
 
-        # TO DO: remove star(s) if this was a variable, or any of the ingredients removed were variables.
-
     else:
         current_recipe.ingredients.append(i)
         ingredient_select_button[i].state(['pressed'])
@@ -708,4 +706,4 @@ open_recipe('0', restr_dict)
     
 root.config(menu=menubar)
 
-#root.mainloop()  # Can be commented out on windows, but not linux or mac, it seems
+root.mainloop()  # Can be commented out on windows, but not linux or mac, it seems
