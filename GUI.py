@@ -706,4 +706,4 @@ open_recipe('0', restr_dict)
     
 root.config(menu=menubar)
 
-root.mainloop()  # Can be commented out on windows, but not linux or mac, it seems
+#root.mainloop()  # Can be commented out on windows, but not linux or mac, it seems

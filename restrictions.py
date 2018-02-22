@@ -283,27 +283,29 @@ with shelve.open("./data/OxideShelf") as oxide_shelf:
 
 # If there are a large number of ingredients, maybe it's better to only create
 # the corresponding restrictions once they're selected for a particular recipe.
-
+        
 if initialize_ingredients == 1:
-    from ingredientfile import *
+    from data import ingredientfile
         
     with shelve.open("./data/IngredientShelf") as ingredient_shelf:
         for index in ingredient_shelf:
             del ingredient_shelf[index]
 
         temp_order_list = []
-        for (pos, ing) in enumerate(ingredient_names):
+        for (pos, ing) in enumerate(ingredientfile.ingredient_names):
 
             temp_order_list.append(str(pos))
 
-            ing_init = Ingredient(name=ing, oxide_comp=dict([(ox, ingredient_compositions[ing][ox]) \
-                                                                   for ox in oxides if ox in ingredient_compositions[ing]]),\
-                                  other_attributes={})
+            ing_init = Ingredient(name=ing, oxide_comp=dict([(ox, ingredientfile.ingredient_compositions[ing][ox]) \
+                                                                   for ox in oxides if ox in ingredientfile.ingredient_compositions[ing]]),\
+                                  other_attributes = {})
 
             for attr in other_attr_dict:
-                if attr in ingredient_compositions[ing]:
-                    ing_init.other_attributes[attr] = ingredient_compositions[ing][attr]
-            
+                try:
+                    ing_init.other_attributes[attr] = ingredientfile.ingredient_compositions[ing][attr]
+                except:
+                    pass
+                    
             ingredient_shelf[str(pos)] = ing_init
 
     with shelve.open("./data/OrderShelf") as order_shelf:
@@ -314,7 +316,7 @@ else:
 
 with shelve.open("./data/IngredientShelf") as ingredient_shelf:   
 
-    # This is defined again in GUI.py. Will give trouble if initialize_ingredients == 1 in GUI.py. Need to rethink.
+    # This is defined again in GUI.py. Need to rethink.
     ingredient_dict = dict(ingredient_shelf)
     
     for index in ingredient_shelf:
@@ -348,7 +350,7 @@ with shelve.open("./data/OtherShelf") as other_shelf:
 #Initialize oxides:  
 
 if initialize_oxides == 1:
-    import oxidefile
+    from data import oxidefile
 
     with shelve.open("./data/OxideShelf") as oxide_shelf:
         for ox in oxide_shelf:
@@ -379,24 +381,26 @@ def update_ing():
         return dict(ingredient_shelf)
 
 if initialize_ingredients == 1:
-    from ingredientfile import *
+    from data import ingredientfile
         
     with shelve.open("./data/IngredientShelf") as ingredient_shelf:
         for index in ingredient_shelf:
             del ingredient_shelf[index]
 
         temp_order_list = []
-        for (pos, ing) in enumerate(ingredient_names):
+        for (pos, ing) in enumerate(ingredientfile.ingredient_names):
 
             temp_order_list.append(str(pos))
 
-            ing_init = Ingredient(name=ing, oxide_comp=dict([(ox, ingredient_compositions[ing][ox]) \
-                                                                   for ox in oxides if ox in ingredient_compositions[ing]]),\
+            ing_init = Ingredient(name=ing, oxide_comp=dict([(ox, ingredientfile.ingredient_compositions[ing][ox]) \
+                                                                   for ox in oxides if ox in ingredientfile.ingredient_compositions[ing]]),\
                                   other_attributes = {})
 
             for attr in other_attr_dict:
-                if attr in ingredient_compositions[ing]:
-                    ing_init.other_attributes[attr] = ingredient_compositions[ing][attr]
+                try:
+                    ing_init.other_attributes[attr] = ingredientfile.ingredient_compositions[ing][attr]
+                except:
+                    pass
             
             ingredient_shelf[str(pos)] = ing_init
 

@@ -1,6 +1,6 @@
 \* Glaze recipe *\
 Maximize
-SiO2_Al2O3: - other_0
+Ball_Clay: - ingredient_2
 Subject To
 Al2O3: 0.4021 ingredient_1 + 0.0602 ingredient_11 + 0.099 ingredient_12
  + 0.1198 ingredient_14 + 0.017 ingredient_18 + 0.1633 ingredient_19
@@ -14,12 +14,6 @@ Al2O3_wt_%_lower: mass_Al2O3 >= 0
 Al2O3_wt_%_upper: mass_Al2O3 - ox_mass_total <= 0
 B2O3: 0.0289 ingredient_11 + 0.1377 ingredient_12 + 0.2309 ingredient_13
  + 0.2262 ingredient_14 + 0.2449 ingredient_18 - mass_B2O3 = 0
-B2O3_mol_%_lower: mole_B2O3 >= 0
-B2O3_mol_%_upper: mole_B2O3 - ox_mole_total <= 0
-B2O3_umf_lower: - 0.3 fluxes_total + mole_B2O3 >= 0
-B2O3_umf_upper: - 0.3 fluxes_total + mole_B2O3 <= 0
-B2O3_wt_%_lower: mass_B2O3 >= 0
-B2O3_wt_%_upper: mass_B2O3 - ox_mass_total <= 0
 BaO: mass_BaO = 0
 CaO: 0.0564 ingredient_11 + 0.1407 ingredient_12 + 0.2013 ingredient_13
  + 0.1136 ingredient_14 + 0.5422 ingredient_15 + 0.2299 ingredient_18
@@ -77,8 +71,8 @@ SiO2: ingredient_0 + 0.4729 ingredient_1 + 0.6688 ingredient_11
  + 0.5172 ingredient_6 + 0.6338 ingredient_8 - mass_SiO2 = 0
 SiO2_mol_%_lower: mole_SiO2 >= 0
 SiO2_mol_%_upper: mole_SiO2 - ox_mole_total <= 0
-SiO2_umf_lower: - 3 fluxes_total + mole_SiO2 >= 0
-SiO2_umf_upper: - 5 fluxes_total + mole_SiO2 <= 0
+SiO2_umf_lower: mole_SiO2 >= 0
+SiO2_umf_upper: - 100 fluxes_total + mole_SiO2 <= 0
 SiO2_wt_%_lower: mass_SiO2 >= 0
 SiO2_wt_%_upper: mass_SiO2 - ox_mass_total <= 0
 SrO: mass_SrO = 0
@@ -90,12 +84,6 @@ TiO2_umf_upper: - fluxes_total + mole_TiO2 <= 0
 TiO2_wt_%_lower: mass_TiO2 >= 0
 TiO2_wt_%_upper: mass_TiO2 - ox_mass_total <= 0
 ZnO: ingredient_10 - mass_ZnO = 0
-ZnO_mol_%_lower: mole_ZnO >= 0
-ZnO_mol_%_upper: mole_ZnO - ox_mole_total <= 0
-ZnO_umf_lower: mole_ZnO >= 0
-ZnO_umf_upper: - fluxes_total + mole_ZnO <= 0
-ZnO_wt_%_lower: mass_ZnO >= 0
-ZnO_wt_%_upper: mass_ZnO - ox_mass_total <= 0
 _C1: - mass_SiO2 + 60.085 mole_SiO2 = 0
 _C10: - mass_Na2O + 61.979 mole_Na2O = 0
 _C11: - mass_K2O + 94.196 mole_K2O = 0
@@ -127,13 +115,13 @@ ing_total: - ingredient_0 - ingredient_1 - ingredient_10 - ingredient_11
 ingredient_0_lower: ingredient_0 >= 0
 ingredient_0_upper: ingredient_0 - ingredient_total <= 0
 ingredient_10_lower: ingredient_10 >= 0
-ingredient_10_upper: ingredient_10 - ingredient_total <= 0
+ingredient_10_upper: ingredient_10 <= 0
 ingredient_11_lower: ingredient_11 >= 0
 ingredient_11_upper: ingredient_11 <= 0
 ingredient_12_lower: ingredient_12 >= 0
 ingredient_12_upper: ingredient_12 <= 0
 ingredient_13_lower: ingredient_13 >= 0
-ingredient_13_upper: ingredient_13 - ingredient_total <= 0
+ingredient_13_upper: ingredient_13 <= 0
 ingredient_14_lower: ingredient_14 >= 0
 ingredient_14_upper: ingredient_14 <= 0
 ingredient_15_lower: ingredient_15 >= 0
@@ -151,23 +139,21 @@ ingredient_1_upper: ingredient_1 - ingredient_total <= 0
 ingredient_2_lower: ingredient_2 >= 0
 ingredient_2_upper: ingredient_2 - ingredient_total <= 0
 ingredient_3_lower: ingredient_3 >= 0
-ingredient_3_upper: ingredient_3 - ingredient_total <= 0
+ingredient_3_upper: ingredient_3 <= 0
 ingredient_4_lower: ingredient_4 >= 0
-ingredient_4_upper: ingredient_4 - ingredient_total <= 0
+ingredient_4_upper: ingredient_4 <= 0
 ingredient_5_lower: ingredient_5 >= 0
-ingredient_5_upper: ingredient_5 - ingredient_total <= 0
+ingredient_5_upper: ingredient_5 <= 0
 ingredient_6_lower: ingredient_6 >= 0
-ingredient_6_upper: ingredient_6 - ingredient_total <= 0
+ingredient_6_upper: ingredient_6 <= 0
 ingredient_7_lower: ingredient_7 >= 0
-ingredient_7_upper: ingredient_7 - ingredient_total <= 0
+ingredient_7_upper: ingredient_7 <= 0
 ingredient_8_lower: ingredient_8 >= 0
-ingredient_8_upper: ingredient_8 - ingredient_total <= 0
+ingredient_8_upper: ingredient_8 <= 0
 ingredient_9_lower: ingredient_9 >= 0
-ingredient_9_upper: ingredient_9 - ingredient_total <= 0
-normalization: mole_Al2O3 = 1
+ingredient_9_upper: ingredient_9 <= 0
+normalization: 0.01 ingredient_total = 1
 other_0: - mole_SiO2 + other_0 = 0
-other_0_lower: - 7 mole_Al2O3 + other_0 >= 0
-other_0_upper: - 8 mole_Al2O3 + other_0 <= 0
 other_1: - mole_K2O - mole_Na2O + other_1 = 0
 other_2: - mole_K2O - mole_Na2O + other_2 = 0
 other_3: - mole_BaO - mole_CaO - mole_MgO - mole_SrO + other_3 = 0
