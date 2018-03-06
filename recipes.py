@@ -72,15 +72,10 @@ class Recipe:
         self.pos = pos   # position in list of recipes to choose
         self.ingredients = ingredients
         self.other = other
-        self.oxides = associated_oxides(self.ingredients)   # add a method that updates the oxides when ingredients are changed?
-        self.lower_bounds = lower_bounds      # Of the form [{'umf':UMF, 'perc_wt':% wt, 'perc_mol':% mol}, ingredients, other], \
-                                              # where UMF, % wt and % mol are dictionaries with self.oxides as inputs, and \
-                                              # ingredients and other are dictionaries with self.ingredients and self.other as \
-                                              # inputs respectively. Eg \
-                                              # [{'umf':{'SiO2':0, 'Al2O3':0, ...}, 'perc_wt':{'SiO2':0, 'Al2O3':0, ...}, \
-                                              # 'perc_mol':{'SiO2':0, 'Al2O3':0, ...}}, {'0':0, '1':0, ...}, {}] \
-                                              # .
-        self.upper_bounds = upper_bounds      # An instance of the restr_index class
+        self.oxides = associated_oxides(self.ingredients)
+        self.lower_bounds = lower_bounds      # A dictionary whose keys are the entries in
+                                              # restr_keys(oxides, associated_oxides(ingredients), other)
+        self.upper_bounds = upper_bounds      # Ditto
         self.variables = variables            # A dictionary whose keys are a subset of the set {'x','y'}, and whose values
                                               # are restriction indices.
         self.entry_type = entry_type
@@ -128,7 +123,7 @@ class Recipe:
                 for t in ['umf_', 'mass_perc_', 'mole_perc_']:
                     self.lower_bounds[t+ox] = restr_dict[t+ox].default_low
                     self.upper_bounds[t+ox] = restr_dict[t+ox].default_upp
-                restr_dict[et+ox].display(1 + oxide_dict[ox].pos)  # probably won't work
+                restr_dict[et+ox].display(1 + oxide_dict[ox].pos)
 
         self.oxides = ass_oxides
 
@@ -155,9 +150,7 @@ class Recipe:
             if var[v] not in restr_keys:
                 del self.variables[v]
 
-    def calc_restrictions(self, prob, lp_var, restr_dict):    # This should be redone, so that all the variables and restrictions
-                                                                          # in self.prob are defined elsewhere, except for the restrictions  
-                                                                          # defined by the user
+    def calc_restrictions(self, prob, lp_var, restr_dict):    # Get rid of lp_var here, and replace lp_var below by prob.lp_var
         
         with shelve.open("./data/OxideShelf") as oxide_shelf:
             oxide_dict = dict(oxide_shelf)
@@ -275,7 +268,7 @@ class Recipe:
 
         for index in other_dict:
             if index in self.other:  
-                other_norm = eval(other_dict[index].normalization)               
+                other_norm = eval(other_dict[index].normalization)               # Change to LpAffine thingy?
                 prob.constraints['other_'+index+'_lower'] = lp_var['other_'+index] >= restr_dict['other_'+index].low.get()*other_norm   # lower bound
                 prob.constraints['other_'+index+'_upper'] = lp_var['other_'+index] <= restr_dict['other_'+index].upp.get()*other_norm   # upper bound
             else:
@@ -355,7 +348,7 @@ class Recipe:
         s *= 0.01
         for index in self.ingredients:
             converted_recipe[index] /= s    # rescale so that percentages add up to 100.
-        return converted_recipe
+        return converted_recipe     # may want to round to one decimal place.
 
     @staticmethod
     def get_default_recipe():
