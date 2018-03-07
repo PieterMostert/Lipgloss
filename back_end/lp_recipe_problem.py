@@ -24,7 +24,7 @@ from functools import partial
 import shelve
 import copy
 
-from core_data import *
+from .core_data import CoreData
 from pulp import *
 
 

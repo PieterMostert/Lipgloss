@@ -19,12 +19,11 @@
 # We define the Restriction, Oxide, Ingredient,and Other classes.
 
 from tkinter import *
-from pretty_names import *
+from GUI.pretty_names import prettify
 from functools import partial
 import shelve
 import copy
 
-from gui_basic_framework import *  # we really just want restriction_sf.interior
 from pulp import *
 
 initialize_oxides = 0       # Run script with initialize_oxides = 1 whenever the Oxide class is changed.
@@ -36,8 +35,9 @@ initialize_other = 0        # Run script with initialize_other = 1 whenever the 
 
 class Restriction:
     'Oxide UMF, oxide % molar, oxide % weight, ingredient, SiO2:Al2O3 molar, LOI, cost, etc'
+    display_frame = None
     
-    def __init__(self, frame, index, name, objective_func, normalization, default_low, default_upp, dec_pt=1):
+    def __init__(self, index, name, objective_func, normalization, default_low, default_upp, dec_pt=1):
 
         self.index = index     # We will always have restr_dict[index] = Restriction(frame, index, ...)
         self.name = name
@@ -51,23 +51,23 @@ class Restriction:
 
         self.left_label_text = StringVar()
         self.left_label_text.set('  '+prettify(self.name)+' : ')
-        self.left_label = Label(frame, textvariable=self.left_label_text)
+        self.left_label = Label(self.display_frame, textvariable=self.left_label_text)
         
         self.low = DoubleVar()
-        self.lower_bound = Entry(frame, textvariableself.low, width=5, fg='blue') #user lower bound
+        self.lower_bound = Entry(self.display_frame, textvariable=self.low, width=5, fg='blue') #user lower bound
         self.low.set(self.default_low)
 
         self.upp = DoubleVar()
-        self.upper_bound = Entry(frame, textvariable=self.upp, width=5, fg='blue') #user upper bound
+        self.upper_bound = Entry(self.display_frame, textvariable=self.upp, width=5, fg='blue') #user upper bound
         self.upp.set(self.default_upp)
 
         for eps in [-1, 1]:
-            self.calc_bounds[eps] = Label(frame, bg='white', fg='red', width=5) #calculated lower and upper bounds
+            self.calc_bounds[eps] = Label(self.display_frame, bg='white', fg='red', width=5) #calculated lower and upper bounds
             self.calc_bounds[eps].config(text=' ')
 
         self.right_label_text = StringVar()
         self.right_label_text.set(' : '+prettify(self.name)+'   ')
-        self.right_label = Label(frame, textvariable=self.right_label_text)
+        self.right_label = Label(self.display_frame, textvariable=self.right_label_text)
 
     def select(self, t):
         if t == 'x':
@@ -124,13 +124,6 @@ class Restriction:
         for eps in [-1, 1]:
             self.calc_bounds[eps].config(text=('%.' + str(self.dec_pt) + 'f') % self.calc_value[eps])
 
-# SECTION 2
-#
-# Define Oxide class and initialize oxides
-
-
-with shelve.open("./data/OxideShelf") as oxide_shelf:
-    oxides = [ox for ox in oxide_shelf]
 
 # SECTION 3
 #
@@ -227,171 +220,171 @@ class Ingredient:
 # of the dictionaries above are modified).
 
 # restr_dict is a dictionary with keys of the form 'umf_'+ox, 'mass_perc_'+ox, 'mole_perc_'+ox, 'ingredient_'+index or 'other_'+index.
-restr_dict = {}  
-
-with shelve.open("./data/OxideShelf") as oxide_shelf:
-    # Create oxide restrictions.
-    for ox in oxide_shelf:   
-        def_upp = 1   # Default upper bound for oxide UMF.
-        dp = 3
-        if ox == 'SiO2':
-            def_upp = 100
-            dp = 2
-        elif ox == 'Al2O3':
-            def_upp = 10
-        restr_dict['umf_'+ox] = Restriction(restriction_sf.interior,'umf_'+ox, ox, 'mole_'+ox, "lp_var['fluxes_total']", 0, def_upp, dec_pt=dp)
-        restr_dict['mass_perc_'+ox] = Restriction(restriction_sf.interior,'mass_perc_'+ox, ox, 'mass_'+ox, "0.01*lp_var['ox_mass_total']", 0, 100, dec_pt=2) 
-        restr_dict['mole_perc_'+ox] = Restriction(restriction_sf.interior,'mole_perc_'+ox, ox, 'mole_'+ox, "0.01*lp_var['ox_mole_total']", 0, 100, dec_pt=2)
-
-# If there are a large number of ingredients, maybe it's better to only create
-# the corresponding restrictions once they're selected for a particular recipe.
-        
-if initialize_ingredients == 1:
-    from data import ingredientfile
-        
-    with shelve.open("./data/IngredientShelf") as ingredient_shelf:
-        for index in ingredient_shelf:
-            del ingredient_shelf[index]
-
-        temp_order_list = []
-        for (pos, ing) in enumerate(ingredientfile.ingredient_names):
-
-            temp_order_list.append(str(pos))
-
-            ing_init = Ingredient(name=ing, oxide_comp=dict([(ox, ingredientfile.ingredient_compositions[ing][ox]) \
-                                                                   for ox in oxides if ox in ingredientfile.ingredient_compositions[ing]]),\
-                                  other_attributes = {})
-
-            for attr in other_attr_dict:
-                try:
-                    ing_init.other_attributes[attr] = ingredientfile.ingredient_compositions[ing][attr]
-                except:
-                    pass
-                    
-            ingredient_shelf[str(pos)] = ing_init
-
-    with shelve.open("./data/OrderShelf") as order_shelf:
-        order_shelf['ingredients'] = temp_order_list
-        
-else:
-    pass
-
-with shelve.open("./data/IngredientShelf") as ingredient_shelf:   
-
-    # This is defined again in GUI.py. Need to rethink.
-    ingredient_dict = dict(ingredient_shelf)
-    
-    for index in ingredient_shelf:
-        restr_dict['ingredient_'+index] = Restriction(restriction_sf.interior,'ingredient_'+index, ingredient_shelf[index].name, 'ingredient_'+index, "0.01*lp_var['ingredient_total']", 0, 100)
-
-if True:
-    with shelve.open("./data/OtherShelf") as other_shelf:
-        for index in other_shelf:
-            del other_shelf[index]
-        other_shelf['0'] = Other(0,'SiO2_Al2O3', {'mole_SiO2':1}, "lp_var['mole_Al2O3']", 3, 18, 2)   # Using 'SiO2:Al2O3' gives an error
-        other_shelf['1'] = Other(1,'KNaO UMF', {'mole_K2O':1, 'mole_Na2O':1}, "lp_var['fluxes_total']", 0, 1, 3)
-        other_shelf['2'] = Other(2,'KNaO % mol', {'mole_K2O':1, 'mole_Na2O':1}, "0.01*lp_var['ox_mole_total']", 0, 100, 1)
-        other_shelf['3'] = Other(3,'RO UMF', {'mole_MgO':1, 'mole_CaO':1, 'mole_BaO':1, 'mole_SrO':1}, "lp_var['fluxes_total']", 0, 1, 3)
-
-        other_att_4 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['2']) for index in ingredient_dict if '2' in ingredient_dict[index].other_attributes}
-        other_shelf['4'] = Other(4,'Total clay', {k:v for k,v in other_att_4.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
-        other_att_5 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['0']) for index in ingredient_dict if '0' in ingredient_dict[index].other_attributes}
-        other_shelf['5'] = Other(5,'LOI',  {k:v for k,v in other_att_5.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
-        other_att_6 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['1']) for index in ingredient_dict if '1' in ingredient_dict[index].other_attributes}
-        other_shelf['6'] = Other(6,'cost', {k:v for k,v in other_att_6.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
-        
-        other_dict = dict(other_shelf)
-else:
-    other_dict = update_other()
-    
-with shelve.open("./data/OtherShelf") as other_shelf:
-    for index in other_shelf:
-        ot = other_shelf[index]    # instance of 'Other' class
-        restr_dict['other_'+index] = Restriction(restriction_sf.interior,'other_'+index, ot.name, 'other_'+index, ot.normalization, ot.def_low, ot.def_upp, dec_pt=ot.dec_pt)
-
-#Initialize oxides:  
-
-if initialize_oxides == 1:
-    from data import oxidefile
-
-    with shelve.open("./data/OxideShelf") as oxide_shelf:
-        for ox in oxide_shelf:
-            del oxide_shelf[ox]
-        for (pos, ox) in enumerate(oxidefile.oxides):
-            if ox in oxidefile.fluxes:
-                ox_init = Oxide(pos, molar_mass=oxidefile.molar_mass_dict[ox], flux=1)
-            else:
-                ox_init = Oxide(pos, molar_mass=oxidefile.molar_mass_dict[ox], flux=0)
-            oxide_shelf[ox] = ox_init
-else:
-    pass
-
-def update_ox():
-    global oxides
-    global molar_masses
-    with shelve.open("./data/OxideShelf") as oxide_shelf:
-        oxides = [ox for ox in oxide_shelf]
-        molar_masses = {ox:oxide_shelf[ox].molar_mass for ox in oxide_shelf}
-        return dict(oxide_shelf)
-    
-oxide_dict = update_ox()
-
-# Define ingredients.
-
-def update_ing():
-    with shelve.open("./data/IngredientShelf") as ingredient_shelf:
-        return dict(ingredient_shelf)
-
-if initialize_ingredients == 1:
-    from data import ingredientfile
-        
-    with shelve.open("./data/IngredientShelf") as ingredient_shelf:
-        for index in ingredient_shelf:
-            del ingredient_shelf[index]
-
-        temp_order_list = []
-        for (pos, ing) in enumerate(ingredientfile.ingredient_names):
-
-            temp_order_list.append(str(pos))
-
-            ing_init = Ingredient(name=ing, oxide_comp=dict([(ox, ingredientfile.ingredient_compositions[ing][ox]) \
-                                                                   for ox in oxides if ox in ingredientfile.ingredient_compositions[ing]]),\
-                                  other_attributes = {})
-
-            for attr in other_attr_dict:
-                try:
-                    ing_init.other_attributes[attr] = ingredientfile.ingredient_compositions[ing][attr]
-                except:
-                    pass
-            
-            ingredient_shelf[str(pos)] = ing_init
-
-    with shelve.open("./data/OrderShelf") as order_shelf:
-        order_shelf['ingredients'] = temp_order_list
-        
-else:
-    pass
-
-ingredient_dict = update_ing()
-
-with shelve.open("./data/OrderShelf") as order_shelf:
-    ingredient_order = order_shelf['ingredients']
-
-def get_ing_comp(ingredient_dict):
-    ingredient_compositions = {}
-    for index in ingredient_dict:
-        ingredient_compositions[index] = ingredient_dict[index].oxide_comp
-    return ingredient_compositions
-
-ingredient_compositions = get_ing_comp(ingredient_dict)
-
-# Initialize other.
-
-def update_other():
-    with shelve.open("./data/OtherShelf") as other_shelf:
-        other_dict = dict(other_shelf)
-        return other_dict
-        
-other_dict = update_other()
-
-
+##restr_dict = {}  
+##
+##with shelve.open("./data/OxideShelf") as oxide_shelf:
+##    # Create oxide restrictions.
+##    for ox in oxide_shelf:   
+##        def_upp = 1   # Default upper bound for oxide UMF.
+##        dp = 3
+##        if ox == 'SiO2':
+##            def_upp = 100
+##            dp = 2
+##        elif ox == 'Al2O3':
+##            def_upp = 10
+##        restr_dict['umf_'+ox] = Restriction(restriction_sf.interior,'umf_'+ox, ox, 'mole_'+ox, "lp_var['fluxes_total']", 0, def_upp, dec_pt=dp)
+##        restr_dict['mass_perc_'+ox] = Restriction(restriction_sf.interior,'mass_perc_'+ox, ox, 'mass_'+ox, "0.01*lp_var['ox_mass_total']", 0, 100, dec_pt=2) 
+##        restr_dict['mole_perc_'+ox] = Restriction(restriction_sf.interior,'mole_perc_'+ox, ox, 'mole_'+ox, "0.01*lp_var['ox_mole_total']", 0, 100, dec_pt=2)
+##
+### If there are a large number of ingredients, maybe it's better to only create
+### the corresponding restrictions once they're selected for a particular recipe.
+##        
+##if initialize_ingredients == 1:
+##    from data import ingredientfile
+##        
+##    with shelve.open("./data/IngredientShelf") as ingredient_shelf:
+##        for index in ingredient_shelf:
+##            del ingredient_shelf[index]
+##
+##        temp_order_list = []
+##        for (pos, ing) in enumerate(ingredientfile.ingredient_names):
+##
+##            temp_order_list.append(str(pos))
+##
+##            ing_init = Ingredient(name=ing, oxide_comp=dict([(ox, ingredientfile.ingredient_compositions[ing][ox]) \
+##                                                                   for ox in oxides if ox in ingredientfile.ingredient_compositions[ing]]),\
+##                                  other_attributes = {})
+##
+##            for attr in other_attr_dict:
+##                try:
+##                    ing_init.other_attributes[attr] = ingredientfile.ingredient_compositions[ing][attr]
+##                except:
+##                    pass
+##                    
+##            ingredient_shelf[str(pos)] = ing_init
+##
+##    with shelve.open("./data/OrderShelf") as order_shelf:
+##        order_shelf['ingredients'] = temp_order_list
+##        
+##else:
+##    pass
+##
+##with shelve.open("./data/IngredientShelf") as ingredient_shelf:   
+##
+##    # This is defined again in GUI.py. Need to rethink.
+##    ingredient_dict = dict(ingredient_shelf)
+##    
+##    for index in ingredient_shelf:
+##        restr_dict['ingredient_'+index] = Restriction(restriction_sf.interior,'ingredient_'+index, ingredient_shelf[index].name, 'ingredient_'+index, "0.01*lp_var['ingredient_total']", 0, 100)
+##
+##if True:
+##    with shelve.open("./data/OtherShelf") as other_shelf:
+##        for index in other_shelf:
+##            del other_shelf[index]
+##        other_shelf['0'] = Other(0,'SiO2_Al2O3', {'mole_SiO2':1}, "lp_var['mole_Al2O3']", 3, 18, 2)   # Using 'SiO2:Al2O3' gives an error
+##        other_shelf['1'] = Other(1,'KNaO UMF', {'mole_K2O':1, 'mole_Na2O':1}, "lp_var['fluxes_total']", 0, 1, 3)
+##        other_shelf['2'] = Other(2,'KNaO % mol', {'mole_K2O':1, 'mole_Na2O':1}, "0.01*lp_var['ox_mole_total']", 0, 100, 1)
+##        other_shelf['3'] = Other(3,'RO UMF', {'mole_MgO':1, 'mole_CaO':1, 'mole_BaO':1, 'mole_SrO':1}, "lp_var['fluxes_total']", 0, 1, 3)
+##
+##        other_att_4 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['2']) for index in ingredient_dict if '2' in ingredient_dict[index].other_attributes}
+##        other_shelf['4'] = Other(4,'Total clay', {k:v for k,v in other_att_4.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
+##        other_att_5 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['0']) for index in ingredient_dict if '0' in ingredient_dict[index].other_attributes}
+##        other_shelf['5'] = Other(5,'LOI',  {k:v for k,v in other_att_5.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
+##        other_att_6 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['1']) for index in ingredient_dict if '1' in ingredient_dict[index].other_attributes}
+##        other_shelf['6'] = Other(6,'cost', {k:v for k,v in other_att_6.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
+##        
+##        other_dict = dict(other_shelf)
+##else:
+##    other_dict = update_other()
+##    
+##with shelve.open("./data/OtherShelf") as other_shelf:
+##    for index in other_shelf:
+##        ot = other_shelf[index]    # instance of 'Other' class
+##        restr_dict['other_'+index] = Restriction(restriction_sf.interior,'other_'+index, ot.name, 'other_'+index, ot.normalization, ot.def_low, ot.def_upp, dec_pt=ot.dec_pt)
+##
+###Initialize oxides:  
+##
+##if initialize_oxides == 1:
+##    from data import oxidefile
+##
+##    with shelve.open("./data/OxideShelf") as oxide_shelf:
+##        for ox in oxide_shelf:
+##            del oxide_shelf[ox]
+##        for (pos, ox) in enumerate(oxidefile.oxides):
+##            if ox in oxidefile.fluxes:
+##                ox_init = Oxide(pos, molar_mass=oxidefile.molar_mass_dict[ox], flux=1)
+##            else:
+##                ox_init = Oxide(pos, molar_mass=oxidefile.molar_mass_dict[ox], flux=0)
+##            oxide_shelf[ox] = ox_init
+##else:
+##    pass
+##
+##def update_ox():
+##    global oxides
+##    global molar_masses
+##    with shelve.open("./data/OxideShelf") as oxide_shelf:
+##        oxides = [ox for ox in oxide_shelf]
+##        molar_masses = {ox:oxide_shelf[ox].molar_mass for ox in oxide_shelf}
+##        return dict(oxide_shelf)
+##    
+##oxide_dict = update_ox()
+##
+### Define ingredients.
+##
+##def update_ing():
+##    with shelve.open("./data/IngredientShelf") as ingredient_shelf:
+##        return dict(ingredient_shelf)
+##
+##if initialize_ingredients == 1:
+##    from data import ingredientfile
+##        
+##    with shelve.open("./data/IngredientShelf") as ingredient_shelf:
+##        for index in ingredient_shelf:
+##            del ingredient_shelf[index]
+##
+##        temp_order_list = []
+##        for (pos, ing) in enumerate(ingredientfile.ingredient_names):
+##
+##            temp_order_list.append(str(pos))
+##
+##            ing_init = Ingredient(name=ing, oxide_comp=dict([(ox, ingredientfile.ingredient_compositions[ing][ox]) \
+##                                                                   for ox in oxides if ox in ingredientfile.ingredient_compositions[ing]]),\
+##                                  other_attributes = {})
+##
+##            for attr in other_attr_dict:
+##                try:
+##                    ing_init.other_attributes[attr] = ingredientfile.ingredient_compositions[ing][attr]
+##                except:
+##                    pass
+##            
+##            ingredient_shelf[str(pos)] = ing_init
+##
+##    with shelve.open("./data/OrderShelf") as order_shelf:
+##        order_shelf['ingredients'] = temp_order_list
+##        
+##else:
+##    pass
+##
+##ingredient_dict = update_ing()
+##
+##with shelve.open("./data/OrderShelf") as order_shelf:
+##    ingredient_order = order_shelf['ingredients']
+##
+##def get_ing_comp(ingredient_dict):
+##    ingredient_compositions = {}
+##    for index in ingredient_dict:
+##        ingredient_compositions[index] = ingredient_dict[index].oxide_comp
+##    return ingredient_compositions
+##
+##ingredient_compositions = get_ing_comp(ingredient_dict)
+##
+### Initialize other.
+##
+##def update_other():
+##    with shelve.open("./data/OtherShelf") as other_shelf:
+##        other_dict = dict(other_shelf)
+##        return other_dict
+##        
+##other_dict = update_other()
+##
+##

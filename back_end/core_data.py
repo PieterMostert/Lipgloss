@@ -19,9 +19,12 @@
 # We define the Restriction, Oxide, Ingredient,and Other classes.
 
 from tkinter import *
-from GUI.pretty_names import prettify
 from functools import partial
 import shelve
+from inspect import getsourcefile
+import os
+from os.path import abspath, dirname
+import sys
 
 ##
 ##class Crud:
@@ -43,6 +46,9 @@ reset_oxides = 0
 reset_ingredients = 0
 reset_other = 0
 
+persistent_data_path = dirname(abspath(getsourcefile(lambda:0)))+'/persistent_data'  # please tell me there's an easier way to import stuff in Python
+sys.path.append(persistent_data_path)
+
 class Oxide:
     
      def __init__(self, pos, molar_mass, flux, min_threshhold=0):
@@ -57,17 +63,19 @@ class Oxide:
          pass
 
 def oxide_reset():
-    from data import oxidefile
 
-    with shelve.open("./data/OxideShelf") as oxide_shelf:
+    import oxidefile
+
+    
+    with shelve.open(persistent_data_path+"/OxideShelf") as oxide_shelf:
         for ox in oxide_shelf:
-            del oxide_shelf[ox]
+             del oxide_shelf[ox]
         for (pos, ox) in enumerate(oxidefile.oxides):
-            if ox in oxidefile.fluxes:
-                ox_init = Oxide(pos, molar_mass=oxidefile.molar_mass_dict[ox], flux=1)
-            else:
-                ox_init = Oxide(pos, molar_mass=oxidefile.molar_mass_dict[ox], flux=0)
-            oxide_shelf[ox] = ox_init
+             if ox in oxidefile.fluxes:
+                  ox_init = Oxide(pos, molar_mass=oxidefile.molar_mass_dict[ox], flux=1)
+             else:
+                  ox_init = Oxide(pos, molar_mass=oxidefile.molar_mass_dict[ox], flux=0)
+             oxide_shelf[ox] = ox_init
 
 if reset_oxides == 1:
     oxide_reset()
@@ -78,7 +86,7 @@ class OxideData:
     
     '''Abstract class used to store a dictionary of oxides'''
     
-    with shelve.open("./data/OxideShelf") as oxide_shelf:
+    with shelve.open(persistent_data_path+"/OxideShelf") as oxide_shelf:
         oxide_dict = dict(oxide_shelf)
 
     @staticmethod
@@ -152,9 +160,9 @@ class Ingredient:
         return temp
 
 def ingredient_reset():
-    from data import ingredientfile
+    import ingredientfile
         
-    with shelve.open("./data/IngredientShelf") as ingredient_shelf:
+    with shelve.open(persistent_data_path+"/IngredientShelf") as ingredient_shelf:
         for index in ingredient_shelf:
             del ingredient_shelf[index]
 
@@ -175,7 +183,7 @@ def ingredient_reset():
             
             ingredient_shelf[str(pos)] = ing_init
 
-    with shelve.open("./data/OrderShelf") as order_shelf:
+    with shelve.open(persistent_data_path+"/OrderShelf") as order_shelf:
         order_shelf['ingredients'] = temp_order_list
 
 if reset_ingredients == 1:
@@ -213,10 +221,10 @@ class Other:
         pass
 
 def other_reset():
-    with shelve.open("./data/IngredientShelf") as ingredient_shelf:
+    with shelve.open(persistent_data_path+"/IngredientShelf") as ingredient_shelf:
         ingredient_dict = dict(ingredient_shelf)
         
-    with shelve.open("./data/OtherShelf") as other_shelf:
+    with shelve.open(persistent_data_path+"/OtherShelf") as other_shelf:
         for index in other_shelf:
             del other_shelf[index]
         other_shelf['0'] = Other(0,'SiO2_Al2O3', {'mole_SiO2':1}, "lp_var['mole_Al2O3']", 3, 18, 2)   # Using 'SiO2:Al2O3' gives an error
@@ -246,12 +254,12 @@ def get_ing_comp(ingredient_dict):
 class CoreData(OxideData):
     '''Abstract class used to store a dictionary of oxides, ingredients and 'other' restrictions'''
     
-    with shelve.open("./data/IngredientShelf") as ingredient_shelf:
+    with shelve.open(persistent_data_path+"/IngredientShelf") as ingredient_shelf:
         ingredient_dict = dict(ingredient_shelf)
 
     ingredient_compositions = get_ing_comp(ingredient_dict)     # Could do without this
         
-    with shelve.open("./data/OtherShelf") as other_shelf:
+    with shelve.open(persistent_data_path+"/OtherShelf") as other_shelf:
         other_dict = dict(other_shelf)
 
     def __init(self):
