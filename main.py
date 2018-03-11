@@ -16,12 +16,12 @@
 
 # Contact: pi.mostert@gmail.com
 
-from back_end.core_data import CoreData
-from GUI.main_window import MainWindow
-from back_end.restrictions import Restriction
-from back_end.lp_recipe_problem import LpRecipeProblem
+from model.core_data import CoreData
+from view.main_window import MainWindow
+from model.restrictions import Restriction
+from model.lp_recipe_problem import LpRecipeProblem
 import pulp
-from back_end.recipes import Recipe
+from model.recipes import Recipe
 
 cd = CoreData()
 mw = MainWindow()
@@ -69,6 +69,6 @@ for i in range(15):
 
 current_recipe = Recipe('Default Recipe Bounds', 0, [str(i) for i in range(3)], [], lb, ub, 'umf_')
 
-mw.setup(cd, restr_dict, lprp, current_recipe)
+mw.setup(cd, restr_dict, lprp)
 
 #open default recipe

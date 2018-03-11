@@ -42,9 +42,9 @@ import sys
 ##
 ### instances of Crap can be used to change Crud.static and c.static for any instance c of any child of Crud
 
-reset_oxides = 0
-reset_ingredients = 0
-reset_other = 0
+reset_oxides = 1
+reset_ingredients = 1
+reset_other = 1
 
 persistent_data_path = dirname(abspath(getsourcefile(lambda:0)))+'/persistent_data'  # please tell me there's an easier way to import stuff in Python
 sys.path.append(persistent_data_path)

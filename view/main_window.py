@@ -22,7 +22,8 @@ import os
 from inspect import getsourcefile
 from os.path import abspath, dirname
 from functools import partial
-from back_end.core_data import CoreData
+from model.core_data import CoreData
+from model.recipes import Recipe
 
 try:
     from .vert_scrolled_frame import VerticalScrolledFrame
@@ -170,7 +171,7 @@ class MainWindow:
     option_menu.add_command(label="Edit Ingredients",
                             command=lambda : ing_dat.open_ingredient_editor(current_recipe, recipe_dict,
                                                                             ingredient_select_button, toggle_ingredient, update_var, entry_type))
-    option_menu.add_command(label="Edit Other Restricitions", command=edit_other_restrictions)
+    option_menu.add_command(label="Edit Other Restrictions", command=edit_other_restrictions)
     option_menu.add_command(label="Restriction Settings", command=restriction_settings)
     menubar.add_cascade(label="Options", menu=option_menu)
     root.config(menu=menubar)
@@ -198,7 +199,7 @@ class MainWindow:
 
     ingredient_select_button = {}
 
-    order_shelf_path = dirname(dirname(abspath(getsourcefile(lambda:0))))+'/back_end/persistent_data/OrderShelf'    ## There's probably a more elegant way of doing this
+    order_shelf_path = dirname(dirname(abspath(getsourcefile(lambda:0))))+'/model/persistent_data/OrderShelf'    ## There's probably a more elegant way of doing this
     with shelve.open(order_shelf_path) as order_shelf:
         ingredient_order = order_shelf['ingredients']
 ##        #oxide_order = ...
@@ -209,15 +210,17 @@ class MainWindow:
 
     other_select_button = {}
 
+    current_recipe = Recipe('Default Recipe Bounds', 0, [], [], {}, {}, 'umf_')
+
     def __init__(self):
         pass
 
-    def setup(self, core_data, restr_dict, lp_rec_prob, current_recipe):
+    def setup(self, core_data, restr_dict, lp_rec_prob):
 
         # Create and grid ingredient selection buttons:
         for r, i in enumerate(self.ingredient_order):
             self.ingredient_select_button[i] = ttk.Button(self.vsf.interior, text=core_data.ingredient_dict[i].name, width=20,\
-                                                         command=partial(toggle_ingredient, self, core_data, restr_dict, current_recipe, i))
+                                                         command=partial(toggle_ingredient, self, core_data, restr_dict, i))
             self.ingredient_select_button[i].grid(row=r)
 
         #Create and grid other selection buttons:
@@ -227,49 +230,49 @@ class MainWindow:
                                                        # command=partial(toggle_other, i))
             self.other_select_button[i].grid(row=ot.pos+1)
 
-        for i in current_recipe.ingredients:
-            toggle_ingredient(self, core_data, restr_dict, current_recipe, i)
+        for i in self.current_recipe.ingredients:
+            toggle_ingredient(self, core_data, restr_dict, i)
 
     def open_recipe(self, index, restr_dict, r_s=0):   # to be used when opening a recipe, (or when ingredients have been updated?). Be careful.
 
         recipe_index = index
 
-        for t, res in current_recipe.variables.items():
+        for t, res in self.current_recipe.variables.items():
             restr_dict[res].deselect(t)            # remove stars from old variables
-        current_recipe = copy.deepcopy(recipe_dict[index])
-        current_recipe.update_oxides(restr_dict, entry_type.get())            # in case the oxide compositions have changed
+        self.current_recipe = copy.deepcopy(recipe_dict[index])
+        self.current_recipe.update_oxides(restr_dict, entry_type.get())            # in case the oxide compositions have changed
         
-        self.recipe_name.set(current_recipe.name)      # update the displayed recipe name
+        self.recipe_name.set(self.current_recipe.name)      # update the displayed recipe name
 
         for i in restr_dict:
             restr_dict[i].remove(current_recipe)    # clear the entries from previous recipes, if opening a new recipe
 
-        for i in restr_keys(current_recipe.oxides, current_recipe.ingredients, current_recipe.other):
+        for i in restr_keys(self.current_recipe.oxides, self.current_recipe.ingredients, self.current_recipe.other):
             try:
-                restr_dict[i].low.set(current_recipe.lower_bounds[i])
-                restr_dict[i].upp.set(current_recipe.upper_bounds[i])
+                restr_dict[i].low.set(self.current_recipe.lower_bounds[i])
+                restr_dict[i].upp.set(self.current_recipe.upper_bounds[i])
             except:
                 restr_dict[i].low.set(restr_dict[i].default_low)    # this is just for the case where the oxides have changed
                 restr_dict[i].upp.set(restr_dict[i].default_upp)    # ditto
 
-        for t, res in current_recipe.variables.items():
+        for t, res in self.current_recipe.variables.items():
             restr_dict[res].select(t)               # add stars to new variables
         
-        et = current_recipe.entry_type
-        entry_type.set(et)
+        et = self.current_recipe.entry_type
+        self.entry_type.set(et)
 
-        for ox in current_recipe.oxides:
+        for ox in self.current_recipe.oxides:
             restr_dict[et+ox].display(1 + oxide_dict[ox].pos)
             
         for i in ingredient_order:
-            if i in current_recipe.ingredients:
+            if i in self.current_recipe.ingredients:
                 ingredient_select_button[i].state(['pressed'])
                 restr_dict['ingredient_'+i].display(101 + ingredient_order.index(i))
             else:
                 ingredient_select_button[i].state(['!pressed'])
 
         for ot in other_dict:
-            if ot in current_recipe.other:
+            if ot in self.current_recipe.other:
                 other_select_button[ot].state(['pressed'])
                 restr_dict['other_'+ot].display(1001 + other_dict[ot].pos)
             else:
@@ -281,9 +284,10 @@ class MainWindow:
             pass
         bind_restrictions_to_recipe(current_recipe, restr_dict)
 
-def toggle_ingredient(mw, cd, restr_dict, recipe, i):
+def toggle_ingredient(mw, cd, restr_dict, i):
     # Adds or removes ingredient_dict[i] to or from the current recipe, depending on whether it isn't or is an ingredient already.
-    
+
+    recipe = mw.current_recipe
     if i in recipe.ingredients:
         recipe.ingredients.remove(i)
         mw.ingredient_select_button[i].state(['!pressed'])

@@ -19,7 +19,7 @@
 # We define the Restriction, Oxide, Ingredient,and Other classes.
 
 from tkinter import *
-from GUI.pretty_names import prettify
+from view.pretty_names import prettify
 from functools import partial
 import shelve
 import copy
