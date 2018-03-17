@@ -22,8 +22,7 @@ import os
 from inspect import getsourcefile
 from os.path import abspath, dirname
 from functools import partial
-from model.core_data import CoreData
-from model.recipes import Recipe
+from model.recipes import Recipe        # eliminate this
 
 try:
     from .vert_scrolled_frame import VerticalScrolledFrame
@@ -177,7 +176,7 @@ class MainWindow:
     root.config(menu=menubar)
 
     # Create and grid the percent/unity radio buttons:
-    entry_type = StringVar()
+    entry_type = StringVar()  # Make this an observable
     
     unity_radio_button = Radiobutton(oxide_heading_frame, text="UMF", variable=entry_type, value='umf_')
                                      #command=partial(update_oxide_entry_type, current_recipe, 'umf_'))
@@ -214,102 +213,3 @@ class MainWindow:
 
     def __init__(self):
         pass
-
-    def setup(self, core_data, restr_dict, lp_rec_prob):
-
-        # Create and grid ingredient selection buttons:
-        for r, i in enumerate(self.ingredient_order):
-            self.ingredient_select_button[i] = ttk.Button(self.vsf.interior, text=core_data.ingredient_dict[i].name, width=20,\
-                                                         command=partial(toggle_ingredient, self, core_data, restr_dict, i))
-            self.ingredient_select_button[i].grid(row=r)
-
-        #Create and grid other selection buttons:
-        for i in core_data.other_dict:
-            ot = core_data.other_dict[i]
-            self.other_select_button[i] = ttk.Button(self.other_selection_window, text=prettify(ot.name), width=18)
-                                                       # command=partial(toggle_other, i))
-            self.other_select_button[i].grid(row=ot.pos+1)
-
-        for i in self.current_recipe.ingredients:
-            toggle_ingredient(self, core_data, restr_dict, i)
-
-    def open_recipe(self, index, restr_dict, r_s=0):   # to be used when opening a recipe, (or when ingredients have been updated?). Be careful.
-
-        recipe_index = index
-
-        for t, res in self.current_recipe.variables.items():
-            restr_dict[res].deselect(t)            # remove stars from old variables
-        self.current_recipe = copy.deepcopy(recipe_dict[index])
-        self.current_recipe.update_oxides(restr_dict, entry_type.get())            # in case the oxide compositions have changed
-        
-        self.recipe_name.set(self.current_recipe.name)      # update the displayed recipe name
-
-        for i in restr_dict:
-            restr_dict[i].remove(current_recipe)    # clear the entries from previous recipes, if opening a new recipe
-
-        for i in restr_keys(self.current_recipe.oxides, self.current_recipe.ingredients, self.current_recipe.other):
-            try:
-                restr_dict[i].low.set(self.current_recipe.lower_bounds[i])
-                restr_dict[i].upp.set(self.current_recipe.upper_bounds[i])
-            except:
-                restr_dict[i].low.set(restr_dict[i].default_low)    # this is just for the case where the oxides have changed
-                restr_dict[i].upp.set(restr_dict[i].default_upp)    # ditto
-
-        for t, res in self.current_recipe.variables.items():
-            restr_dict[res].select(t)               # add stars to new variables
-        
-        et = self.current_recipe.entry_type
-        self.entry_type.set(et)
-
-        for ox in self.current_recipe.oxides:
-            restr_dict[et+ox].display(1 + oxide_dict[ox].pos)
-            
-        for i in ingredient_order:
-            if i in self.current_recipe.ingredients:
-                ingredient_select_button[i].state(['pressed'])
-                restr_dict['ingredient_'+i].display(101 + ingredient_order.index(i))
-            else:
-                ingredient_select_button[i].state(['!pressed'])
-
-        for ot in other_dict:
-            if ot in self.current_recipe.other:
-                other_select_button[ot].state(['pressed'])
-                restr_dict['other_'+ot].display(1001 + other_dict[ot].pos)
-            else:
-                other_select_button[ot].state(['!pressed'])
-
-        try:
-            r_s.destroy()
-        except:
-            pass
-        bind_restrictions_to_recipe(current_recipe, restr_dict)
-
-def toggle_ingredient(mw, cd, restr_dict, i):
-    # Adds or removes ingredient_dict[i] to or from the current recipe, depending on whether it isn't or is an ingredient already.
-
-    recipe = mw.current_recipe
-    if i in recipe.ingredients:
-        recipe.ingredients.remove(i)
-        mw.ingredient_select_button[i].state(['!pressed'])
-        restr_dict['ingredient_'+i].remove(recipe)
-        recipe.update_oxides(restr_dict, mw.entry_type.get())
-
-        # Remove the restrictions on the oxides no longer present:
-        for ox in set(cd.ingredient_compositions[i]) - recipe.oxides:
-            for et in ['umf_', 'mass_perc_', 'mole_perc_']:
-                restr_dict[et+ox].remove(recipe)
-
-    else:
-        recipe.ingredients.append(i)
-        mw.ingredient_select_button[i].state(['pressed'])
-        restr_dict['ingredient_'+i].display(101 + mw.ingredient_order.index(i))
-        for ox in cd.ingredient_compositions[i]:
-            if ox not in recipe.oxides:  # i.e. if we're introducing a new oxide
-                for et in ['umf_', 'mass_perc_', 'mole_perc_']:
-                    recipe.lower_bounds[et+ox] = restr_dict[et+ox].default_low
-                    recipe.upper_bounds[et+ox] = restr_dict[et+ox].default_upp
-        recipe.oxides = recipe.oxides.union(set(cd.ingredient_compositions[i]))    # update the available oxides
-           
-        et = mw.entry_type.get()
-        for ox in recipe.oxides:
-            restr_dict[et+ox].display(1 + cd.oxide_dict[ox].pos)

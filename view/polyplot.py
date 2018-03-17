@@ -122,7 +122,7 @@ def create_polygon_plot(self, data, scaling):
 
 Canvas.create_polygon_plot = create_polygon_plot
 
-if 1==0:
+if 0==1:
     root = Tk()
     window = Frame(root)
     window.grid()

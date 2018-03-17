@@ -1,9 +1,16 @@
 import json
-from recipes import Recipe
+from ..recipes import Recipe
+from ..core_data import CoreData
+from inspect import getsourcefile
+import os
+from os.path import abspath, dirname
+import sys
 
+persistent_data_path = dirname(dirname(abspath(getsourcefile(lambda:0))))+'/persistent_data'  # please tell me there's an easier way to import stuff in Python
+sys.path.append(persistent_data_path)
 
 class RecipeSerializer(object):
-    """A class to support serializing of a single recipe.  Needs improvement"""
+    """A class to support serializing/deserializing of a single recipes and dictionaries of recipe.  Needs improvement"""
 
     @staticmethod
     def get_serializable_recipe(recipe):
@@ -63,3 +70,18 @@ class RecipeSerializer(object):
             recipe = RecipeSerializer.get_recipe(serialized_recipe_dict)                           
             recipe_dict[index] = recipe
         return recipe_dict
+
+# Add a method to CoreData that initializes the recipe_dict from the JSON file
+# This isn't done in core_data to avoid circular imports
+def set_recipe_dict(self):
+##    with open(persistent_data_path+"/JSONRecipeShelf.json", 'r') as json_str:
+##        print(json_str)
+##        self.recipe_dict = RecipeSerializer.deserialize_dict(json_str)
+
+    f = open(persistent_data_path+"/JSONRecipeShelf.json", 'r')
+    json_str = f.read()
+    f.close()
+    self.recipe_dict = RecipeSerializer.deserialize_dict(json_str)
+
+CoreData.set_recipe_dict = classmethod(set_recipe_dict)
+

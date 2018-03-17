@@ -21,6 +21,14 @@ from tkinter import *
 import time
 import copy
 from .core_data import CoreData
+##from inspect import getsourcefile
+##import os
+##from os.path import abspath, dirname
+##import sys
+##from .serializers.recipeserializer import RecipeSerializer
+##
+##persistent_data_path = dirname(abspath(getsourcefile(lambda:0)))+'/persistent_data'  # please tell me there's an easier way to import stuff in Python
+##sys.path.append(persistent_data_path)
 
 #from pulp2dim import *
 #from restrictions import *
@@ -99,6 +107,7 @@ class Recipe:
 ##            self.lower_bounds['other_'+ot] = restr_dict['other_'+ot].low.get()
 ##            self.upper_bounds['other_'+ot] = restr_dict['other_'+ot].upp.get()
 ##
+        
     def update_oxides(self, restr_dict, et):   # to be run whenever the ingredients are changed
         old_oxides = copy.copy(self.oxides)
         ass_oxides = associated_oxides(self.ingredients)
