@@ -22,7 +22,7 @@ import os
 from inspect import getsourcefile
 from os.path import abspath, dirname
 from functools import partial
-from model.recipes import Recipe        # eliminate this
+from model.lipgloss.recipes import Recipe        # eliminate this
 
 try:
     from .vert_scrolled_frame import VerticalScrolledFrame
@@ -209,7 +209,7 @@ class MainWindow:
 
     other_select_button = {}
 
-    current_recipe = Recipe('Default Recipe Bounds', 0, [], [], {}, {}, 'umf_')
+#    current_recipe = Recipe('Default Recipe Bounds', 0, [], [], {}, {}, 'umf_')
 
     def __init__(self):
         pass

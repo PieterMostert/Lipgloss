@@ -17,10 +17,10 @@
 # Contact: pi.mostert@gmail.com
 
 import shelve
-from tkinter import *
+from tkinter import *   # eliminate
 import time
 import copy
-from .core_data import CoreData
+from .core_data import Observable, CoreData
 ##from inspect import getsourcefile
 ##import os
 ##from os.path import abspath, dirname
@@ -40,19 +40,21 @@ from .core_data import CoreData
 ##            ingredient_compositions[index] = ingredient_shelf[index].oxide_comp
 ##    return ingredient_compositions
 
-def associated_oxides(ingredients):
-
-    assoc_oxides = set()
-    for index in ingredients:
-        assoc_oxides = assoc_oxides.union(set(CoreData.ingredient_compositions[index]))  # update the available oxides. Probably not the most
-                                                                                                      # efficient way to do this
-    return assoc_oxides
+##def associated_oxides(ingredients):  #move this to CoreData ?
+##
+##    assoc_oxides = set()
+##    for index in ingredients:
+##        assoc_oxides = assoc_oxides.union(set(CoreData().ingredient_compositions[index]))  # update the available oxides. Probably not the most
+##                                                                                                      # efficient way to do this
+##    return assoc_oxides
 
 def fluxes_subset(oxides):
 
-    with shelve.open("./data/OxideShelf") as oxide_shelf:
-        fluxes = [ox for ox in oxides if oxide_shelf[ox].flux == 1]
-    return fluxes
+    return [ox for ox in oxides if CoreData.oxide_dict[ox].flux == 1]
+
+##    with shelve.open("./data/OxideShelf") as oxide_shelf:
+##        fluxes = [ox for ox in oxides if oxide_shelf[ox].flux == 1]
+##    return fluxes
 
 def print_res_type(normalization):   # Used to display error message
     if normalization == "lp_var['fluxes_total']":
@@ -70,23 +72,25 @@ def restr_keys(oxides, ingredients, other):
            ['ingredient_'+i for i in ingredients]+\
            ['other_'+ot for ot in other]
 
-class Recipe:
+class Recipe(Observable):
     """This is actually a set of bounds on a collection of ingredients, together with bounds on the oxides present, \\
     and possibly bounds on other quantities"""
 
-    def __init__(self, name, pos, ingredients, other, lower_bounds, upper_bounds, entry_type, variables = {}):
-
+    def __init__(self, name, pos, oxides, ingredients, other, lower_bounds, upper_bounds, entry_type, variables = {}):
+        
+        Observable.__init__(self)
         self.name = name
         self.pos = pos   # position in list of recipes to choose
-        self.ingredients = ingredients
-        self.other = other
-        self.oxides = associated_oxides(self.ingredients)
-        self.lower_bounds = lower_bounds      # A dictionary whose keys are the entries in
-                                              # restr_keys(oxides, associated_oxides(ingredients), other)
+        self.ingredients = ingredients        # List of ingredient indices
+        self.other = other                    # List of other indices
+        self.oxides = oxides
+        self.lower_bounds = lower_bounds      # A dictionary whose keys are the entries in self.restriction_keys
         self.upper_bounds = upper_bounds      # Ditto
+        self.entry_type = entry_type          # Should be one of 'umf_', 'mass_perc_' or 'mole_perc_'
         self.variables = variables            # A dictionary whose keys are a subset of the set {'x','y'}, and whose values
-                                              # are restriction indices.
-        self.entry_type = entry_type
+                                              # are restriction keys.
+        self.restriction_keys = restr_keys(self.oxides, self.ingredients, self.other)
+        #run checks to see if oxides are still the associated oxides, in case the ingredient compositions have changed
 
 ##    def update_bounds(self, restr_dict):       # To be used when saving a recipe.
 ##        self.lower_bounds = {}
@@ -107,10 +111,68 @@ class Recipe:
 ##            self.lower_bounds['other_'+ot] = restr_dict['other_'+ot].low.get()
 ##            self.upper_bounds['other_'+ot] = restr_dict['other_'+ot].upp.get()
 ##
+    def fluxes(self):
+        return fluxes_subset(self.oxides)
+
+    def add_ingredient(self, core_data, index):
+        if index in self.ingredients:
+            print(core_data.ingredient_dict[index].name+' already occurs in recipe')
+        else:
+            self.ingredients.append(index) 
+            self.oxides = core_data.associated_oxides(self.ingredients)
+            self.restriction_keys = restr_keys(self.oxides, self.ingredients, self.other)   # Could just make the changes by hand
+            for key in self.restriction_keys:
+                if key not in self.lower_bounds:
+                    self.lower_bounds[key] = core_data.default_lower_bounds[key]
+                    self.upper_bounds[key] = core_data.default_upper_bounds[key] 
+
+    def remove_ingredient(self, core_data, index):
+        if index in self.ingredients:
+            self.ingredients.remove(index)
+            self.oxides = core_data.associated_oxides(self.ingredients)
+            old_res_keys = self.restriction_keys
+            self.restriction_keys = restr_keys(self.oxides, self.ingredients, self.other)
+            for key in old_res_keys:
+                if key not in self.restriction_keys:
+                    del self.lower_bounds[key]
+                    del self.upper_bounds[key]
+        else:
+            print(core_data.ingredient_dict[index].name+' not in recipe')
+
+    def add_other(self, core_data, index):
+        if index in self.other:
+            print(core_data.other_dict[index].name+' already occurs in recipe')
+        else:
+            self.other.append(index)
+            ot = 'other_'+index
+            self.restriction_keys.append(ot)
+            self.lower_bounds[ot] = core_data.default_lower_bounds[ot]
+            self.upper_bounds[ot] = core_data.default_upper_bounds[ot] 
+
+    def remove_other(self, core_data, index):
+        if index in self.other:
+            self.other.remove(index)
+            ot = 'other_'+index
+            self.restriction_keys.remove(ot)
+            del self.lower_bounds[ot]
+            del self.upper_bounds[ot]
+        else:
+            print(core_data.other_dict[index].name+' not in recipe')
+
+    def update_bounds(self, core_data):      # To be used when ingredient compositions have changed. Could also be used in add_ingredient and remove_ingredient above
+        for key in self.restriction_keys:
+            if key not in self.lower_bounds:
+                self.lower_bounds[key] = core_data.default_lower_bounds[key]
+                self.upper_bounds[key] = core_data.default_upper_bounds[key]
+        old_res_keys = self.lower_bounds.keys()
+        for key in old_res_keys:
+            if key not in self.restriction_keys:
+                del self.lower_bounds[key]
+                del self.upper_bounds[key]    
         
-    def update_oxides(self, restr_dict, et):   # to be run whenever the ingredients are changed
+    def update_oxides(self, core_data, restr_dict):   # to be run whenever the ingredients are changed
         old_oxides = copy.copy(self.oxides)
-        ass_oxides = associated_oxides(self.ingredients)
+        ass_oxides = core_data.associated_oxides(self.ingredients)
         for ox in self.oxides:
             if ox not in ass_oxides:
                 for t in ['umf_', 'mass_perc_', 'mole_perc_']:
@@ -132,26 +194,11 @@ class Recipe:
                 for t in ['umf_', 'mass_perc_', 'mole_perc_']:
                     self.lower_bounds[t+ox] = restr_dict[t+ox].default_low
                     self.upper_bounds[t+ox] = restr_dict[t+ox].default_upp
-                restr_dict[et+ox].display(1 + oxide_dict[ox].pos)
+                #restr_dict[et+ox].display(1 + oxide_dict[ox].pos)
 
         self.oxides = ass_oxides
-##
-##    def update_other(self, index):    # update other entry positions
-##
-##        global other_select_button
-##        global selected_other
-##
-##        if index in self.other:   # in this case we're removing the quantity
-##            self.other.remove(index)
-##            other_select_button[index].state(['!pressed'])
-##            restr_dict['other_'+index].remove()
-##
-##        else:                # in this case we're adding the quantity
-##            self.other.append(index)
-##            other_select_button[ot].state(['pressed'])
-##            with shelve.open("./data/OtherShelf") as other_shelf:
-##                restr_dict['other_'+index].display(1001 + other_shelf[index].pos)
-##
+        self.restriction_keys = restr_keys(self.oxides, self.ingredients, self.other)
+
 ##    def update_variables(self, restr_keys):    # delete variables no longer present
 ##
 ##        var = copy.copy(self.variables)

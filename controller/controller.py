@@ -15,14 +15,22 @@
 # <http://www.gnu.org/licenses/>.
 
 # Contact: pi.mostert@gmail.com
+import sys
+from os.path import abspath, dirname
+from inspect import getsourcefile
+sys.path.append(dirname(dirname(abspath(getsourcefile(lambda:0))))+'\model') # allows us to treat lipgloss like a built in package
 
-from model.core_data import CoreData, Oxide, Ingredient
-from model.lp_recipe_problem import LpRecipeProblem
-from model.recipes import Recipe, restr_keys
+from lipgloss.core_data import OxideData, CoreData, Oxide, Ingredient
+from lipgloss.lp_recipe_problem import LpRecipeProblem
+from lipgloss.recipes import Recipe, restr_keys
+
 import model.serializers.recipeserializer
-from view.main_window import MainWindow
-from view.pretty_names import prettify
+from model.model import Model
 #from model.restrictions import Restriction
+
+from view.main_window import MainWindow
+from view.pretty_names import prettify, pretty_entry_type
+
 import pulp
 import tkinter as tk
 from tkinter import ttk
@@ -32,7 +40,9 @@ import copy
 
 class Restriction:
     'Oxide UMF, oxide % molar, oxide % weight, ingredient, SiO2:Al2O3 molar, LOI, cost, etc'
-    display_frame = None
+    display_frame = None   # Will be assigned later to be Controller.mw.restriction_sf.interior
+    x_lab = None   # Will be assigned later to be Controller.mw.x_lab
+    y_lab = None   # Will be assigned later to be Controller.mw.y_lab
     
     def __init__(self, index, name, objective_func, normalization, default_low, default_upp, dec_pt=1):
 
@@ -69,20 +79,20 @@ class Restriction:
     def select(self, t):
         if t == 'x':
             self.left_label_text.set('* '+prettify(self.name)+' : ')
-            x_lab.config(text='x variable: '+prettify(self.name)+pretty_entry_type(self.index[0:2]))
+            self.x_lab.config(text='x variable: '+prettify(self.name)+pretty_entry_type(self.index[0:2]))
         elif t == 'y':
             self.right_label_text.set(' : '+prettify(self.name)+' *')
-            y_lab.config(text='y variable: '+prettify(self.name)+pretty_entry_type(self.index[0:2]))
+            self.y_lab.config(text='y variable: '+prettify(self.name)+pretty_entry_type(self.index[0:2]))
         else:
             print('Something\'s wrong')
 
     def deselect(self, t):
         if t == 'x':
             self.left_label_text.set('  '+prettify(self.name)+' : ')
-            x_lab.config(text='x variable: Click right restriction name to select')
+            self.x_lab.config(text='x variable: Click right restriction name to select')
         elif t == 'y':
             self.right_label_text.set(' : '+prettify(self.name)+'  ')
-            y_lab.config(text='y variable: Click left restriction name to select')
+            self.y_lab.config(text='y variable: Click left restriction name to select')
         else:
             print('Something\'s wrong')
                     
@@ -133,13 +143,13 @@ def default_restriction_bounds(ox_dict, ing_dict, other_dict):
             dp = 2
         elif ox == 'Al2O3':
             def_upp = 10
-        restr_dict['umf_'+ox] = Restriction('umf_'+ox, ox, 'mole_'+ox, "lp_var['fluxes_total']", 0, def_upp, dec_pt=dp)
-        restr_dict['mass_perc_'+ox] = Restriction('mass_perc_'+ox, ox, 'mass_'+ox, "0.01*lp_var['ox_mass_total']", 0, 100, dec_pt=2) 
-        restr_dict['mole_perc_'+ox] = Restriction('mole_perc_'+ox, ox, 'mole_'+ox, "0.01*lp_var['ox_mole_total']", 0, 100, dec_pt=2)
+        restr_dict['umf_'+ox] = Restriction('umf_'+ox, ox, 'mole_'+ox, "self.lp_var['fluxes_total']", 0, def_upp, dec_pt=dp)
+        restr_dict['mass_perc_'+ox] = Restriction('mass_perc_'+ox, ox, 'mass_'+ox, "0.01*self.lp_var['ox_mass_total']", 0, 100, dec_pt=2) 
+        restr_dict['mole_perc_'+ox] = Restriction('mole_perc_'+ox, ox, 'mole_'+ox, "0.01*self.lp_var['ox_mole_total']", 0, 100, dec_pt=2)
 
     # Create ingredient restrictions:
     for i in ing_dict:
-        restr_dict['ingredient_'+i] = Restriction('ingredient_'+i, ing_dict[i].name, 'ingredient_'+i, "0.01*lp_var['ingredient_total']", 0, 100)
+        restr_dict['ingredient_'+i] = Restriction('ingredient_'+i, ing_dict[i].name, 'ingredient_'+i, "0.01*self.lp_var['ingredient_total']", 0, 100)
 
     # Create other restrictions:
     for index, ot in other_dict.items():
@@ -149,18 +159,33 @@ def default_restriction_bounds(ox_dict, ing_dict, other_dict):
 
 class Controller:
     def __init__(self):
+        OxideData.set_default_oxides()
         self.cd = CoreData()
-        self.cd.set_recipe_dict()
-        self.cd.set_current_recipe('0')
+        self.cd.set_default_data()
+
+        self.mod = Model(self.cd)
+        self.mod.set_recipe_dict()
+        self.mod.set_current_recipe('0')
+        self.mod.set_order()
         
         self.mw = MainWindow()
         Restriction.display_frame = self.mw.restriction_sf.interior
+        Restriction.x_lab = self.mw.x_lab
+        Restriction.y_lab = self.mw.y_lab
         self.restr_dict = default_restriction_bounds(self.cd.oxide_dict, self.cd.ingredient_dict, self.cd.other_dict)
+        
+        for button, t in [(self.mw.unity_radio_button, 'umf_'), \
+                          (self.mw.percent_wt_radio_button, 'mass_perc_'), \
+                          (self.mw.percent_mol_radio_button, 'mole_perc_')]:
+            button.config(command=partial(self.update_oxide_entry_type, t))
 
-        self.lprp = LpRecipeProblem("Glaze recipe", pulp.LpMaximize)
+        self.lprp = LpRecipeProblem("Glaze recipe", pulp.LpMaximize, self.cd)
+        
+        self.mw.calc_button.config(command=self.calc_restr)
         
         # Create and grid ingredient selection buttons:
-        for r, i in enumerate(Ingredient.order):
+        #for r, i in enumerate(Ingredient.order):
+        for r, i in enumerate(self.mod.order["ingredients"]):
             self.mw.ingredient_select_button[i] = ttk.Button(self.mw.vsf.interior, text=self.cd.ingredient_dict[i].name, width=20, \
                                                              command=partial(self.toggle_ingredient, i))
             self.mw.ingredient_select_button[i].grid(row=r)
@@ -174,46 +199,55 @@ class Controller:
         # Open default recipe.
         self.open_recipe('0')
 
+    def calc_restr(self):
+        for key in self.mod.current_recipe.restriction_keys:
+            self.mod.current_recipe.lower_bounds[key] = self.restr_dict[key].low.get()
+            self.mod.current_recipe.upper_bounds[key] = self.restr_dict[key].upp.get()
+        self.lprp.calc_restrictions(self.mod.current_recipe, self.restr_dict)
+
     def open_recipe(self, index):   # to be used when opening a recipe, (or when ingredients have been updated?). Be careful.
 
         recipe_index = index
 
-        for t, res in self.cd.current_recipe.variables.items():
+        for t, res in self.mod.current_recipe.variables.items():
             self.restr_dict[res].deselect(t)            # remove stars from old variables
-        self.cd.current_recipe = copy.deepcopy(self.cd.recipe_dict[index])
-        self.cd.current_recipe.update_oxides(self.restr_dict, self.mw.entry_type.get())  # in case the oxide compositions have changed
+        self.mod.current_recipe = copy.deepcopy(self.mod.recipe_dict[index])
+        self.mod.current_recipe.update_oxides(self.cd, self.restr_dict)  # in case the oxide compositions have changed
         
-        self.mw.recipe_name.set(self.cd.current_recipe.name)      # update the displayed recipe name
+        self.mw.recipe_name.set(self.mod.current_recipe.name)      # update the displayed recipe name
 
         for res in self.restr_dict.values():
-            res.remove(self.cd.current_recipe)    # clear the entries from previous recipes, if opening a new recipe
+            res.remove(self.mod.current_recipe)    # clear the entries from previous recipes, if opening a new recipe
 
-        for i in restr_keys(self.cd.current_recipe.oxides, self.cd.current_recipe.ingredients, self.cd.current_recipe.other):
+        r_k = restr_keys(self.mod.current_recipe.oxides, self.mod.current_recipe.ingredients, self.mod.current_recipe.other)
+
+        for i in r_k:
             try:
-                self.restr_dict[i].low.set(self.cd.current_recipe.lower_bounds[i])
-                self.restr_dict[i].upp.set(self.cd.current_recipe.upper_bounds[i])
+                self.restr_dict[i].low.set(self.mod.current_recipe.lower_bounds[i])
+                self.restr_dict[i].upp.set(self.mod.current_recipe.upper_bounds[i])
             except:
                 self.restr_dict[i].low.set(restr_dict[i].default_low)    # this is just for the case where the oxides have changed
                 self.restr_dict[i].upp.set(restr_dict[i].default_upp)    # ditto
 
-        for t, res in self.cd.current_recipe.variables.items():
+        for t, res in self.mod.current_recipe.variables.items():
             self.restr_dict[res].select(t)               # add stars to new variables
         
-        et = self.cd.current_recipe.entry_type
+        et = self.mod.current_recipe.entry_type
         self.mw.entry_type.set(et)
 
-        for ox in self.cd.current_recipe.oxides:
+        for ox in self.mod.current_recipe.oxides:
             self.restr_dict[et+ox].display(1 + self.cd.oxide_dict[ox].pos)
-            
-        for i in self.cd.ingredient_order:
-            if i in self.cd.current_recipe.ingredients:
+
+        ingredient_order = self.mod.order["ingredients"]
+        for i in ingredient_order:
+            if i in self.mod.current_recipe.ingredients:
                 self.mw.ingredient_select_button[i].state(['pressed'])
-                self.restr_dict['ingredient_'+i].display(101 + self.cd.ingredient_order.index(i))
+                self.restr_dict['ingredient_'+i].display(101 + ingredient_order.index(i))
             else:
                 self.mw.ingredient_select_button[i].state(['!pressed'])
 
         for ot in self.cd.other_dict:
-            if ot in self.cd.current_recipe.other:
+            if ot in self.mod.current_recipe.other:
                 self.mw.other_select_button[ot].state(['pressed'])
                 self.restr_dict['other_'+ot].display(1001 + self.cd.other_dict[ot].pos)
             else:
@@ -223,17 +257,22 @@ class Controller:
             r_s.destroy()
         except:
             pass
-        #bind_restrictions_to_recipe(self.cd.current_recipe, self.restr_dict)
+        #   Set the command for x and y variable selection boxes
+        for restr in self.restr_dict.values():
+            restr.left_label.bind("<Button-1>", partial(self.update_var, restr, 'x'))
+            restr.right_label.bind("<Button-1>", partial(self.update_var, restr, 'y'))
+
+        #bind_restrictions_to_recipe(self.mod.current_recipe, self.restr_dict)
 
     def toggle_ingredient(self, i):
         # Adds or removes ingredient_dict[i] to or from the current recipe, depending on whether it isn't or is an ingredient already.
 
-        recipe = self.cd.current_recipe
+        recipe = self.mod.current_recipe
         if i in recipe.ingredients:
-            recipe.ingredients.remove(i)
+            recipe.remove_ingredient(self.cd, i)
             self.mw.ingredient_select_button[i].state(['!pressed'])
             self.restr_dict['ingredient_'+i].remove(recipe)
-            recipe.update_oxides(self.restr_dict, self.mw.entry_type.get())
+            recipe.update_oxides(self.cd, self.restr_dict)
 
             # Remove the restrictions on the oxides no longer present:
             for ox in set(self.cd.ingredient_compositions[i]) - recipe.oxides:
@@ -241,7 +280,7 @@ class Controller:
                     self.restr_dict[et+ox].remove(recipe)
 
         else:
-            recipe.ingredients.append(i)
+            recipe.add_ingredient(self.cd, i)
             self.mw.ingredient_select_button[i].state(['pressed'])
             self.restr_dict['ingredient_'+i].display(101 + self.mw.ingredient_order.index(i))
             for ox in self.cd.ingredient_compositions[i]:
@@ -254,21 +293,45 @@ class Controller:
             et = self.mw.entry_type.get()
             for ox in recipe.oxides:
                 self.restr_dict[et+ox].display(1 + self.cd.oxide_dict[ox].pos)
+        #self.mod.current_recipe = recipe
 
     def toggle_other(self, i):
         # Adds or removes other_dict[index] to or from the current recipe, depending on whether it isn't or is an other restriction already.
         
-        recipe = self.cd.current_recipe
+        recipe = self.mod.current_recipe
 
         if i in recipe.other:
-            recipe.other.remove(i)
+            recipe.remove_other(self.cd, i)
             self.mw.other_select_button[i].state(['!pressed'])
             self.restr_dict['other_'+i].remove(recipe)
             # TO DO: remove star if this was a variable
 
         else:
-            recipe.other.append(i)
+            recipe.add_other(self.cd, i)
             self.mw.other_select_button[i].state(['pressed'])         
             self.restr_dict['other_'+i].display(1001 + self.cd.other_dict[i].pos)
             self.mw.restriction_sf.canvas.yview_moveto(1)
-#open default recipe
+
+    def update_var(self, restr, t, uh):     # t should be either 'x' or 'y'. Might be a better way of doing this
+        if t in self.mod.current_recipe.variables:
+            v = self.restr_dict[self.mod.current_recipe.variables[t]]
+            if v == restr:
+                del self.mod.current_recipe.variables[t]
+                restr.deselect(t)
+            else:
+                self.mod.current_recipe.variables[t] = restr.index
+                v.deselect(t)
+                restr.select(t)      
+        else:
+            self.mod.current_recipe.variables[t] = restr.index
+            restr.select(t)
+
+    def update_oxide_entry_type(self, entry_type):
+        self.mod.current_recipe.set('entry_type', entry_type)
+        for et in ['umf_', 'mass_perc_', 'mole_perc_']:
+            if et == entry_type:
+                for ox in self.mod.current_recipe.oxides:
+                    self.restr_dict[et+ox].display(1 + self.cd.oxide_dict[ox].pos)
+            else:
+                for ox in self.mod.current_recipe.oxides:
+                    self.restr_dict[et+ox].hide()

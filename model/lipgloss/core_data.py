@@ -18,7 +18,6 @@
 
 # We define the Restriction, Oxide, Ingredient,and Other classes.
 
-#from tkinter import *       # eliminate
 from functools import partial
 import shelve
 #from .serializers.recipeserializer import RecipeSerializer
@@ -27,28 +26,13 @@ import os
 from os.path import abspath, dirname
 import sys
 
-##
-##class Crud:
-##    static = 1
-##    def __init__(self, stuff):
-##        self.stuff = stuff
-##    def update_static(self, new):
-##	Crud.static = new
-##
-##class Crap(Crud):
-##    def __init__(self, stuff, tuff):
-##	super(Crap, self).__init__(stuff)
-##    def print_static(self):
-##        print(self.static)
-##
-### instances of Crap can be used to change Crud.static and c.static for any instance c of any child of Crud
 
-reset_oxides = 1
-reset_ingredients = 1
-reset_other = 1
+reset_oxides = 0
+reset_ingredients = 0
+reset_other = 0
 
-persistent_data_path = dirname(abspath(getsourcefile(lambda:0)))+'/persistent_data'  # please tell me there's an easier way to import stuff in Python
-sys.path.append(persistent_data_path)
+##persistent_data_path = dirname(abspath(getsourcefile(lambda:0)))+'/persistent_data'  # please tell me there's an easier way to import stuff in Python
+##sys.path.append(persistent_data_path)
 
 class Observable:
     def __init__(self, initialValue=None):
@@ -69,19 +53,19 @@ class Observable:
         setattr(self, attribute, value)
         self._docallbacks(attribute)
 
-    def get(self, attribute):
+    def get(self, attribute):              # Is this necessary?
         return getattr(self, attribute)
 
     def unset(self, attribute):
         self.attribute = None
 
-class Oxide(Observable):
+class Oxide():
 
-    order = []
-
-    def update_order():
-        with shelve.open(persistent_data_path+"/OrderShelf") as order_shelf:
-            order_shelf['oxides'] = Oxide.order
+##    order = []
+##
+##    def update_order():
+##        with shelve.open(persistent_data_path+"/OrderShelf") as order_shelf:
+##            order_shelf['oxides'] = Oxide.order
     
     def __init__(self, pos, molar_mass, flux, min_threshhold=0):
         
@@ -93,8 +77,8 @@ class Oxide(Observable):
         self.flux = flux  # Either 0 or 1 (for now).
         self.min_threshhold = min_threshhold  # Don't display this oxide if none of the selected ingredients has more than min_threshhold % wt of that oxide
 
-    def display(self, frame):     # To be used in the 'Edit oxides' window. Only apply this to copies of things in shelve.
-        pass
+##    def display(self, frame):     # To be used in the 'Edit oxides' window. Only apply this to copies of things in shelve.
+##        pass
 
 def oxide_reset():
 
@@ -103,7 +87,7 @@ def oxide_reset():
     with shelve.open(persistent_data_path+"/OxideShelf") as oxide_shelf:
         for ox in oxide_shelf:
              del oxide_shelf[ox]
-        Oxide.order = []
+        #Oxide.order = []
         for (pos, ox) in enumerate(oxidefile.oxides):
              Oxide.order.append(ox)
              if ox in oxidefile.fluxes:
@@ -119,43 +103,55 @@ if reset_oxides == 1:
 else:
     pass
         
-class OxideData(Observable):
+class OxideData():
     
     '''Abstract class used to store a dictionary of oxides'''
     
-    with shelve.open(persistent_data_path+"/OxideShelf") as oxide_shelf:
-        oxide_dict = dict(oxide_shelf)
+    oxide_dict = {}
 
     @staticmethod
     def oxides():
         return OxideData.oxide_dict.keys()
-            
+
+    def set_default_oxides():
+        OxideData.oxide_dict = {}
+        from .default_data import oxidefile as oxidefile
+        for (pos, ox) in enumerate(oxidefile.oxides):
+             if ox in oxidefile.fluxes:
+                  ox_init = Oxide(pos, molar_mass=oxidefile.molar_mass_dict[ox], flux=1)
+             else:
+                  ox_init = Oxide(pos, molar_mass=oxidefile.molar_mass_dict[ox], flux=0)
+             OxideData.oxide_dict[ox] = ox_init
+
     def __init__(self):
         pass
-   
+        
 ##    def update_oxides(self, new_oxide_dict):
 ##	OxideData.oxide_dict = new_oxide_dict    # check that this works
-##	                                         # add stuff to modify ingredient_dict, other_dict etc.
+##	                                         # add stuff to modify ingredient_dict, self.other_dict etc.
 
 # Define Ingredient class.  Ingredients will be referenced by their index, a string consisting of a unique natural number.
 class Ingredient(Observable):
 
-    order = []
-
-    def update_order():
-        with shelve.open(persistent_data_path+"/OrderShelf") as order_shelf:
-            order_shelf['ingredients'] = Ingredient.order
+##    order = []
+##
+##    def update_order():
+##        with shelve.open(persistent_data_path+"/OrderShelf") as order_shelf:
+##            order_shelf['ingredients'] = Ingredient.order
     
-    def __init__(self, name='New ingredient', notes='', oxide_comp={}, other_attributes={}):
+    def __init__(self, name='New ingredient', notes='', oxide_comp={}, other_attributes={}, glaze_calculator_ids={}):
 
         Observable.__init__(self)
         self.name = name
-        # notes not implemented yet. Intended to show up in the 'Edit ingredients' window.
+        # notes not implemented yet.
         self.notes = notes
         # oxide_comp is a dictionary giving the weight percent of each oxide in the ingredient.
-        self.oxide_comp = oxide_comp  
+        self.oxide_comp = oxide_comp
+        # other attributes is a dictionary giving the values of each other attribute of the ingredient
         self.other_attributes = other_attributes
-        self.display_widgets = {}     # eliminate
+        # glaze_calculator_ids is a dictionary with keys being strings referring to various glaze calc software,
+        # and values being the corresponding index in that software that encodes the ingredient
+        self.glaze_calculator_ids = glaze_calculator_ids
 
 ##    def displayable_version(self, index, frame, delete_ingredient_fn):   # move to view
 ##        # To be used in the 'Edit ingredients' window.  Only apply this to copies of things in shelve.
@@ -235,8 +231,6 @@ if reset_ingredients == 1:
 else:
     pass
 
-
-
 # Define Other class:
 class Other(Observable):
     
@@ -253,7 +247,7 @@ class Other(Observable):
         # variables that define the numerator.
         self.numerator_coefs = numerator_coefs
         
-        # For now, normlization is just a text string of the form 'lp_var[...]'.
+        # For now, normalization is just a text string of the form 'self.lp_var[...]'.
         self.normalization = normalization
         
         self.def_low = def_low
@@ -261,35 +255,6 @@ class Other(Observable):
         self.def_upp = def_upp
         
         self.dec_pt = dec_pt
- 
-    def display(self, frame):
-        # To be used in the 'Edit other' window, once this is implemented.
-        pass
-
-def other_reset():
-    with shelve.open(persistent_data_path+"/IngredientShelf") as ingredient_shelf:
-        ingredient_dict = dict(ingredient_shelf)
-        
-    with shelve.open(persistent_data_path+"/OtherShelf") as other_shelf:
-        for index in other_shelf:
-            del other_shelf[index]
-        other_shelf['0'] = Other(0, 'SiO2_Al2O3', {'mole_SiO2':1}, "lp_var['mole_Al2O3']", 3, 18, 2)   # Using 'SiO2:Al2O3' gives an error
-        other_shelf['1'] = Other(1, 'KNaO UMF', {'mole_K2O':1, 'mole_Na2O':1}, "lp_var['fluxes_total']", 0, 1, 3)
-        other_shelf['2'] = Other(2, 'KNaO % mol', {'mole_K2O':1, 'mole_Na2O':1}, "0.01*lp_var['ox_mole_total']", 0, 100, 1)
-        other_shelf['3'] = Other(3, 'RO UMF', {'mole_MgO':1, 'mole_CaO':1, 'mole_BaO':1, 'mole_SrO':1}, "lp_var['fluxes_total']", 0, 1, 3)
-
-        other_att_4 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['2']) for index in ingredient_dict if '2' in ingredient_dict[index].other_attributes}
-        other_shelf['4'] = Other(4, 'Total clay', {k:v for k,v in other_att_4.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
-        other_att_5 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['0']) for index in ingredient_dict if '0' in ingredient_dict[index].other_attributes}
-        other_shelf['5'] = Other(5, 'LOI',  {k:v for k,v in other_att_5.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
-        other_att_6 = {'ingredient_'+index : 0.01*float(ingredient_dict[index].other_attributes['1']) for index in ingredient_dict if '1' in ingredient_dict[index].other_attributes}
-        other_shelf['6'] = Other(6, 'cost', {k:v for k,v in other_att_6.items() if v>0}, "0.01*lp_var['ingredient_total']", 0, 100, 1)
-        
-if reset_other == 1:
-    other_reset()
-else:
-    pass
-
 
 def get_ing_comp(ingredient_dict):
     ingredient_compositions = {}
@@ -298,36 +263,115 @@ def get_ing_comp(ingredient_dict):
     return ingredient_compositions
 
 class CoreData(OxideData):
-    '''Abstract class used to store a dictionary of oxides, ingredients and 'other' restrictions'''
-    
-    with shelve.open(persistent_data_path+"/IngredientShelf") as ingredient_shelf:
-        ingredient_dict = dict(ingredient_shelf)
+    '''Class used to store the dictionaries of ingredients and 'other' restrictions, as well as
+       the dictionary of other attributes ingredients may have'''
 
-    with shelve.open(persistent_data_path+"/OrderShelf") as order_shelf:
-        ingredient_order = order_shelf['ingredients']
-
-    ingredient_compositions = get_ing_comp(ingredient_dict)     # Could do without this
-    
-        
-    with shelve.open(persistent_data_path+"/OtherShelf") as other_shelf:
-        other_dict = dict(other_shelf)
-
-    recipe_dict = {}
-
-    current_recipe = None
-
-    def set_current_recipe(self, i):
-        CoreData.current_recipe = CoreData.recipe_dict[i]  
+##    recipe_dict = {}
+##
+##    current_recipe = None
     
     def __init(self):
-        CoreData.set_current_recipe('0')
+        self.other_attr = {}
+        self.ingredient_dict = {}
+        self.ingredient_compositions = {}    # Could do without this  
+        self.other_dict = {}
+        self.default_lower_bounds = {}
+        self.default_upper_bounds = {}
 
-    def update_ingredient_data(self, new_dict):
-        self.ingredient_dict = new_dict
-        self.ingredient_compositions = get_ing_comp(new_dict)
+    def restr_keys(self):
+        return [t+ox for t in ['umf_', 'mass_perc_', 'mole_perc_'] for ox in self.oxide_dict]+\
+           ['ingredient_'+i for i in self.ingredient_dict]+\
+           ['other_'+ot for ot in self.other_dict]
 
-    def update_other_data(self, new_dict):
-        self.other_dict = new_dict
+    def associated_oxides(self, ingredients):
+        assoc_oxides = set()
+        for index in ingredients:
+            assoc_oxides = assoc_oxides.union(set(self.ingredient_compositions[index]))  # update the available oxides. Probably not the most
+                                                                                                      # efficient way to do this
+        return assoc_oxides
+
+    def set_default_data(self):
+             
+        self.other_attr_dict = {'0': 'LOI', '2': 'Clay', '1': 'Cost'}
+
+        self.ingredient_dict = {}
+        from .default_data import ingredientfile as ingredientfile
+        for pos, ing in enumerate(ingredientfile.ingredient_names):
+            ox_comp = dict([(ox, ingredientfile.ingredient_compositions[ing][ox]) \
+                            for ox in self.oxides() if ox in ingredientfile.ingredient_compositions[ing]])
+            ing_init = Ingredient(name=ing, oxide_comp=ox_comp, other_attributes={})
+            for attr in self.other_attr_dict:
+                try:
+                    ing_init.other_attributes[attr] = ingredientfile.ingredient_compositions[ing][attr]
+                except:
+                    pass  
+            self.ingredient_dict[str(pos)] = ing_init
+        self.ingredient_compositions = get_ing_comp(self.ingredient_dict) 
+
+        self.other_dict = {}
+        self.other_dict['0'] = Other(0, 'SiO2_Al2O3', {'mole_SiO2':1}, "self.lp_var['mole_Al2O3']", 3, 18, 2)   # Using 'SiO2:Al2O3' gives an error
+        self.other_dict['1'] = Other(1, 'KNaO UMF', {'mole_K2O':1, 'mole_Na2O':1}, "self.lp_var['fluxes_total']", 0, 1, 3)
+        self.other_dict['2'] = Other(2, 'KNaO % mol', {'mole_K2O':1, 'mole_Na2O':1}, "0.01*self.lp_var['ox_mole_total']", 0, 100, 1)
+        self.other_dict['3'] = Other(3, 'RO UMF', {'mole_MgO':1, 'mole_CaO':1, 'mole_BaO':1, 'mole_SrO':1}, "self.lp_var['fluxes_total']", 0, 1, 3)
+
+        other_att_4 = {'ingredient_'+index : 0.01*float(self.ingredient_dict[index].other_attributes['2'])\
+                       for index in self.ingredient_dict if '2' in self.ingredient_dict[index].other_attributes}
+        self.other_dict['4'] = Other(4, 'Total clay', {k:v for k,v in other_att_4.items() if v>0}, "0.01*self.lp_var['ingredient_total']", 0, 100, 1)
+        other_att_5 = {'ingredient_'+index : 0.01*float(self.ingredient_dict[index].other_attributes['0'])\
+                       for index in self.ingredient_dict if '0' in self.ingredient_dict[index].other_attributes}
+        self.other_dict['5'] = Other(5, 'LOI',  {k:v for k,v in other_att_5.items() if v>0}, "0.01*self.lp_var['ingredient_total']", 0, 100, 1)
+        other_att_6 = {'ingredient_'+index : 0.01*float(self.ingredient_dict[index].other_attributes['1'])\
+                       for index in self.ingredient_dict if '1' in self.ingredient_dict[index].other_attributes}
+        self.other_dict['6'] = Other(6, 'cost', {k:v for k,v in other_att_6.items() if v>0}, "0.01*self.lp_var['ingredient_total']", 0, 100, 1)
+
+        self.default_lower_bounds = {}
+        self.default_upper_bounds = {}
+        for key in self.restr_keys():
+            self.default_lower_bounds[key] = 0
+            self.default_upper_bounds[key] = 100
+
+        #with the exception of the following:
+        self.default_upper_bounds['umf_Al2O3'] = 10
+        for ox in ['B2O3', 'MgO', 'CaO', 'Na2O', 'K2O', 'ZnO', 'Fe2O3', 'TiO2', 'P2O5']:
+            self.default_upper_bounds['umf_'+ox] = 1
+        self.default_lower_bounds['other_0'] = 1
+
+    def set_ingredient_dict(self, path):    # change to JSON?
+        with shelve.open(path) as ingredient_shelf:
+            self.ingredient_dict = dict(ingredient_shelf)
+        self.ingredient_compositions = get_ing_comp(self.ingredient_dict) 
+
+    def set_other_dict(self, path):
+        with shelve.open(path) as other_shelf:
+            self.other_dict = dict(other_shelf)
+
+    def set_default_bounds(self, path):
+        with shelve.open(path) as other_shelf:
+            self.other_dict = dict(other_shelf)
+
+    def add_ingredient(self, ing):
+        m = max([int(j) for j in self.ingredient_dict]) + 1
+        i = str(m)
+        self.ingredient_dict[i] = ing
+        self.ingredient_compositions[i] = ingredient_dict[i].oxide_comp
+
+    def remove_ingredient(self, i):
+        del self.ingredient_dict[i]
+        del self.ingredient_compositions[i]
+    
+            
+##        self.set_current_recipe('0')
+##
+##    def set_current_recipe(self, i):
+##        CoreData.current_recipe = self.recipe_dict[i]  
+##
+##    def update_ingredient_data(self, new_dict):
+##        self.ingredient_dict = new_dict
+##        self.ingredient_compositions = get_ing_comp(new_dict)
+##
+##    def update_other_data(self, new_dict):
+##        self.self.other_dict = new_dict
+
 
     #def add/delete ingredient /other
         

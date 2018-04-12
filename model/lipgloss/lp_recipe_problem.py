@@ -12,43 +12,40 @@
 
 # You should have received a copy of the GNU General Public License
 # version 3 along with this program (see LICENCE.txt).  If not, see
-# <http://www.gnu.org/licenses/>.
+# <http://www.gnu.org/licenses/>.186
+
 
 # Contact: pi.mostert@gmail.com
 
 # We define the Restriction, Oxide, Ingredient,and Other classes.
 
-from tkinter import *
+from tkinter import *      # eliminate
 from view.pretty_names import prettify
 from functools import partial
 import shelve
 import copy
 
 from .core_data import CoreData
+from .recipes import restr_keys
 from pulp import *
+import time
 
+solver = GLPK()
 
-##class Crud:
-##    static = 1
-##    def __init__(self, stuff):
-##        self.stuff = stuff
-##    def update_static(self, new):
-##	Crud.static = new
-##
-##class Crap(Crud):
-##    def __init__(self, stuff, tuff):
-##	super(Crap, self, stuff).__init__()
-##
-### instances of Crap can be used to change Crud.static and c.static for any instance c of any child of Crud
+class LpRecipeProblem(LpProblem):
 
-class LpRecipeProblem(LpProblem, CoreData):
-
-    def __init__(self, name, max_or_min):
+    def __init__(self, name, max_or_min, core_data):
         '''Basic LP problem constraints that always hold'''
 
+        #super().__init__()
         LpProblem.__init__(self, name, max_or_min)
+        #CoreData.__init__(self)
+        self.ingredient_dict = core_data.ingredient_dict
+        self.oxide_dict = core_data.oxide_dict
+        self.other_dict = core_data.other_dict
+        self.ingredient_compositions = core_data.ingredient_compositions
 
-        self.lp_var = {}     # lp_var is a dictionary for the variables in the linear programming problem
+        self.lp_var = {}     # self.lp_var is a dictionary for the variables in the linear programming problem
 
         # Create variables used to normalize:
         for total in ['ingredient_total', 'fluxes_total', 'ox_mass_total', 'ox_mole_total']:
@@ -81,35 +78,34 @@ class LpRecipeProblem(LpProblem, CoreData):
         self += self.lp_var['ox_mass_total'] == sum(self.lp_var['mass_'+ox] for ox in self.oxide_dict)
         self += self.lp_var['ox_mole_total'] == sum(self.lp_var['mole_'+ox] for ox in self.oxide_dict)
 
-    def calc_restrictions(self, recipe):   # first update current recipe? Method in GUI main_window class
-
-        restrictions = [restr_dict[index] for index in restr_keys(self.oxides, self.ingredients, self.other)]
-         
+    def calc_restrictions(self, recipe, restr_dict):   # first update recipe
+        
         # first, test for obvious errors
 
-        selected_fluxes = fluxes_subset(recipe.oxides)
-
-        if sum(self.oxide_dict[ox].flux for ox in self.oxides) == 0:
+        if sum(self.oxide_dict[ox].flux for ox in recipe.oxides) == 0:
             messagebox.showerror(" ", 'No flux! You have to give a flux.')
             return
-    
+  
         # Run tests to see if the denominators of other restrictions are identically zero?
 
-        for res in restrictions:
-            if res.low.get() > res.upp.get():
+        for key in recipe.restriction_keys:
+            if recipe.lower_bounds[key] > recipe.upper_bounds[key]:
+                res = restr_dict[key]
                 messagebox.showerror(" ", 'Incompatible ' + print_res_type(res.normalization) + 'bounds on ' + prettify(res.name))
                 return
 
         delta = 0.1**9
 
-        sum_UMF_low = sum(restr_dict['umf_'+ox].low.get() for ox in selected_fluxes)
+        selected_fluxes = recipe.fluxes()
+
+        sum_UMF_low = sum(recipe.lower_bounds['umf_'+ox] for ox in selected_fluxes)
         if sum_UMF_low > 1 + delta:
             messagebox.showerror(" ", 'The sum of the UMF flux lower bounds is '+str(sum_UMF_low)
                                        +'. It should be at most 1. Decrease one of the lower bounds by '+str(sum_UMF_low-1)
                                        +' or more.')     #will be a problem if they're all < sum_UMF_low-1))
             return
 
-        sum_UMF_upp = sum(restr_dict['umf_'+ox].upp.get() for ox in selected_fluxes)            
+        sum_UMF_upp = sum(recipe.upper_bounds['umf_'+ox] for ox in selected_fluxes)            
         if sum_UMF_upp < 1 - delta:
             messagebox.showerror(" ", 'The sum of the UMF flux upper bounds is '+str(sum_UMF_upp)
                                        +'. It should be at least 1. Increase one of the upper bounds by '+str(1-sum_UMF_low)
@@ -117,28 +113,28 @@ class LpRecipeProblem(LpProblem, CoreData):
             return
 
         for t in ['mass_perc_', 'mole_perc_']:
-            sum_t_low = sum(restr_dict[t+ox].low.get() for ox in self.oxides)
+            sum_t_low = sum(recipe.lower_bounds[t+ox] for ox in recipe.oxides)
             if sum_t_low > 100 + delta:
                 messagebox.showerror(" ", 'The sum of the ' + prettify(t) + ' lower bounds is '+str(sum_t_low)
                                            +'. It should be at most 100. Decrease one of the lower bounds by '+str(sum_t_low-100)
                                            +' or more.')     #will be a problem if they're all < sum_t_low-100)
                 return
 
-            sum_t_upp = sum(restr_dict[t+ox].upp.get() for ox in self.oxides)
+            sum_t_upp = sum(recipe.upper_bounds[t+ox] for ox in recipe.oxides)
             if  sum_t_upp < 100 - delta:
                 messagebox.showerror(" ", 'The sum of the ' + prettify(t) + ' upper bounds is '+str(sum_t_upp)
                                            +'. It should be at least 100. Increase one of the upper bounds by '+str(100-sum_t_upp)
                                            +' or more.') 
                 return
             
-        sum_ing_low = sum(restr_dict['ingredient_'+index].low.get() for index in self.ingredients)
+        sum_ing_low = sum(recipe.lower_bounds['ingredient_'+index] for index in recipe.ingredients)
         if sum_ing_low > 100 + delta:
             messagebox.showerror(" ", 'The sum of the ingredient lower bounds is '+str(sum_ing_low)
                                       +'. It should be at most 100. Decrease one of the lower bounds by '+str(sum_ing_low-100)
                                       +' or more.')     #will be a problem if they're all < sum_ing_low-100)
             return
             
-        sum_ing_upp = sum(restr_dict['ingredient_'+index].upp.get() for index in self.ingredients)
+        sum_ing_upp = sum(recipe.upper_bounds['ingredient_'+index] for index in recipe.ingredients)
         if sum_ing_upp < 100 - delta:
             messagebox.showerror(" ", 'The sum of the ingredient upper bounds is '+str(sum_ing_upp)
                                        +'. It should be at least 100. Increase one of the upper bounds by '+str(100-sum_ing_upp)
@@ -150,26 +146,26 @@ class LpRecipeProblem(LpProblem, CoreData):
         for index in self.ingredient_dict:
             ing = 'ingredient_'+index
             if index in recipe.ingredients:
-                ing_low = 0.01*restr_dict[ing].low.get()
-                ing_upp = 0.01*restr_dict[ing].upp.get()
+                ing_low = 0.01*recipe.lower_bounds[ing]
+                ing_upp = 0.01*recipe.upper_bounds[ing]
             else:
                 ing_low = 0
                 ing_upp = 0
-            self.constraints[ing+'_lower'] = lp_var[ing] >= ing_low*lp_var['ingredient_total']      # ingredient lower bounds    
-            self.constraints[ing+'_upper'] = lp_var[ing] <= ing_upp*lp_var['ingredient_total']      # ingredient upper bounds
+            self.constraints[ing+'_lower'] = self.lp_var[ing] >= ing_low*self.lp_var['ingredient_total']      # ingredient lower bounds    
+            self.constraints[ing+'_upper'] = self.lp_var[ing] <= ing_upp*self.lp_var['ingredient_total']      # ingredient upper bounds
 
 
-        t1 = time.process_time()      # The next section takes a while, perhaps because the dictionary lp_var is long.
+        t1 = time.process_time()      # The next section takes a while, perhaps because the dictionary self.lp_var is long.
                                       # May be better to split it.
          
         for ox in self.oxide_dict:          
-            if ox in self.oxides:     
-                self.constraints[ox+'_umf_lower'] = lp_var['mole_'+ox] >= restr_dict['umf_'+ox].low.get()*lp_var['fluxes_total']   # oxide UMF lower bounds
-                self.constraints[ox+'_umf_upper'] = lp_var['mole_'+ox] <= restr_dict['umf_'+ox].upp.get()*lp_var['fluxes_total']   # oxide UMF upper bounds
-                self.constraints[ox+'_wt_%_lower'] = lp_var['mass_'+ox] >= 0.01*restr_dict['mass_perc_'+ox].low.get()*lp_var['ox_mass_total']    # oxide weight % lower bounds
-                self.constraints[ox+'_wt_%_upper'] = lp_var['mass_'+ox] <= 0.01*restr_dict['mass_perc_'+ox].upp.get()*lp_var['ox_mass_total']    # oxide weight % upper bounds
-                self.constraints[ox+'_mol_%_lower'] = lp_var['mole_'+ox] >= 0.01*restr_dict['mole_perc_'+ox].low.get()*lp_var['ox_mole_total']   # oxide mol % lower bounds
-                self.constraints[ox+'_mol_%_upper'] = lp_var['mole_'+ox] <= 0.01*restr_dict['mole_perc_'+ox].upp.get()*lp_var['ox_mole_total']   # oxide mol % upper bounds
+            if ox in recipe.oxides:     
+                self.constraints[ox+'_umf_lower'] = self.lp_var['mole_'+ox] >= recipe.lower_bounds['umf_'+ox]*self.lp_var['fluxes_total']   # oxide UMF lower bounds
+                self.constraints[ox+'_umf_upper'] = self.lp_var['mole_'+ox] <= recipe.upper_bounds['umf_'+ox]*self.lp_var['fluxes_total']   # oxide UMF upper bounds
+                self.constraints[ox+'_wt_%_lower'] = self.lp_var['mass_'+ox] >= 0.01*recipe.lower_bounds['mass_perc_'+ox]*self.lp_var['ox_mass_total']    # oxide weight % lower bounds
+                self.constraints[ox+'_wt_%_upper'] = self.lp_var['mass_'+ox] <= 0.01*recipe.upper_bounds['mass_perc_'+ox]*self.lp_var['ox_mass_total']    # oxide weight % upper bounds
+                self.constraints[ox+'_mol_%_lower'] = self.lp_var['mole_'+ox] >= 0.01*recipe.lower_bounds['mole_perc_'+ox]*self.lp_var['ox_mole_total']   # oxide mol % lower bounds
+                self.constraints[ox+'_mol_%_upper'] = self.lp_var['mole_'+ox] <= 0.01*recipe.upper_bounds['mole_perc_'+ox]*self.lp_var['ox_mole_total']   # oxide mol % upper bounds
 
             else:
                 try:
@@ -183,14 +179,14 @@ class LpRecipeProblem(LpProblem, CoreData):
                     pass
                  
 ##        if 'KNaO' in self.oxides:
-##            prob += lp_var['KNaO_umf'] == lp_var['K2O_umf'] + lp_var['Na2O_umf']     
-##            prob += lp_var['KNaO_wt_%'] == lp_var['K2O_wt_%'] + lp_var['Na2O_wt_%']  
+##            prob += self.lp_var['KNaO_umf'] == self.lp_var['K2O_umf'] + self.lp_var['Na2O_umf']     
+##            prob += self.lp_var['KNaO_wt_%'] == lp_var['K2O_wt_%'] + lp_var['Na2O_wt_%']  
 
-        for index in other_dict:
-            if index in self.other:  
-                other_norm = eval(other_dict[index].normalization)               
-                self.constraints['other_'+index+'_lower'] = self.lp_var['other_'+index] >= restr_dict['other_'+index].low.get()*other_norm   # lower bound
-                self.constraints['other_'+index+'_upper'] = self.lp_var['other_'+index] <= restr_dict['other_'+index].upp.get()*other_norm   # upper bound
+        for index in self.other_dict:
+            if index in recipe.other:  
+                other_norm = eval(self.other_dict[index].normalization)               
+                self.constraints['other_'+index+'_lower'] = self.lp_var['other_'+index] >= recipe.lower_bounds['other_'+index]*other_norm   # lower bound
+                self.constraints['other_'+index+'_upper'] = self.lp_var['other_'+index] <= recipe.upper_bounds['other_'+index]*other_norm   # upper bound
             else:
                 try:
                     del self.constraints['other_'+index+'_lower']
@@ -200,15 +196,16 @@ class LpRecipeProblem(LpProblem, CoreData):
 
 # Finally, we're ready to calculate the upper and lower bounds imposed on all the variables
          
-        for res in restrictions:    
+        for key in recipe.restriction_keys:
+            res = restr_dict[key]
             self.constraints['normalization'] = eval(res.normalization) == 1  # Apply the normalization of the restriction in question
                                                                                    # Apparently this doesn't slow things down a whole lot
-            for eps in [1,-1]:               # calculate lower and upper bounds.
-                self += eps*lp_var[res.objective_func], res.name
+            for eps in [1, -1]:               # calculate lower and upper bounds.
+                self += eps*self.lp_var[res.objective_func], res.name
                 self.writeLP('constraints.lp')
                 self.solve(solver)
                 if self.status == 1:
-                    res.calc_bounds[eps].config(text = ('%.'+str(res.dec_pt)+'f') % abs(eps*pulp.value(self.objective)))
+                    res.calc_bounds[eps].config(text=('%.'+str(res.dec_pt)+'f') % abs(eps*pulp.value(self.objective)))
                                                         # we use abs above to avoid showing -0.0, but this could cause problems
                                                         # if we introduce other attributes that can be negative
                     #prob.writeLP('constraints.lp')

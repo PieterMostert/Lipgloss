@@ -1,13 +1,7 @@
 import json
-from ..recipes import Recipe
-from ..core_data import CoreData
-from inspect import getsourcefile
-import os
-from os.path import abspath, dirname
-import sys
-
-persistent_data_path = dirname(dirname(abspath(getsourcefile(lambda:0))))+'/persistent_data'  # please tell me there's an easier way to import stuff in Python
-sys.path.append(persistent_data_path)
+from lipgloss.recipes import Recipe
+#import lipgloss
+##from ..lipgloss.core_data import CoreData
 
 class RecipeSerializer(object):
     """A class to support serializing/deserializing of a single recipes and dictionaries of recipe.  Needs improvement"""
@@ -18,6 +12,7 @@ class RecipeSerializer(object):
         serializable_recipe = {}
         serializable_recipe["name"] = recipe.name
         serializable_recipe["entry_type"] = recipe.entry_type
+        serializable_recipe["oxides"] = recipe.oxides
         serializable_recipe["ingredients"] = recipe.ingredients
         serializable_recipe["other"] = recipe.other
         # oxides must be converted from a set to a list
@@ -45,7 +40,8 @@ class RecipeSerializer(object):
     def get_recipe(serialized_recipe_dict):
         """Convert a dict returned by the JSON decoder into a Recipe object."""
         recipe = Recipe(serialized_recipe_dict["name"], 
-                            serialized_recipe_dict["pos"], 
+                            serialized_recipe_dict["pos"],
+                            serialized_recipe_dict["oxides"],
                             serialized_recipe_dict["ingredients"],
                             serialized_recipe_dict["other"],
                             serialized_recipe_dict["lower_bounds"],
@@ -70,18 +66,4 @@ class RecipeSerializer(object):
             recipe = RecipeSerializer.get_recipe(serialized_recipe_dict)                           
             recipe_dict[index] = recipe
         return recipe_dict
-
-# Add a method to CoreData that initializes the recipe_dict from the JSON file
-# This isn't done in core_data to avoid circular imports
-def set_recipe_dict(self):
-##    with open(persistent_data_path+"/JSONRecipeShelf.json", 'r') as json_str:
-##        print(json_str)
-##        self.recipe_dict = RecipeSerializer.deserialize_dict(json_str)
-
-    f = open(persistent_data_path+"/JSONRecipeShelf.json", 'r')
-    json_str = f.read()
-    f.close()
-    self.recipe_dict = RecipeSerializer.deserialize_dict(json_str)
-
-CoreData.set_recipe_dict = classmethod(set_recipe_dict)
 
