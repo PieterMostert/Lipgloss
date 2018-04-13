@@ -311,7 +311,7 @@ class CoreData(OxideData):
         self.other_dict = {}
         self.other_dict['0'] = Other(0, 'SiO2_Al2O3', {'mole_SiO2':1}, "self.lp_var['mole_Al2O3']", 3, 18, 2)   # Using 'SiO2:Al2O3' gives an error
         self.other_dict['1'] = Other(1, 'KNaO UMF', {'mole_K2O':1, 'mole_Na2O':1}, "self.lp_var['fluxes_total']", 0, 1, 3)
-        self.other_dict['2'] = Other(2, 'KNaO % mol', {'mole_K2O':1, 'mole_Na2O':1}, "0.01*self.lp_var['ox_mole_total']", 0, 100, 1)
+        self.other_dict['2'] = Other(2, 'KNaO % mol', {'mole_K2O':1, 'mole_Na2O':1}, "0.01*self.lp_var['ox_mole_total']", 0, 100, 2)
         self.other_dict['3'] = Other(3, 'RO UMF', {'mole_MgO':1, 'mole_CaO':1, 'mole_BaO':1, 'mole_SrO':1}, "self.lp_var['fluxes_total']", 0, 1, 3)
 
         other_att_4 = {'ingredient_'+index : 0.01*float(self.ingredient_dict[index].other_attributes['2'])\

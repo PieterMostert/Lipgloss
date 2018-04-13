@@ -27,6 +27,7 @@ import copy
 
 from .core_data import CoreData
 from .recipes import restr_keys
+from .pulp2dim import *
 from pulp import *
 import time
 
@@ -195,7 +196,7 @@ class LpRecipeProblem(LpProblem):
                     pass
 
 # Finally, we're ready to calculate the upper and lower bounds imposed on all the variables
-         
+        calc_bounds = {-1:{}, 1:{}}
         for key in recipe.restriction_keys:
             res = restr_dict[key]
             self.constraints['normalization'] = eval(res.normalization) == 1  # Apply the normalization of the restriction in question
@@ -205,13 +206,29 @@ class LpRecipeProblem(LpProblem):
                 self.writeLP('constraints.lp')
                 self.solve(solver)
                 if self.status == 1:
-                    res.calc_bounds[eps].config(text=('%.'+str(res.dec_pt)+'f') % abs(eps*pulp.value(self.objective)))
-                                                        # we use abs above to avoid showing -0.0, but this could cause problems
-                                                        # if we introduce other attributes that can be negative
+                    calc_bounds[eps][key] = eps*pulp.value(self.objective)
                     #prob.writeLP('constraints.lp')
                 else:
                     messagebox.showerror(" ", LpStatus[self.status])
                     self.writeLP('constraints.lp')
                     return
+                
+        return {'lower':calc_bounds[-1], 'upper':calc_bounds[1]}
 
+    def calc_2d_projection(self, recipe, restr_dict):  # This is designed to be run when only the x and y variables have changed; it does not take
+                                               # into account changes to upper and lower bounds. It should be possible to detect when the
+                                               # user has clicked in one of the entry boxes since the last time calc_restrictions was run,
+                                               # and give a warning in this case. Something like, if you have changed any bounds, click
+                                               # 'Calculate restrictions' to apply them.
 
+        if len(recipe.variables) == 2:
+            x_var = restr_dict[recipe.variables['x']]
+            y_var = restr_dict[recipe.variables['y']]
+            x_norm = x_var.normalization
+            y_norm = y_var.normalization
+
+            vertices = self.two_dim_projection(self.lp_var[x_var.objective_func], self.lp_var[y_var.objective_func], x_norm, y_norm)   # defined in pulp2dim file
+            return vertices
+
+        else:
+            print("Select two variables first")

@@ -57,11 +57,11 @@ def fluxes_subset(oxides):
 ##    return fluxes
 
 def print_res_type(normalization):   # Used to display error message
-    if normalization == "lp_var['fluxes_total']":
+    if normalization == "self.lp_var['fluxes_total']":
         prt = 'UMF '
-    elif normalization == "lp_var['ox_mass_total']":
+    elif normalization == "self.lp_var['ox_mass_total']":
         prt = '% weight '
-    elif normalization == "lp_var['ox_mole_total']":
+    elif normalization == "self.lp_var['ox_mole_total']":
         prt = '% molar '
     else:
         prt = ''
@@ -199,6 +199,9 @@ class Recipe(Observable):
         self.oxides = ass_oxides
         self.restriction_keys = restr_keys(self.oxides, self.ingredients, self.other)
 
+    def update_core_data(self, core_data):
+        pass
+    
 ##    def update_variables(self, restr_keys):    # delete variables no longer present
 ##
 ##        var = copy.copy(self.variables)

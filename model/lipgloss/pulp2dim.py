@@ -23,7 +23,7 @@ k = 20  # number of sample points to take in the case where the denominators are
 solver = GLPK()
 #solver = PULP_CBC_CMD()
 
-def two_dim_projection(self, lp_var, var0, var1, var2, var3):   # Calculates a set of vertices in R^2 whose convex hull is
+def two_dim_projection(self, var0, var1, var2, var3):   # Calculates a set of vertices in R^2 whose convex hull is
                                             # the projection of the linear programming problem, self, onto a 2d subspace
     # Start by finding two distinct points on the 2 dimensional projection of the feasible reason. This assumes
     # the region is bounded.

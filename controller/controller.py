@@ -68,7 +68,7 @@ class Restriction:
         self.upper_bound = tk.Entry(self.display_frame, textvariable=self.upp, width=5, fg='blue') #user upper bound
         self.upp.set(self.default_upp)
 
-        for eps in [-1, 1]:
+        for eps in ['lower', 'upper']:
             self.calc_bounds[eps] = tk.Label(self.display_frame, bg='white', fg='red', width=5) #calculated lower and upper bounds
             self.calc_bounds[eps].config(text=' ')
 
@@ -103,18 +103,18 @@ class Restriction:
         self.lower_bound.grid(row=line, column=1)                 # grid lower bound entry box      
         self.upper_bound.grid(row=line, column=2)                 # grid upper bound entry box
     
-        self.calc_bounds[-1].grid(row=line, column=4)             # grid calculated lower bound box
-        self.calc_bounds[1].grid(row=line, column=5)             # grid calculated upper bound box
+        self.calc_bounds['lower'].grid(row=line, column=4)             # grid calculated lower bound box
+        self.calc_bounds['upper'].grid(row=line, column=5)             # grid calculated upper bound box
 
         self.right_label.grid(row=line, column=6, sticky=tk.W)       # grid right restriction name
 
     def remove(self, recipe):
-        for widget in [self.left_label, self.lower_bound, self.upper_bound, self.calc_bounds[-1], self.calc_bounds[1],
+        for widget in [self.left_label, self.lower_bound, self.upper_bound, self.calc_bounds['lower'], self.calc_bounds['upper'],
                        self.right_label]:
             widget.grid_forget()    # remove widgets corresponding to that restriction
         self.low.set(self.default_low)
         self.upp.set(self.default_upp)
-        for eps in [-1, 1]:
+        for eps in ['lower', 'upper']:
             self.calc_bounds[eps].config(text='')
         v = dict(recipe.variables)
         for t in v:
@@ -123,7 +123,7 @@ class Restriction:
                 del recipe.variables[t]
 
     def hide(self):  # to be used with oxide options
-        for widget in [self.left_label, self.lower_bound, self.upper_bound, self.calc_bounds[-1], self.calc_bounds[1],
+        for widget in [self.left_label, self.lower_bound, self.upper_bound, self.calc_bounds['lower'], self.calc_bounds['upper'],
                        self.right_label]:
             widget.grid_forget()
 
@@ -203,7 +203,33 @@ class Controller:
         for key in self.mod.current_recipe.restriction_keys:
             self.mod.current_recipe.lower_bounds[key] = self.restr_dict[key].low.get()
             self.mod.current_recipe.upper_bounds[key] = self.restr_dict[key].upp.get()
-        self.lprp.calc_restrictions(self.mod.current_recipe, self.restr_dict)
+        calculated_bounds = self.lprp.calc_restrictions(self.mod.current_recipe, self.restr_dict)
+        for key in self.mod.current_recipe.restriction_keys:
+            res = self.restr_dict[key]
+            for eps in ['lower', 'upper']:               # display calculated lower and upper bounds.
+                res.calc_bounds[eps].config(text=('%.'+str(res.dec_pt)+'f') % no_neg_zero(calculated_bounds[eps][key]))
+
+        self.mw.proj_canvas.delete("all")
+        var = self.mod.current_recipe.variables
+        if len(var) == 2:
+            vertices = self.lprp.calc_2d_projection(self.mod.current_recipe, self.restr_dict)
+            if self.restr_dict[var['x']].normalization == self.restr_dict[var['y']].normalization:
+                scaling = 1
+            else:
+                x_pts = [p[0] for p in vertices]
+                y_pts = [p[1] for p in vertices]
+                delta_x = max(x_pts) - min(x_pts)
+                delta_y = max(y_pts) - min(y_pts)
+                if delta_y == 0 or delta_x == 0:
+                    scaling = 1
+                else:
+                    scaling = delta_x / delta_y
+
+            # Display 2-d projection of feasible region onto 'x'-'y' axes           
+            self.mw.proj_canvas.create_polygon_plot(vertices, scaling)
+        else:
+            pass
+        
 
     def open_recipe(self, index):   # to be used when opening a recipe, (or when ingredients have been updated?). Be careful.
 
@@ -335,3 +361,12 @@ class Controller:
             else:
                 for ox in self.mod.current_recipe.oxides:
                     self.restr_dict[et+ox].hide()
+
+def no_neg_zero(t):
+    if t != 0:
+        return t
+    elif str(t)[0]=='-':
+        return -t
+    else:
+        return t
+    

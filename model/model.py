@@ -60,3 +60,8 @@ class Model:
     def set_order(self):
         with shelve.open(persistent_data_path+"/OrderShelf") as order_shelf:
             self.order = dict(order_shelf)
+
+    def update_recipe_dict(self, core_data):
+        for recipe in self.recipe_dict.values():
+            recipe.update_core_data(core_data)
+        
