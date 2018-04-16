@@ -18,7 +18,6 @@
 
 from pulp import *
 
-
 k = 20  # number of sample points to take in the case where the denominators are different
 solver = GLPK()
 #solver = PULP_CBC_CMD()

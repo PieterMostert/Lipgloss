@@ -17,10 +17,8 @@
 
 # Contact: pi.mostert@gmail.com
 
-# We define the Restriction, Oxide, Ingredient,and Other classes.
-
 from tkinter import *      # eliminate
-from view.pretty_names import prettify
+from view.pretty_names import prettify   # eliminate
 from functools import partial
 import shelve
 import copy
@@ -196,6 +194,7 @@ class LpRecipeProblem(LpProblem):
                     pass
 
 # Finally, we're ready to calculate the upper and lower bounds imposed on all the variables
+
         calc_bounds = {-1:{}, 1:{}}
         for key in recipe.restriction_keys:
             res = restr_dict[key]

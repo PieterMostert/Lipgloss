@@ -37,31 +37,41 @@ sys.path.append(persistent_data_path)
 #CoreData.load_ingredients(path)
 
 class Model:
+    "A partial model for the GUI. The full model consists of this together the CoreData class."
 
-    def __init__(self, core_data):
-
-        self.current_recipe = None
-        self.recipe_dict = None
-        self.order = {"oxides":[], "ingredients":[], "other":[]}
-
-    def set_recipe_dict(self):
-    ##    with open(persistent_data_path+"/JSONRecipeShelf.json", 'r') as json_str:
-    ##        print(json_str)
-    ##        self.recipe_dict = RecipeSerializer.deserialize_dict(json_str)
-
+    def __init__(self):
+        
         f = open(persistent_data_path+"/JSONRecipeShelf.json", 'r')
         json_str = f.read()
         f.close()
         self.recipe_dict = RecipeSerializer.deserialize_dict(json_str)
+    ##    with open(persistent_data_path+"/JSONRecipeShelf.json", 'r') as json_str:
+    ##        print(json_str)
+    ##        self.recipe_dict = RecipeSerializer.deserialize_dict(json_str)
+
+        self.current_recipe = None
+        self.recipe_index = None
+        self.set_current_recipe('0')
+
+        with shelve.open(persistent_data_path+"/OrderShelf") as order_shelf:
+            self.order = dict(order_shelf)
         
     def set_current_recipe(self, index):
         self.current_recipe = self.recipe_dict[index]
+        self.recipe_index = index
 
-    def set_order(self):
-        with shelve.open(persistent_data_path+"/OrderShelf") as order_shelf:
-            self.order = dict(order_shelf)
+    def json_write_recipes(self):
+        """Write all recipes from the global recipe_dict to file, overwriting previous data"""
+        f = open(persistent_data_path+"/JSONRecipeShelf.json", 'w')
+        json_string = RecipeSerializer.serialize_dict(self.recipe_dict)
+        f.write(json_string)
+        f.close()
 
     def update_recipe_dict(self, core_data):
         for recipe in self.recipe_dict.values():
             recipe.update_core_data(core_data)
         
+    def update_order(self, key):
+        with shelve.open(persistent_data_path+"/OrderShelf") as order_shelf:
+            order_shelf[key] = self.order[key]
+            

@@ -21,17 +21,7 @@ from tkinter import *   # eliminate
 import time
 import copy
 from .core_data import Observable, CoreData
-##from inspect import getsourcefile
-##import os
-##from os.path import abspath, dirname
-##import sys
-##from .serializers.recipeserializer import RecipeSerializer
-##
-##persistent_data_path = dirname(abspath(getsourcefile(lambda:0)))+'/persistent_data'  # please tell me there's an easier way to import stuff in Python
-##sys.path.append(persistent_data_path)
 
-#from pulp2dim import *
-#from restrictions import *
 
 ##def get_ing_comp():                           # Redo. This function is defined in the main (gui) file
 ##    ingredient_compositions = {}
@@ -164,7 +154,7 @@ class Recipe(Observable):
             if key not in self.lower_bounds:
                 self.lower_bounds[key] = core_data.default_lower_bounds[key]
                 self.upper_bounds[key] = core_data.default_upper_bounds[key]
-        old_res_keys = self.lower_bounds.keys()
+        old_res_keys = copy.copy(list(self.lower_bounds.keys()))
         for key in old_res_keys:
             if key not in self.restriction_keys:
                 del self.lower_bounds[key]

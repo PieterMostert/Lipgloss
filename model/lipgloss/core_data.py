@@ -132,12 +132,6 @@ class OxideData():
 
 # Define Ingredient class.  Ingredients will be referenced by their index, a string consisting of a unique natural number.
 class Ingredient(Observable):
-
-##    order = []
-##
-##    def update_order():
-##        with shelve.open(persistent_data_path+"/OrderShelf") as order_shelf:
-##            order_shelf['ingredients'] = Ingredient.order
     
     def __init__(self, name='New ingredient', notes='', oxide_comp={}, other_attributes={}, glaze_calculator_ids={}):
 

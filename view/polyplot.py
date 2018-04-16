@@ -94,7 +94,6 @@ def create_polygon_plot(self, data, scaling):
         self.itemconfig(self.point, state='normal')
         self.itemconfig(self.show_pos, state='normal')
             
-
     # create axes
     x_axis = self.create_line(x0, -y0, self.width - d2 + x0 - d1x, -y0, width=1)  #x-axis
     y_axis = self.create_line(x0, -y0, x0, -y_ticks[-1]/s*scaling, width=1)  #y-axis

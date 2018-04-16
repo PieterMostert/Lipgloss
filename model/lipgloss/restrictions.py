@@ -35,7 +35,7 @@ initialize_other = 0        # Run script with initialize_other = 1 whenever the 
 
 class Restriction:
     'Oxide UMF, oxide % molar, oxide % weight, ingredient, SiO2:Al2O3 molar, LOI, cost, etc'
-    display_frame = None
+    #display_frame = None
     
     def __init__(self, index, name, objective_func, normalization, default_low, default_upp, dec_pt=1):
 
@@ -49,57 +49,57 @@ class Restriction:
         
         self.calc_bounds = {}   
 
-        self.left_label_text = StringVar()
-        self.left_label_text.set('  '+prettify(self.name)+' : ')
-        self.left_label = Label(self.display_frame, textvariable=self.left_label_text)
-        
-        self.low = DoubleVar()
-        self.lower_bound = Entry(self.display_frame, textvariable=self.low, width=5, fg='blue') #user lower bound
-        self.low.set(self.default_low)
+##        self.left_label_text = StringVar()
+##        self.left_label_text.set('  '+prettify(self.name)+' : ')
+##        self.left_label = Label(self.display_frame, textvariable=self.left_label_text)
+##        
+##        self.low = DoubleVar()
+##        self.lower_bound = Entry(self.display_frame, textvariable=self.low, width=5, fg='blue') #user lower bound
+##        self.low.set(self.default_low)
+##
+##        self.upp = DoubleVar()
+##        self.upper_bound = Entry(self.display_frame, textvariable=self.upp, width=5, fg='blue') #user upper bound
+##        self.upp.set(self.default_upp)
 
-        self.upp = DoubleVar()
-        self.upper_bound = Entry(self.display_frame, textvariable=self.upp, width=5, fg='blue') #user upper bound
-        self.upp.set(self.default_upp)
-
-        for eps in [-1, 1]:
-            self.calc_bounds[eps] = Label(self.display_frame, bg='white', fg='red', width=5) #calculated lower and upper bounds
-            self.calc_bounds[eps].config(text=' ')
-
-        self.right_label_text = StringVar()
-        self.right_label_text.set(' : '+prettify(self.name)+'   ')
-        self.right_label = Label(self.display_frame, textvariable=self.right_label_text)
-
-    def select(self, t):
-        if t == 'x':
-            self.left_label_text.set('* '+prettify(self.name)+' : ')
-            x_lab.config(text='x variable: '+prettify(self.name)+pretty_entry_type(self.index[0:2]))
-        elif t == 'y':
-            self.right_label_text.set(' : '+prettify(self.name)+' *')
-            y_lab.config(text='y variable: '+prettify(self.name)+pretty_entry_type(self.index[0:2]))
-        else:
-            print('Something\'s wrong')
-
-    def deselect(self, t):
-        if t == 'x':
-            self.left_label_text.set('  '+prettify(self.name)+' : ')
-            x_lab.config(text='x variable: Click right restriction name to select')
-        elif t == 'y':
-            self.right_label_text.set(' : '+prettify(self.name)+'  ')
-            y_lab.config(text='y variable: Click left restriction name to select')
-        else:
-            print('Something\'s wrong')
-                    
-    def display(self, line):
-
-        self.left_label.grid(row=line, column=0, sticky=E)        # grid left restriction name
-        
-        self.lower_bound.grid(row=line, column=1)                 # grid lower bound entry box      
-        self.upper_bound.grid(row=line, column=2)                 # grid upper bound entry box
-    
-        self.calc_bounds[-1].grid(row=line, column=4)             # grid calculated lower bound box
-        self.calc_bounds[1].grid(row=line, column=5)             # grid calculated upper bound box
-
-        self.right_label.grid(row=line, column=6, sticky=W)       # grid right restriction name
+##        for eps in [-1, 1]:
+##            self.calc_bounds[eps] = Label(self.display_frame, bg='white', fg='red', width=5) #calculated lower and upper bounds
+##            self.calc_bounds[eps].config(text=' ')
+##
+##        self.right_label_text = StringVar()
+##        self.right_label_text.set(' : '+prettify(self.name)+'   ')
+##        self.right_label = Label(self.display_frame, textvariable=self.right_label_text)
+##
+##    def select(self, t):
+##        if t == 'x':
+##            self.left_label_text.set('* '+prettify(self.name)+' : ')
+##            x_lab.config(text='x variable: '+prettify(self.name)+pretty_entry_type(self.index[0:2]))
+##        elif t == 'y':
+##            self.right_label_text.set(' : '+prettify(self.name)+' *')
+##            y_lab.config(text='y variable: '+prettify(self.name)+pretty_entry_type(self.index[0:2]))
+##        else:
+##            print('Something\'s wrong')
+##
+##    def deselect(self, t):
+##        if t == 'x':
+##            self.left_label_text.set('  '+prettify(self.name)+' : ')
+##            x_lab.config(text='x variable: Click right restriction name to select')
+##        elif t == 'y':
+##            self.right_label_text.set(' : '+prettify(self.name)+'  ')
+##            y_lab.config(text='y variable: Click left restriction name to select')
+##        else:
+##            print('Something\'s wrong')
+##                    
+##    def display(self, line):
+##
+##        self.left_label.grid(row=line, column=0, sticky=E)        # grid left restriction name
+##        
+##        self.lower_bound.grid(row=line, column=1)                 # grid lower bound entry box      
+##        self.upper_bound.grid(row=line, column=2)                 # grid upper bound entry box
+##    
+##        self.calc_bounds[-1].grid(row=line, column=4)             # grid calculated lower bound box
+##        self.calc_bounds[1].grid(row=line, column=5)             # grid calculated upper bound box
+##
+##        self.right_label.grid(row=line, column=6, sticky=W)       # grid right restriction name
 
     def remove(self, recipe):
         for widget in [self.left_label, self.lower_bound, self.upper_bound, self.calc_bounds[-1], self.calc_bounds[1],
