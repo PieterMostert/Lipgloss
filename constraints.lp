@@ -1,6 +1,6 @@
 \* Glaze recipe *\
 Maximize
-Magnesite: - ingredient_9
+Ball_Clay: - ingredient_2
 Subject To
 Al2O3: 0.4021 ingredient_1 + 0.0602 ingredient_11 + 0.099 ingredient_12
  + 0.1198 ingredient_14 + 0.017 ingredient_18 + 0.1633 ingredient_19
@@ -50,7 +50,7 @@ MgO_mol_%_lower: mole_MgO >= 0
 MgO_mol_%_upper: mole_MgO - ox_mole_total <= 0
 MgO_umf_lower: mole_MgO >= 0
 MgO_umf_upper: - fluxes_total + mole_MgO <= 0
-MgO_wt_%_lower: mass_MgO - 0.08 ox_mass_total >= 0
+MgO_wt_%_lower: mass_MgO >= 0
 MgO_wt_%_upper: mass_MgO - ox_mass_total <= 0
 MnO2: mass_MnO2 = 0
 Na2O: 0.1512 ingredient_11 + 0.0628 ingredient_12 + 0.1028 ingredient_13
@@ -145,13 +145,13 @@ ingredient_4_upper: ingredient_4 <= 0
 ingredient_5_lower: ingredient_5 >= 0
 ingredient_5_upper: ingredient_5 <= 0
 ingredient_6_lower: ingredient_6 >= 0
-ingredient_6_upper: ingredient_6 - ingredient_total <= 0
+ingredient_6_upper: ingredient_6 <= 0
 ingredient_7_lower: ingredient_7 >= 0
 ingredient_7_upper: ingredient_7 <= 0
 ingredient_8_lower: ingredient_8 >= 0
 ingredient_8_upper: ingredient_8 <= 0
 ingredient_9_lower: ingredient_9 >= 0
-ingredient_9_upper: ingredient_9 - ingredient_total <= 0
+ingredient_9_upper: ingredient_9 <= 0
 normalization: 0.01 ingredient_total = 1
 other_0: - mole_SiO2 + other_0 = 0
 other_1: - mole_K2O - mole_Na2O + other_1 = 0

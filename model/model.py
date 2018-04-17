@@ -70,6 +70,7 @@ class Model:
     def update_recipe_dict(self, core_data):
         for recipe in self.recipe_dict.values():
             recipe.update_core_data(core_data)
+        self.json_write_recipes()
         
     def update_order(self, key):
         with shelve.open(persistent_data_path+"/OrderShelf") as order_shelf:

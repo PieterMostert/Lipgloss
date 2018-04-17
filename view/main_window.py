@@ -22,7 +22,6 @@ import os
 from inspect import getsourcefile
 from os.path import abspath, dirname
 from functools import partial
-#from model.lipgloss.recipes import Recipe        # eliminate this
 
 try:
     from .vert_scrolled_frame import VerticalScrolledFrame
@@ -35,15 +34,6 @@ except ImportError:
 
 import tkinter.messagebox
 import shelve
-
-def open_recipe_menu():
-    pass
-
-def save_recipe():
-    pass
-
-def save_new_recipe():
-    pass
 
 def edit_oxides():
     pass
@@ -164,8 +154,6 @@ class MainWindow:
             # SECTION 6
         # Create menus
         self.file_menu = Menu(self.menubar, tearoff=0)    
-        self.file_menu.add_command(label="Recipes", command=open_recipe_menu)
-        self.file_menu.add_command(label="Save as new recipe", command=save_new_recipe)
         self.menubar.add_cascade(label="File", menu=self.file_menu)
 
         option_menu.add_command(label="Edit Oxides", command=edit_oxides)
@@ -211,6 +199,23 @@ class MainWindow:
     ##    message_frame.grid(row = 3)
 
         self.other_select_button = {}
+        self.recipe_menu = None
+
+class RecipeMenu:
+    """A window that lets users select which recipe to open"""
+    
+    def __init__(self):   # Opens window that lets you select a recipe to open
+
+        self.recipe_selector = Toplevel()
+
+        self.r_s_scrollframe = VerticalScrolledFrame(self.recipe_selector)
+        self.r_s_scrollframe.frame_height = 200
+        self.r_s_scrollframe.grid(row=0)
+        recipe_selector_buttons = Frame(self.recipe_selector)
+        recipe_selector_buttons.grid(row=1)
+
+        Label(master=self.r_s_scrollframe.interior, text='Recipes', width=35).grid(row=0, column=0)  
+        Label(master=self.r_s_scrollframe.interior, text='Delete', width=5).grid(row=0, column=1)  
 
 class DisplayRestriction:
     'Oxide UMF, oxide % molar, oxide % weight, ingredient, SiO2:Al2O3 molar, LOI, cost, etc'

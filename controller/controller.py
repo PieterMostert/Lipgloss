@@ -29,7 +29,7 @@ import model.serializers.recipeserializer
 from model.model import Model
 #from model.restrictions import Restriction
 
-from view.main_window import MainWindow, DisplayRestriction
+from view.main_window import MainWindow, DisplayRestriction, RecipeMenu
 from view.pretty_names import prettify, pretty_entry_type
 
 import pulp
@@ -38,99 +38,6 @@ from tkinter import ttk
 from functools import partial
 import shelve
 import copy
-
-##class Restriction:
-##    'Oxide UMF, oxide % molar, oxide % weight, ingredient, SiO2:Al2O3 molar, LOI, cost, etc'
-##    display_frame = None   # Will be assigned later to be Controller.mw.restriction_sf.interior
-##    x_lab = None   # Will be assigned later to be Controller.mw.x_lab
-##    y_lab = None   # Will be assigned later to be Controller.mw.y_lab
-##    
-##    def __init__(self, index, name, objective_func, normalization, default_low, default_upp, dec_pt=1):
-##
-##        self.index = index     # We will always have restr_dict[index] = Restriction(frame, index, ...)
-##        self.name = name
-##        self.objective_func = objective_func
-##        self.normalization = normalization
-##        self.default_low = default_low
-##        self.default_upp = default_upp
-##        self.dec_pt = dec_pt
-##        
-##        self.calc_bounds = {}   
-##
-##        self.left_label_text = tk.StringVar()
-##        self.left_label_text.set('  '+prettify(self.name)+' : ')
-##        self.left_label = tk.Label(self.display_frame, textvariable=self.left_label_text)
-##        
-##        self.low = tk.DoubleVar()
-##        self.lower_bound = tk.Entry(self.display_frame, textvariable=self.low, width=5, fg='blue') #user lower bound
-##        self.low.set(self.default_low)
-##
-##        self.upp = tk.DoubleVar()
-##        self.upper_bound = tk.Entry(self.display_frame, textvariable=self.upp, width=5, fg='blue') #user upper bound
-##        self.upp.set(self.default_upp)
-##
-##        for eps in ['lower', 'upper']:
-##            self.calc_bounds[eps] = tk.Label(self.display_frame, bg='white', fg='red', width=5) #calculated lower and upper bounds
-##            self.calc_bounds[eps].config(text=' ')
-##
-##        self.right_label_text = tk.StringVar()
-##        self.right_label_text.set(' : '+prettify(self.name)+'   ')
-##        self.right_label = tk.Label(self.display_frame, textvariable=self.right_label_text)
-##
-##    def select(self, t):
-##        if t == 'x':
-##            self.left_label_text.set('* '+prettify(self.name)+' : ')
-##            self.x_lab.config(text='x variable: '+prettify(self.name)+pretty_entry_type(self.index[0:2]))
-##        elif t == 'y':
-##            self.right_label_text.set(' : '+prettify(self.name)+' *')
-##            self.y_lab.config(text='y variable: '+prettify(self.name)+pretty_entry_type(self.index[0:2]))
-##        else:
-##            print('Something\'s wrong')
-##
-##    def deselect(self, t):
-##        if t == 'x':
-##            self.left_label_text.set('  '+prettify(self.name)+' : ')
-##            self.x_lab.config(text='x variable: Click right restriction name to select')
-##        elif t == 'y':
-##            self.right_label_text.set(' : '+prettify(self.name)+'  ')
-##            self.y_lab.config(text='y variable: Click left restriction name to select')
-##        else:
-##            print('Something\'s wrong')
-##                    
-##    def display(self, line):
-##
-##        self.left_label.grid(row=line, column=0, sticky=tk.E)        # grid left restriction name
-##        
-##        self.lower_bound.grid(row=line, column=1)                 # grid lower bound entry box      
-##        self.upper_bound.grid(row=line, column=2)                 # grid upper bound entry box
-##    
-##        self.calc_bounds['lower'].grid(row=line, column=4)             # grid calculated lower bound box
-##        self.calc_bounds['upper'].grid(row=line, column=5)             # grid calculated upper bound box
-##
-##        self.right_label.grid(row=line, column=6, sticky=tk.W)       # grid right restriction name
-##
-##    def remove(self, recipe):
-##        for widget in [self.left_label, self.lower_bound, self.upper_bound, self.calc_bounds['lower'], self.calc_bounds['upper'],
-##                       self.right_label]:
-##            widget.grid_forget()    # remove widgets corresponding to that restriction
-##        self.low.set(self.default_low)
-##        self.upp.set(self.default_upp)
-##        for eps in ['lower', 'upper']:
-##            self.calc_bounds[eps].config(text='')
-##        v = dict(recipe.variables)
-##        for t in v:
-##            if self.index == v[t]:
-##                self.deselect(t)
-##                del recipe.variables[t]
-##
-##    def hide(self):  # to be used with oxide options
-##        for widget in [self.left_label, self.lower_bound, self.upper_bound, self.calc_bounds['lower'], self.calc_bounds['upper'],
-##                       self.right_label]:
-##            widget.grid_forget()
-##
-##    def display_calc_bounds(self, calc_value):
-##        for eps in [-1, 1]:
-##            self.calc_bounds[eps].config(text=('%.' + str(self.dec_pt) + 'f') % self.calc_value[eps])
 
 def default_restriction_bounds(ox_dict, ing_dict, other_dict):
     """This will eventually be replaced by a function the reads the default restriction bounds from a JSON file"""
@@ -176,7 +83,10 @@ class Controller:
                           (self.mw.percent_mol_radio_button, 'mole_perc_')]:
             button.config(command=partial(self.update_oxide_entry_type, t))
 
+        self.mw.file_menu.add_command(label="Recipes", command=self.open_recipe_menu)
         self.mw.file_menu.add_command(label="Save", command=self.save_recipe)
+        self.mw.file_menu.add_command(label="Save as new recipe", command=self.save_new_recipe)
+        
         
         self.mw.calc_button.config(command=self.calc_restr)
         
@@ -244,7 +154,7 @@ class Controller:
         self.mod.recipe_index = index
 
         for t, res in self.mod.current_recipe.variables.items():
-            self.restr_dict[res].deselect(t)            # remove stars from old variables
+            self.display_restr_dict[res].deselect(t)            # remove stars from old variables
         self.mod.current_recipe = copy.deepcopy(self.mod.recipe_dict[index])
         self.mod.current_recipe.update_oxides(self.cd, self.restr_dict)  # in case the oxide compositions have changed
         
@@ -288,7 +198,7 @@ class Controller:
                 self.mw.other_select_button[ot].state(['!pressed'])
 
         try:
-            r_s.destroy()
+            self.mw.recipe_menu.recipe_selector.destroy()
         except:
             pass
         # Set the command for x and y variable selection boxes
@@ -298,6 +208,30 @@ class Controller:
 
         #bind_restrictions_to_recipe(self.mod.current_recipe, self.restr_dict)
 
+    def open_recipe_menu(self):
+
+        try:
+            self.mw.recipe_menu.recipe_selector.destroy() # destroy the recipe selection window
+        except:
+            pass
+            
+        self.mw.recipe_menu = RecipeMenu()
+        for index in self.mod.recipe_dict:
+            self.display_recipe(index) 
+        self.mw.recipe_menu.r_s_scrollframe.interior.focus_force()
+
+    def display_recipe(self, index):
+
+        recipe = self.mod.recipe_dict[index]
+        name_button =  ttk.Button(master=self.mw.recipe_menu.r_s_scrollframe.interior, text=recipe.name, width=30,
+                                 command=partial(self.open_recipe, index))
+        name_button.grid(row=recipe.pos+1, column=0)
+        if index != '0': 
+            # only allow deletion of user recipes.  index '0' denotes the default recipe bounds
+            delete_button = ttk.Button(master=self.mw.recipe_menu.r_s_scrollframe.interior, text="X", width=5,
+                                      command=partial(self.delete_recipe, index))
+            delete_button.grid(row=recipe.pos+1, column=1)
+
     def save_recipe(self):
         """Save a recipe to the global recipe_dict, then update the JSON data file"""
         self.mod.current_recipe.name = self.mw.recipe_name.get()
@@ -306,6 +240,32 @@ class Controller:
         self.mod.current_recipe.entry_type = self.mw.entry_type.get()
         self.mod.recipe_dict[self.mod.recipe_index] = copy.deepcopy(self.mod.current_recipe)
         self.mod.json_write_recipes()
+
+    def save_new_recipe(self):
+        """Save a new recipe with new ID to the self.mod.recipe_dict, then update the JSON data file"""
+        self.get_bounds()
+        self.mod.current_recipe.update_bounds(self.restr_dict)   # Do we need this?
+        self.mod.current_recipe.entry_type = self.mw.entry_type.get()
+        recipe_index = str(int(max(self.mod.recipe_dict, key=int)) + 1)
+        self.mod.recipe_index = recipe_index
+        self.mod.current_recipe.name = 'Recipe Bounds ' + recipe_index
+        self.mod.current_recipe.pos = int(recipe_index)
+        self.mod.recipe_dict[recipe_index] = copy.deepcopy(self.mod.current_recipe)
+        self.mw.recipe_name.set(self.mod.current_recipe.name)
+        self.mod.json_write_recipes()
+
+    def delete_recipe(self, index):
+        """Delete the recipe from the recipe_dict, then write out the updated recipe_dict to JSON file."""
+        if index != '0': # don't allow a user to delete the default 
+            del self.mod.recipe_dict[index]
+            self.mod.json_write_recipes()
+        if index == self.mod.recipe_index:
+            # We have deleted the current recipe.  Go to default recipe
+            self.open_recipe('0')
+        try:
+            self.mw.recipe_menu.recipe_selector.destroy() # destroy the recipe selection window
+        except:
+            pass
 
     def toggle_ingredient(self, i):
         # Adds or removes ingredient_dict[i] to or from the current recipe, depending on whether it isn't or is an ingredient already.

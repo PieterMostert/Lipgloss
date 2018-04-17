@@ -17,7 +17,7 @@
 # Contact: pi.mostert@gmail.com
 
 import shelve
-from tkinter import *   # eliminate
+from tkinter import *   # Only used for error messages. Eliminate
 import time
 import copy
 from .core_data import Observable, CoreData
@@ -384,21 +384,21 @@ class Recipe(Observable):
 ##
 ##        else:
 ##            pass
-##
-##    def convert_to_recipe(self):
-##        # Assumes calc_restrictions has been run
-##        converted_recipe={}
-##        s = 0   # sum of averages
-##        for index in self.ingredients:
-##            cb = restr_dict['ingredient_'+index].calc_bounds
-##            avg = (float(cb[1]['text']) + float(cb[-1]['text'])) / 2    
-##            converted_recipe[index] =  avg
-##            s += avg
-##        s *= 0.01
-##        for index in self.ingredients:
-##            converted_recipe[index] /= s    # rescale so that percentages add up to 100.
-##        return converted_recipe     # may want to round to one decimal place.
-##
+
+    def convert_to_recipe(self):
+        # Assumes calc_restrictions has been run
+        converted_recipe={}
+        s = 0   # sum of averages
+        for index in self.ingredients:
+            cb = restr_dict['ingredient_'+index].calc_bounds
+            avg = (float(cb[1]['text']) + float(cb[-1]['text'])) / 2    
+            converted_recipe[index] =  avg
+            s += avg
+        s *= 0.01
+        for index in self.ingredients:
+            converted_recipe[index] /= s    # rescale so that percentages add up to 100.
+        return converted_recipe     # may want to round to one decimal place.
+
 ##    @staticmethod
 ##    def get_default_recipe():
 ##        """Define default recipe, in the case where class definitions have changed, or when things have just generally gotten messy"""
