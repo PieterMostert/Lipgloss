@@ -151,20 +151,18 @@ class Controller:
 
     def open_recipe(self, index):   # to be used when opening a recipe, (or when ingredients have been updated?). Be careful.
 
-        self.mod.recipe_index = index
-
         for t, res in self.mod.current_recipe.variables.items():
             self.display_restr_dict[res].deselect(t)            # remove stars from old variables
-        self.mod.current_recipe = copy.deepcopy(self.mod.recipe_dict[index])
+            
+        for res in self.display_restr_dict.values():
+            res.remove(self.mod.current_recipe)    # clear the entries from previous recipes, if opening a new recipe
+
+        self.mod.set_current_recipe(index)
         self.mod.current_recipe.update_oxides(self.cd, self.restr_dict)  # in case the oxide compositions have changed
         
         self.mw.recipe_name.set(self.mod.current_recipe.name)      # update the displayed recipe name
 
-        for res in self.display_restr_dict.values():
-            res.remove(self.mod.current_recipe)    # clear the entries from previous recipes, if opening a new recipe
-
-        r_k = restr_keys(self.mod.current_recipe.oxides, self.mod.current_recipe.ingredients, self.mod.current_recipe.other)
-
+        r_k = self.mod.current_recipe.restriction_keys  #restr_keys(self.mod.current_recipe.oxides, self.mod.current_recipe.ingredients, self.mod.current_recipe.other)
         for i in r_k:
             try:
                 self.display_restr_dict[i].low.set(self.mod.current_recipe.lower_bounds[i])
@@ -180,7 +178,7 @@ class Controller:
         self.mw.entry_type.set(et)
 
         for ox in self.mod.current_recipe.oxides:
-            self.display_restr_dict[et+ox].display(1 + self.cd.oxide_dict[ox].pos)
+            self.display_restr_dict[et + ox].display(1 + self.cd.oxide_dict[ox].pos)
 
         ingredient_order = self.mod.order["ingredients"]
         for i in ingredient_order:
@@ -235,37 +233,30 @@ class Controller:
     def save_recipe(self):
         """Save a recipe to the global recipe_dict, then update the JSON data file"""
         self.mod.current_recipe.name = self.mw.recipe_name.get()
-        self.get_bounds()
-        self.mod.current_recipe.update_bounds(self.restr_dict)   # Do we need this?
         self.mod.current_recipe.entry_type = self.mw.entry_type.get()
-        self.mod.recipe_dict[self.mod.recipe_index] = copy.deepcopy(self.mod.current_recipe)
-        self.mod.json_write_recipes()
+        self.get_bounds()
+        self.mod.current_recipe.update_bounds(self.restr_dict)   # Do we need this?        
+        self.mod.save_current_recipe()
 
     def save_new_recipe(self):
         """Save a new recipe with new ID to the self.mod.recipe_dict, then update the JSON data file"""
         self.get_bounds()
         self.mod.current_recipe.update_bounds(self.restr_dict)   # Do we need this?
         self.mod.current_recipe.entry_type = self.mw.entry_type.get()
-        recipe_index = str(int(max(self.mod.recipe_dict, key=int)) + 1)
-        self.mod.recipe_index = recipe_index
-        self.mod.current_recipe.name = 'Recipe Bounds ' + recipe_index
-        self.mod.current_recipe.pos = int(recipe_index)
-        self.mod.recipe_dict[recipe_index] = copy.deepcopy(self.mod.current_recipe)
-        self.mw.recipe_name.set(self.mod.current_recipe.name)
-        self.mod.json_write_recipes()
+        self.mod.save_new_recipe()
+        self.mw.recipe_name.set(self.mod.current_recipe.name)  
 
     def delete_recipe(self, index):
         """Delete the recipe from the recipe_dict, then write out the updated recipe_dict to JSON file."""
-        if index != '0': # don't allow a user to delete the default 
-            del self.mod.recipe_dict[index]
-            self.mod.json_write_recipes()
+        self.mod.delete_recipe(index)
         if index == self.mod.recipe_index:
             # We have deleted the current recipe.  Go to default recipe
             self.open_recipe('0')
-        try:
-            self.mw.recipe_menu.recipe_selector.destroy() # destroy the recipe selection window
-        except:
-            pass
+        # TODO: remove recipe from recipe selector
+##        try:
+##            self.mw.recipe_menu.recipe_selector.destroy() # destroy the recipe selection window
+##        except:
+##            pass
 
     def toggle_ingredient(self, i):
         # Adds or removes ingredient_dict[i] to or from the current recipe, depending on whether it isn't or is an ingredient already.

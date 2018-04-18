@@ -29,6 +29,8 @@ persistent_data_path = dirname(abspath(getsourcefile(lambda:0)))+'\persistent_da
 #print(persistent_data_path)
 sys.path.append(persistent_data_path)
 
+import copy
+
 
 # initialize oxides, ingredients, recipe_dict, etc.
 ##lg.core_data.OxideData.set_default_oxides()
@@ -57,9 +59,28 @@ class Model:
             self.order = dict(order_shelf)
         
     def set_current_recipe(self, index):
-        self.current_recipe = self.recipe_dict[index]
+        self.current_recipe = copy.deepcopy(self.recipe_dict[index])
         self.recipe_index = index
 
+    def save_current_recipe(self):
+        self.recipe_dict[self.recipe_index] = copy.deepcopy(self.current_recipe)
+        self.json_write_recipes()
+
+    def save_new_recipe(self):
+        recipe_index = str(int(max(self.recipe_dict, key=int)) + 1)
+        self.recipe_index = recipe_index
+        self.current_recipe.name = 'Recipe Bounds ' + recipe_index
+        self.current_recipe.pos = int(recipe_index)
+        self.recipe_dict[recipe_index] = copy.deepcopy(self.current_recipe)
+        self.json_write_recipes()
+
+    def delete_recipe(self, index):
+        if index != '0': # don't allow a user to delete the default 
+            del self.recipe_dict[index]
+            self.json_write_recipes()
+        else:
+            print('User tried to delete default recipe. This shouldn\'t be an option')
+        
     def json_write_recipes(self):
         """Write all recipes from the global recipe_dict to file, overwriting previous data"""
         f = open(persistent_data_path+"/JSONRecipeShelf.json", 'w')
