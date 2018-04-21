@@ -27,9 +27,10 @@ from lipgloss.restrictions import Restriction
 
 import model.serializers.recipeserializer
 from model.model import Model
-#from model.restrictions import Restriction
 
-from view.main_window import MainWindow, DisplayRestriction, RecipeMenu
+from view.main_window import MainWindow, RecipeMenu
+from view.display_restriction import DisplayRestriction
+from view.ingredient_editor import IngredientEditor
 from view.pretty_names import prettify, pretty_entry_type
 
 import pulp
@@ -67,14 +68,13 @@ def default_restriction_bounds(ox_dict, ing_dict, other_dict):
 
 class Controller:
     def __init__(self):
-        OxideData.set_default_oxides()
+        OxideData.set_default_oxides()   # Replace by function that sets data saved by user
         self.cd = CoreData()
-        self.cd.set_default_data()
+        self.cd.set_default_data()   # Replace by function that sets data saved by user
 
         self.lprp = LpRecipeProblem("Glaze recipe", pulp.LpMaximize, self.cd)
         
         self.mod = Model()
-        #self.mod.set_current_recipe('0')
         
         self.mw = MainWindow()
   
@@ -86,7 +86,12 @@ class Controller:
         self.mw.file_menu.add_command(label="Recipes", command=self.open_recipe_menu)
         self.mw.file_menu.add_command(label="Save", command=self.save_recipe)
         self.mw.file_menu.add_command(label="Save as new recipe", command=self.save_new_recipe)
-        
+
+        self.mw.options_menu.add_command(label="Edit Ingredients", command=self.open_ingredient_editor)
+##                self.options_menu.add_command(label="Edit Ingredients",
+##                                command=lambda : ing_dat.open_ingredient_editor(current_recipe, recipe_dict,
+##                                                                                self.ingredient_select_button, toggle_ingredient, update_var, self.entry_type))
+
         
         self.mw.calc_button.config(command=self.calc_restr)
         
@@ -105,7 +110,6 @@ class Controller:
 
         #Create Restriction and DisplayRestriction dictionaries
         self.restr_dict = default_restriction_bounds(self.cd.oxide_dict, self.cd.ingredient_dict, self.cd.other_dict)
-
         self.display_restr_dict = {}      
         for key in self.cd.restr_keys():
             self.display_restr_dict[key] = DisplayRestriction(self.mw.restriction_sf.interior, self.mw.x_lab, self.mw.y_lab, \
@@ -143,6 +147,10 @@ class Controller:
             self.mw.proj_canvas.create_polygon_plot(vertices, scaling)
         else:
             pass
+        self.mw.root.lift()    # Doesn't work, and I don't know why
+        #self.mw.root.attributes('-topmost', 1)
+        #self.mw.root.attributes('-topmost', 0)
+        self.ing_editor.toplevel.lower()
 
     def get_bounds(self):
         for key in self.mod.current_recipe.restriction_keys:
@@ -158,7 +166,9 @@ class Controller:
             res.remove(self.mod.current_recipe)    # clear the entries from previous recipes, if opening a new recipe
 
         self.mod.set_current_recipe(index)
-        self.mod.current_recipe.update_oxides(self.cd, self.restr_dict)  # in case the oxide compositions have changed
+        self.mod.current_recipe.update_oxides(self.cd, self.restr_dict)  # in case the ingredient compositions have changed
+                                                                         # Can get rid of this if we ensure that all recipes are
+                                                                         # updated each time the ingredient compositions change
         
         self.mw.recipe_name.set(self.mod.current_recipe.name)      # update the displayed recipe name
 
@@ -168,8 +178,8 @@ class Controller:
                 self.display_restr_dict[i].low.set(self.mod.current_recipe.lower_bounds[i])
                 self.display_restr_dict[i].upp.set(self.mod.current_recipe.upper_bounds[i])
             except:
-                self.display_restr_dict[i].low.set(restr_dict[i].default_low)    # this is just for the case where the oxides have changed
-                self.display_restr_dict[i].upp.set(restr_dict[i].default_upp)    # ditto
+                self.display_restr_dict[i].low.set(self.restr_dict[i].default_low)    # this is just for the case where the oxides have changed
+                self.display_restr_dict[i].upp.set(self.restr_dict[i].default_upp)    # ditto
 
         for t, res in self.mod.current_recipe.variables.items():
             self.display_restr_dict[res].select(t)               # add stars to new variables
@@ -194,11 +204,7 @@ class Controller:
                 self.display_restr_dict['other_'+ot].display(1001 + self.cd.other_dict[ot].pos)
             else:
                 self.mw.other_select_button[ot].state(['!pressed'])
-
-        try:
-            self.mw.recipe_menu.recipe_selector.destroy()
-        except:
-            pass
+        
         # Set the command for x and y variable selection boxes
         for key, restr in self.display_restr_dict.items():
             restr.left_label.bind("<Button-1>", partial(self.update_var, key, 'x'))
@@ -206,10 +212,15 @@ class Controller:
 
         #bind_restrictions_to_recipe(self.mod.current_recipe, self.restr_dict)
 
-    def open_recipe_menu(self):
-
         try:
-            self.mw.recipe_menu.recipe_selector.destroy() # destroy the recipe selection window
+            self.mw.recipe_menu.recipe_selector.destroy()
+        except:   # The recipe selector won't be open when the controller opens the default recipe on start-up
+            pass  
+
+    def open_recipe_menu(self):
+        """Opens a pop-up window that lets users select which recipes bounds to display, or delete existing recipe bounds (except the default)"""
+        try:
+            self.mw.recipe_menu.recipe_selector.destroy() # destroy previous recipe selectors, if still open
         except:
             pass
             
@@ -258,9 +269,15 @@ class Controller:
 ##        except:
 ##            pass
 
-    def toggle_ingredient(self, i):
-        # Adds or removes ingredient_dict[i] to or from the current recipe, depending on whether it isn't or is an ingredient already.
+    def open_ingredient_editor(self):
+        """Opens a window that lets users edit ingredients"""
+        try:
+            self.ing_editor.toplevel.lift() # lift the recipe selector, if it already exists
+        except:
+            self.ing_editor = IngredientEditor(self.cd, self.mod.order)
 
+    def toggle_ingredient(self, i):
+        """Adds or removes ingredient_dict[i] to or from the current recipe, depending on whether it isn't or is an ingredient already."""
         recipe = self.mod.current_recipe
         if i in recipe.ingredients:
             recipe.remove_ingredient(self.cd, i)
@@ -276,7 +293,7 @@ class Controller:
         else:
             recipe.add_ingredient(self.cd, i)
             self.mw.ingredient_select_button[i].state(['pressed'])
-            self.display_restr_dict['ingredient_'+i].display(101 + self.mw.ingredient_order.index(i))
+            self.display_restr_dict['ingredient_'+i].display(101 + self.mod.order["ingredients"].index(i))
             for ox in self.cd.ingredient_compositions[i]:
                 if ox not in recipe.oxides:  # i.e. if we're introducing a new oxide
                     for et in ['umf_', 'mass_perc_', 'mole_perc_']:
@@ -290,23 +307,19 @@ class Controller:
         #self.mod.current_recipe = recipe
 
     def toggle_other(self, i):
-        # Adds or removes other_dict[index] to or from the current recipe, depending on whether it isn't or is an other restriction already.
-        
+        """Adds or removes other_dict[index] to or from the current recipe, depending on whether it isn't or is an other restriction already."""
         recipe = self.mod.current_recipe
-
         if i in recipe.other:
             recipe.remove_other(self.cd, i)
             self.mw.other_select_button[i].state(['!pressed'])
             self.display_restr_dict['other_'+i].remove(recipe)
-            # TO DO: remove star if this was a variable
-
         else:
             recipe.add_other(self.cd, i)
             self.mw.other_select_button[i].state(['pressed'])         
             self.display_restr_dict['other_'+i].display(1001 + self.cd.other_dict[i].pos)
             self.mw.restriction_sf.canvas.yview_moveto(1)
 
-    def update_var(self, key, t, uh):     # t should be either 'x' or 'y'. Might be a better way of doing this
+    def update_var(self, key, t, mystery_variable):     # t should be either 'x' or 'y'. Might be a better way of doing this
         restr = self.display_restr_dict[key]
         if t in self.mod.current_recipe.variables:
             v = self.mod.current_recipe.variables[t]

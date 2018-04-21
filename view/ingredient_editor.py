@@ -19,9 +19,11 @@
 import tkinter.messagebox
 from numbers import Number
 
-from recipes import *
-from dragmanager import *
-from main_window import MainWindow
+#from recipes import *
+from .dragmanager import *
+from .main_window import MainWindow
+from .vert_scrolled_frame import VerticalScrolledFrame
+from .pretty_names import prettify
 
 # Functions relating to the ingredient editor window (accessed through Options > Edit Ingredients)
 
@@ -36,73 +38,108 @@ from main_window import MainWindow
 ##def update_var(a,b,c):
 ##    pass
 
+class DisplayIngredient:
+    """A class used to display the line corresponding to an ingredient in the ingredient editor"""
+    def __init__(self, index, core_data, frame, delete_ingredient_fn):
+        ing = core_data.ingredient_dict[index]
+        self.delete_button =  ttk.Button(master=frame, text='X', width=2) #, command = partial(delete_ingredient_fn, index))
+##        sdw['del'] =  ttk.Label(master=frame, text='X', width=2)
+##        sdw['del'].bind('<Button-1>', partial(delete_ingredient_fn, index))
+        self.name_entry = Entry(master=frame, width=20)
+        self.name_entry.insert(0, ing.name)
+        ox_comp = ing.oxide_comp
+        self.oxide_entry = {}
+        
+        c = 3
+        for ox in core_data.oxide_dict:
+            # Use this entry widget to input the percent weight of the oxide that the ingredient contains.
+            self.oxide_entry[ox] = Entry(master=frame,  width=5)  
+            self.oxide_entry[ox].delete(0, END)
+            if ox in ox_comp:
+                self.oxide_entry[ox].insert(0, ox_comp[ox])
+            else:
+                pass
+            c += 1
+
+        self.other_attr_entry = {}
+        for i, other_attr in core_data.other_attr_dict.items(): 
+            self.other_attr_entry[i] = Entry(master=frame, width=5)
+        for i, value in ing.other_attributes.items():
+            self.other_attr_entry[i].insert(0, value)
+
+    def display(self, pos, core_data):
+        self.delete_button.grid(row=pos, column=0)
+        self.name_entry.grid(row=pos, column=1, padx=3, pady=3)
+
+        c = 3
+        
+        for ox in core_data.oxide_dict:
+            self.oxide_entry[ox].grid(row=pos, column=c, padx=3, pady=1)
+            c += 1
+
+        for i, other_attr in core_data.other_attr_dict.items(): 
+            self.other_attr_entry[i].grid(row=pos, column=c+int(i), padx=3, pady=3)
+
+
 class IngredientEditor(MainWindow):
     """Window that lets users enter / delete ingredients, edit oxide compositions and other attributes, and rearrange \\
        the order in which ingredients are displayed"""
 
-    try:
-        ingredient_editor.winfo_exists()
-        ingredient_editor.lift()
-    except:
-        ingredient_editor = Toplevel()
+    def __init__(self, core_data, order): #, ingredient_order, ingredient_dict, oxides, other_attr_dict): #, recipe_dict, ingredient_select_button, toggle_ingredient, update_var, entry_type):
+        pass
 
-        ingredient_editor_headings = Frame(ingredient_editor)
-        ingredient_editor_headings.pack()
-        i_e_scrollframe = VerticalScrolledFrame(ingredient_editor)
-        i_e_scrollframe.frame_height = 500
-        i_e_scrollframe.pack()
-        ingredient_editor_buttons = Frame(ingredient_editor)
+        self.toplevel = Toplevel()
+        self.toplevel.title("Ingredient Editor")
+
+        self.ingredient_editor_headings = Frame(self.toplevel)
+        self.ingredient_editor_headings.pack()
+        self.i_e_scrollframe = VerticalScrolledFrame(self.toplevel)
+        self.i_e_scrollframe.frame_height = 500
+        self.i_e_scrollframe.pack()
+        ingredient_editor_buttons = Frame(self.toplevel)
         ingredient_editor_buttons.pack()
 
         # Place the headings on the ingredient_editor. There is some not-entirely-successful fiddling involved to try
         # to get the headings to match up with their respective columns:
-        Label(master=ingredient_editor_headings, text='', width=5).grid(row=0, column=0)  # Blank label above the delete buttons
-        Label(master=ingredient_editor_headings, text='', width=5).grid(row=0, column=1)  # Blank label above the delete buttons
-        Label(master=ingredient_editor_headings, text='    Ingredient', width=20).grid(row=0, column=2)
+        Label(master=self.ingredient_editor_headings, text='', width=5).grid(row=0, column=0)  # Blank label above the delete buttons
+        Label(master=self.ingredient_editor_headings, text='', width=5).grid(row=0, column=1)  # Blank label above the delete buttons
+        Label(master=self.ingredient_editor_headings, text='    Ingredient', width=20).grid(row=0, column=2)
 
         Label(master=self.ingredient_editor_headings, text='', width=5).grid(row=0, column=99)  # Blank label above the scrollbar
         Label(master=self.ingredient_editor_headings, text='', width=5).grid(row=0, column=100)  # Blank label above the scrollbar
 
+        c = 3 + 1
+        for ox in core_data.oxide_dict:
+            Label(master=self.ingredient_editor_headings, text=prettify(ox), width=5).grid(row=0, column=c)
+            c += 1
 
-    def __init__(self): #, ingredient_order, ingredient_dict, oxides, other_attr_dict):
-        pass
+        for i, attr in core_data.other_attr_dict.items():
+            #Label(master=self.ingredient_editor_headings, text=attr.name, width=5).grid(row=0, column=c+attr.pos)
+            Label(master=self.ingredient_editor_headings, text=attr, width=5).grid(row=0, column=c+int(i))
 
-##        self.ingredient_order = ingredient_order
-##        self.ingredient_dict = ingredient_dict
-##        self.oxides = oxides
-##        self.other_attr_dict = other_attr_dict
 
-    def open_ingredient_editor(self, core_data, current_recipe): #, recipe_dict, ingredient_select_button, toggle_ingredient, update_var, entry_type):
+        # Create drag manager for ingredient rows:
+        self.ing_dnd = DragManager(core_data.ingredient_dict, "./data/OrderShelf", 'ingredients',
+                              lambda ing, i: ing.display(i),
+                              lambda ing_list : self.reorder_ingredients(ing_list, current_recipe, ingredient_select_button))
 
-            c = 3 + 1
-            for ox in core_data.oxides:
-                Label(master=self.ingredient_editor_headings, text=prettify(ox), width=5).grid(row=0, column=c)
-                c += 1
+        # Create and display the rows:
+        self.line = {}
+        for i, index in enumerate(order["ingredients"]):
+            self.line[index] = DisplayIngredient(index, core_data, self.i_e_scrollframe.interior, lambda i : self.pre_delete_ingredient(i, recipe_dict))
+            self.line[index].display(i, core_data)
+            self.ing_dnd.add_dragable(self.line[index].name_entry)    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
+                
+        # This label is hack to make sure that when a new ingredient is added, you don't have to scroll down to see it:
+        Label(master=self.i_e_scrollframe.interior).grid(row=9000) 
 
-            for i, attr in core_data.other_attr_dict.items():
-                Label(master=self.ingredient_editor_headings, text=attr.name, width=5).grid(row=0, column=c+attr.pos)
+        new_ingr_button = ttk.Button(ingredient_editor_buttons, text = 'New ingredient', width=20, command=lambda : self.new_ingredient(toggle_ingredient))
+        new_ingr_button.pack(side='left')   
+        update_button = ttk.Button(ingredient_editor_buttons, text = 'Update', width=20,
+                                   command=lambda : self.update_ingredient_dict(current_recipe, ingredient_select_button, entry_type))
+        update_button.pack(side='right')
 
-            # Create drag manager for ingredient rows:
-            self.ing_dnd = DragManager(self.ingredient_dict, "./data/OrderShelf", 'ingredients',
-                                  lambda ing, i: ing.display(i),
-                                  lambda ing_list : self.reorder_ingredients(ing_list, current_recipe, ingredient_select_button))
-
-            # Create and display the rows:
-            for i, index in enumerate(self.ingredient_order):
-                ingredient_dict[index].displayable_version(index, self.i_e_scrollframe.interior, lambda i : self.pre_delete_ingredient(i, recipe_dict))
-                ingredient_dict[index].display(i)
-                self.ing_dnd.add_dragable(self.ingredient_dict[index].display_widgets['name'])    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
-                    
-            # This label is hack to make sure that when a new ingredient is added, you don't have to scroll down to see it:
-            Label(master=self.i_e_scrollframe.interior).grid(row=9000) 
-
-            new_ingr_button = ttk.Button(ingredient_editor_buttons, text = 'New ingredient', width=20, command=lambda : self.new_ingredient(toggle_ingredient))
-            new_ingr_button.pack(side='left')   
-            update_button = ttk.Button(ingredient_editor_buttons, text = 'Update', width=20,
-                                       command=lambda : self.update_ingredient_dict(current_recipe, ingredient_select_button, entry_type))
-            update_button.pack(side='right')
-
-            self.i_e_scrollframe.interior.focus_force()
+        self.i_e_scrollframe.interior.focus_force()
 
 
     def update_basic_constraints(self, ingredient_compositions, other_dict):

@@ -91,7 +91,7 @@ class MainWindow:
         self.x_lab = Label(variable_info, text='x variable: Click right restriction name to select')
         self.y_lab = Label(variable_info, text='y variable: Click left restriction name to select')
 
-        option_menu = Menu(self.menubar, tearoff=0)                 # create a pulldown menu, and add it to the menu bar
+        self.options_menu = Menu(self.menubar, tearoff=0)
 
         self.vsf = VerticalScrolledFrame(self.ingredient_selection_window)
         self.vsf.frame_height = 400
@@ -156,13 +156,11 @@ class MainWindow:
         self.file_menu = Menu(self.menubar, tearoff=0)    
         self.menubar.add_cascade(label="File", menu=self.file_menu)
 
-        option_menu.add_command(label="Edit Oxides", command=edit_oxides)
-        option_menu.add_command(label="Edit Ingredients",
-                                command=lambda : ing_dat.open_ingredient_editor(current_recipe, recipe_dict,
-                                                                                self.ingredient_select_button, toggle_ingredient, update_var, self.entry_type))
-        option_menu.add_command(label="Edit Other Restrictions", command=edit_other_restrictions)
-        option_menu.add_command(label="Restriction Settings", command=restriction_settings)
-        self.menubar.add_cascade(label="Options", menu=option_menu)
+        self.options_menu.add_command(label="Edit Oxides", command=edit_oxides)
+        self.options_menu.add_command(label="Edit Other Restrictions", command=edit_other_restrictions)
+        self.options_menu.add_command(label="Restriction Settings", command=restriction_settings)
+        
+        self.menubar.add_cascade(label="Options", menu=self.options_menu)
         self.root.config(menu=self.menubar)
 
         # Create and grid the percent/unity radio buttons:
@@ -188,13 +186,6 @@ class MainWindow:
 
         self.ingredient_select_button = {}
 
-        # Move the following section to the model
-        order_shelf_path = dirname(dirname(abspath(getsourcefile(lambda:0))))+'/model/persistent_data/OrderShelf'    ## There's probably a more elegant way of doing this
-        with shelve.open(order_shelf_path) as order_shelf:
-            self.ingredient_order = order_shelf['ingredients']
-    ##        #oxide_order = ...
-    ##        #other_order = ...
-
     ##    # Grid the message frame.  At the moment, this isn't used.
     ##    message_frame.grid(row = 3)
 
@@ -207,6 +198,7 @@ class RecipeMenu:
     def __init__(self):   # Opens window that lets you select a recipe to open
 
         self.recipe_selector = Toplevel()
+        self.recipe_selector.title("Recipe Selector")
 
         self.r_s_scrollframe = VerticalScrolledFrame(self.recipe_selector)
         self.r_s_scrollframe.frame_height = 200
@@ -214,7 +206,7 @@ class RecipeMenu:
         recipe_selector_buttons = Frame(self.recipe_selector)
         recipe_selector_buttons.grid(row=1)
 
-        Label(master=self.r_s_scrollframe.interior, text='Recipes', width=35).grid(row=0, column=0)  
+        Label(master=self.r_s_scrollframe.interior, text='Name', width=35).grid(row=0, column=0)  
         Label(master=self.r_s_scrollframe.interior, text='Delete', width=5).grid(row=0, column=1)  
 
 class DisplayRestriction:

@@ -3,23 +3,28 @@
         "name": "Default Recipe Bounds",
         "entry_type": "umf_",
         "oxides": [
-            "TiO2",
-            "K2O",
-            "Fe2O3",
-            "Na2O",
-            "CaO",
             "SiO2",
+            "CaO",
+            "Na2O",
+            "MgO",
+            "TiO2",
+            "Fe2O3",
+            "B2O3",
             "Al2O3",
-            "MgO"
+            "K2O"
         ],
         "ingredients": [
             "0",
             "1",
             "2",
             "6",
-            "8"
+            "8",
+            "11"
         ],
-        "other": [],
+        "other": [
+            "3",
+            "2"
+        ],
         "lower_bounds": {
             "umf_SiO2": 0.0,
             "mass_perc_SiO2": 0.0,
@@ -49,7 +54,13 @@
             "ingredient_1": 0.0,
             "ingredient_2": 0.0,
             "ingredient_6": 0.0,
-            "ingredient_8": 0.0
+            "ingredient_8": 0.0,
+            "umf_B2O3": 0.0,
+            "mass_perc_B2O3": 0.0,
+            "mole_perc_B2O3": 0.0,
+            "ingredient_11": 0.0,
+            "other_3": 0.0,
+            "other_2": 0.0
         },
         "upper_bounds": {
             "umf_SiO2": 100.0,
@@ -80,11 +91,16 @@
             "ingredient_1": 100.0,
             "ingredient_2": 100.0,
             "ingredient_6": 100.0,
-            "ingredient_8": 100.0
+            "ingredient_8": 100.0,
+            "umf_B2O3": 1.0,
+            "mass_perc_B2O3": 100.0,
+            "mole_perc_B2O3": 100.0,
+            "ingredient_11": 100.0,
+            "other_3": 1.0,
+            "other_2": 100.0
         },
         "pos": 0,
         "variables": {
-            "x": "ingredient_6",
             "y": "mole_perc_MgO"
         }
     },
