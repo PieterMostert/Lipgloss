@@ -30,7 +30,7 @@ from model.model import Model
 
 from view.main_window import MainWindow, RecipeMenu
 from view.display_restriction import DisplayRestriction
-from view.ingredient_editor import IngredientEditor
+from view.ingredient_editor import DisplayIngredient, IngredientEditor
 from view.pretty_names import prettify, pretty_entry_type
 
 import pulp
@@ -39,6 +39,8 @@ from tkinter import ttk
 from functools import partial
 import shelve
 import copy
+
+persistent_data_path = dirname(dirname(abspath(getsourcefile(lambda:0))))+'\model\persistent_data'
 
 def default_restriction_bounds(ox_dict, ing_dict, other_dict):
     """This will eventually be replaced by a function the reads the default restriction bounds from a JSON file"""
@@ -70,7 +72,16 @@ class Controller:
     def __init__(self):
         OxideData.set_default_oxides()   # Replace by function that sets data saved by user
         self.cd = CoreData()
-        self.cd.set_default_data()   # Replace by function that sets data saved by user
+        #self.cd.set_default_data()   # Replace by function that sets data saved by user
+        #self.cd.save_ingredient_dict(persistent_data_path+'\IngredientShelf')
+        self.cd.set_ingredient_dict(persistent_data_path+'\IngredientShelf')
+        
+        #self.cd.save_other_dict(persistent_data_path+'\OtherShelf')
+        self.cd.set_other_dict(persistent_data_path+'\OtherShelf')
+
+        self.cd.other_attr_dict = {'0': 'LOI', '2': 'Clay', '1': 'Cost'}
+
+        self.cd.set_default_default_bounds()
 
         self.lprp = LpRecipeProblem("Glaze recipe", pulp.LpMaximize, self.cd)
         
@@ -150,23 +161,26 @@ class Controller:
         self.mw.root.lift()    # Doesn't work, and I don't know why
         #self.mw.root.attributes('-topmost', 1)
         #self.mw.root.attributes('-topmost', 0)
-        self.ing_editor.toplevel.lower()
+        try:
+            self.ing_editor.toplevel.lower()
+        except:
+            pass
 
     def get_bounds(self):
         for key in self.mod.current_recipe.restriction_keys:
             self.mod.current_recipe.lower_bounds[key] = self.display_restr_dict[key].low.get()
             self.mod.current_recipe.upper_bounds[key] = self.display_restr_dict[key].upp.get()  
 
-    def open_recipe(self, index):   # to be used when opening a recipe, (or when ingredients have been updated?). Be careful.
+    def open_recipe(self, index):   # To be used when opening a recipe, (or when ingredients have been updated?). Be careful.
 
         for t, res in self.mod.current_recipe.variables.items():
-            self.display_restr_dict[res].deselect(t)            # remove stars from old variables
+            self.display_restr_dict[res].deselect(t)            # Remove stars from old variables
             
         for res in self.display_restr_dict.values():
-            res.remove(self.mod.current_recipe)    # clear the entries from previous recipes, if opening a new recipe
+            res.remove(self.mod.current_recipe)    # Clear the entries from previous recipes, if opening a new recipe
 
         self.mod.set_current_recipe(index)
-        self.mod.current_recipe.update_oxides(self.cd, self.restr_dict)  # in case the ingredient compositions have changed
+        self.mod.current_recipe.update_oxides(self.cd, self.restr_dict)  # In case the ingredient compositions have changed.
                                                                          # Can get rid of this if we ensure that all recipes are
                                                                          # updated each time the ingredient compositions change
         
@@ -236,7 +250,7 @@ class Controller:
                                  command=partial(self.open_recipe, index))
         name_button.grid(row=recipe.pos+1, column=0)
         if index != '0': 
-            # only allow deletion of user recipes.  index '0' denotes the default recipe bounds
+            # Only allow deletion of user recipes.  Index '0' denotes the default recipe bounds
             delete_button = ttk.Button(master=self.mw.recipe_menu.r_s_scrollframe.interior, text="X", width=5,
                                       command=partial(self.delete_recipe, index))
             delete_button.grid(row=recipe.pos+1, column=1)
@@ -275,6 +289,7 @@ class Controller:
             self.ing_editor.toplevel.lift() # lift the recipe selector, if it already exists
         except:
             self.ing_editor = IngredientEditor(self.cd, self.mod.order, self.reorder_ingredients)
+            self.ing_editor.new_ingr_button.config(command=self.new_ingredient)
 
     def reorder_ingredients(self, new_order):
         # Run when reordering the ingredients using dragmanager.
@@ -288,6 +303,56 @@ class Controller:
                 self.display_restr_dict['ingredient_'+j].display(101 + i)
             else:
                 pass
+            
+    def new_ingredient(self):
+        with shelve.open(persistent_data_path+"/IngredientShelf") as ingredient_shelf:
+            r = max([int(index) for index in ingredient_shelf]) + 1
+            index = str(r)
+            ing = ingredient_shelf[str(r)] = Ingredient('Ingredient #'+index, notes='', oxide_comp={}, other_attributes={})
+                            # If we just had Ingredient('Ingredient #'+index) above, the default values of the notes, oxide_comp
+                            # and other_attributes attributes would change when the last instance of the class defined had those
+                            # attributes changed
+    ##        ing = Ingredient('Ingredient #'+index, oxide_comp = {})
+    ##        print(ing.oxide_comp)
+    ##        print(ing.name)
+    ##        ingredient_shelf[str(r)] = copy.deepcopy(ing)
+
+        with shelve.open(persistent_data_path+"/OrderShelf") as order_shelf:
+            temp_list = order_shelf['ingredients']
+            temp_list.append(index)
+            order_shelf['ingredients'] = temp_list
+            self.mod.order['ingredients'] = temp_list
+        
+        self.cd.ingredient_dict[index] = ing
+        self.cd.ingredient_compositions[index] = ing.oxide_comp
+        self.cd.default_lower_bounds['ingredient_'+index] = 0
+        self.cd.default_upper_bounds['ingredient_'+index] = 100
+        
+        self.ing_editor.line[index] = DisplayIngredient(index, self.cd, self.ing_editor.i_e_scrollframe.interior,
+                                                               lambda i : self.ing_editor.pre_delete_ingredient(i, self.mod.recipe_dict))
+        self.ing_editor.line[index].display(r, self.cd)
+        self.ing_editor.ing_dnd.add_dragable(self.ing_editor.line[index].name_entry)    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
+
+        self.restr_dict['ingredient_'+index] = Restriction('ingredient_'+index, ing.name, 'ingredient_'+index, "0.01*self.lp_var['ingredient_total']", 0, 100)
+        self.display_restr_dict['ingredient_'+index] = DisplayRestriction(self.mw.restriction_sf.interior, self.mw.x_lab, self.mw.y_lab,
+                                                                          'ingredient_'+index, ing.name, 0, 100)
+        # Set the command for x and y variable selection boxes
+        self.display_restr_dict['ingredient_'+index].left_label.bind("<Button-1>", partial(self.update_var, 'ingredient_'+index, 'x'))
+        self.display_restr_dict['ingredient_'+index].right_label.bind("<Button-1>", partial(self.update_var, 'ingredient_'+index, 'y'))
+
+        self.lprp.lp_var['ingredient_'+index] = pulp.LpVariable('ingredient_'+index, 0, None, pulp.LpContinuous)
+        self.lprp.constraints['ing_total'] = self.lprp.lp_var['ingredient_total'] == sum(self.lprp.lp_var['ingredient_'+index] for index in self.cd.ingredient_dict)
+
+        self.mw.ingredient_select_button[index] = ttk.Button(self.mw.vsf.interior, text=ing.name, width=20,
+                                                     command=partial(self.toggle_ingredient, index))
+        self.mw.ingredient_select_button[index].grid(row=r)
+
+    ##    i_e_scrollframe.vscrollbar.set(100,0)  # Doesn't do anything
+        self.ing_editor.i_e_scrollframe.canvas.yview_moveto(1)  # Supposed to move the scrollbar to the bottom, but misses the last row
+        
+##        restr = self.display_restr_dict['ingredient_'+index]
+##        restr.left_label.bind("<Button-1>", partial(update_var, current_recipe, restr, 'x'))
+##        restr.right_label.bind("<Button-1>", partial(update_var, current_recipe, restr, 'y'))
 
     def toggle_ingredient(self, i):
         """Adds or removes ingredient_dict[i] to or from the current recipe, depending on whether it isn't or is an ingredient already."""

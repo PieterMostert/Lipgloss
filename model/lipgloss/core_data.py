@@ -264,8 +264,8 @@ class CoreData(OxideData):
 ##
 ##    current_recipe = None
     
-    def __init(self):
-        self.other_attr = {}
+    def __init__(self):
+        self.other_attr_dict = {}
         self.ingredient_dict = {}
         self.ingredient_compositions = {}    # Could do without this  
         self.other_dict = {}
@@ -330,10 +330,33 @@ class CoreData(OxideData):
             self.default_upper_bounds['umf_'+ox] = 1
         self.default_lower_bounds['other_0'] = 1
 
+    def set_default_default_bounds(self):
+        self.default_lower_bounds = {}
+        self.default_upper_bounds = {}
+        for key in self.restr_keys():
+            self.default_lower_bounds[key] = 0
+            self.default_upper_bounds[key] = 100
+
+        #with the exception of the following:
+        self.default_upper_bounds['umf_Al2O3'] = 10
+        for ox in ['B2O3', 'MgO', 'CaO', 'Na2O', 'K2O', 'ZnO', 'Fe2O3', 'TiO2', 'P2O5']:
+            self.default_upper_bounds['umf_'+ox] = 1
+        self.default_lower_bounds['other_0'] = 1
+
+    def save_ingredient_dict(self, path):    # change to JSON?
+        with shelve.open(path) as ingredient_shelf:
+            for i in self.ingredient_dict:
+                ingredient_shelf[i] = self.ingredient_dict[i] 
+
     def set_ingredient_dict(self, path):    # change to JSON?
         with shelve.open(path) as ingredient_shelf:
             self.ingredient_dict = dict(ingredient_shelf)
-        self.ingredient_compositions = get_ing_comp(self.ingredient_dict) 
+        self.ingredient_compositions = get_ing_comp(self.ingredient_dict)
+
+    def save_other_dict(self, path):    # change to JSON?
+        with shelve.open(path) as other_shelf:
+            for i in self.other_dict:
+                other_shelf[i] = self.other_dict[i] 
 
     def set_other_dict(self, path):
         with shelve.open(path) as other_shelf:

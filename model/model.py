@@ -93,7 +93,7 @@ class Model:
             recipe.update_core_data(core_data)
         self.json_write_recipes()
         
-    def update_order(self, key):
+    def update_order(self, key):  # Is this used at all?
         with shelve.open(persistent_data_path+"/OrderShelf") as order_shelf:
             order_shelf[key] = self.order[key]
             

@@ -101,6 +101,10 @@ class Recipe(Observable):
 ##            self.lower_bounds['other_'+ot] = restr_dict['other_'+ot].low.get()
 ##            self.upper_bounds['other_'+ot] = restr_dict['other_'+ot].upp.get()
 ##
+
+    def restriction_keys(self):
+        return restr_keys(self.oxides, self.ingredients, self.other)
+        
     def fluxes(self):
         return fluxes_subset(self.oxides)
 

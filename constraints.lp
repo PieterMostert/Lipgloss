@@ -116,8 +116,10 @@ _C9: - mass_Li2O + 29.881 mole_Li2O = 0
 ing_total: - ingredient_0 - ingredient_1 - ingredient_10 - ingredient_11
  - ingredient_12 - ingredient_13 - ingredient_14 - ingredient_15
  - ingredient_16 - ingredient_17 - ingredient_18 - ingredient_19
- - ingredient_2 - ingredient_3 - ingredient_4 - ingredient_5 - ingredient_6
- - ingredient_7 - ingredient_8 - ingredient_9 + ingredient_total = 0
+ - ingredient_2 - ingredient_20 - ingredient_21 - ingredient_22
+ - ingredient_23 - ingredient_24 - ingredient_3 - ingredient_4 - ingredient_5
+ - ingredient_6 - ingredient_7 - ingredient_8 - ingredient_9
+ + ingredient_total = 0
 ingredient_0_lower: ingredient_0 >= 0
 ingredient_0_upper: ingredient_0 - ingredient_total <= 0
 ingredient_10_lower: ingredient_10 >= 0
@@ -142,6 +144,16 @@ ingredient_19_lower: ingredient_19 >= 0
 ingredient_19_upper: ingredient_19 <= 0
 ingredient_1_lower: ingredient_1 >= 0
 ingredient_1_upper: ingredient_1 - ingredient_total <= 0
+ingredient_20_lower: ingredient_20 >= 0
+ingredient_20_upper: ingredient_20 <= 0
+ingredient_21_lower: ingredient_21 >= 0
+ingredient_21_upper: ingredient_21 <= 0
+ingredient_22_lower: ingredient_22 >= 0
+ingredient_22_upper: ingredient_22 <= 0
+ingredient_23_lower: ingredient_23 >= 0
+ingredient_23_upper: ingredient_23 <= 0
+ingredient_24_lower: ingredient_24 >= 0
+ingredient_24_upper: ingredient_24 - ingredient_total <= 0
 ingredient_2_lower: ingredient_2 >= 0
 ingredient_2_upper: ingredient_2 - ingredient_total <= 0
 ingredient_3_lower: ingredient_3 >= 0

@@ -138,8 +138,8 @@ class IngredientEditor(MainWindow):
         # This label is hack to make sure that when a new ingredient is added, you don't have to scroll down to see it:
         Label(master=self.i_e_scrollframe.interior).grid(row=9000) 
 
-        new_ingr_button = ttk.Button(ingredient_editor_buttons, text='New ingredient', width=20, command=lambda : self.new_ingredient(toggle_ingredient))
-        new_ingr_button.pack(side='left')   
+        self.new_ingr_button = ttk.Button(ingredient_editor_buttons, text='New ingredient', width=20)
+        self.new_ingr_button.pack(side='left')   
         update_button = ttk.Button(ingredient_editor_buttons, text='Update', width=20,
                                    command=lambda : self.update_ingredient_dict(current_recipe, ingredient_select_button, entry_type))
         update_button.pack(side='right')
@@ -163,22 +163,7 @@ class IngredientEditor(MainWindow):
             ot = 'other_'+index
             coefs = other_dict[index].numerator_coefs
             linear_combo = [(lp_var[key], coefs[key]) for key in coefs]
-            prob.constraints[ot] = lp_var[ot] == LpAffineExpression(linear_combo)         # Relate this variable to the other variables.
-
-##    def reorder_ingredients(self, ing_list, current_recipe, ingredient_select_button):
-##        # Run when reordering the ingredients using dragmanager.
-##
-##        self.ingredient_order = ing_list
-##
-##        #Regrid ingredients in selection window and those that have been selected.
-##        for i, j in enumerate(ing_list):
-##            # uncomment the folloiwn line once ingredient_select_button has been defined
-##            ingredient_select_button[j].grid(row=i)
-##            if j in current_recipe.ingredients:
-##                restr_dict['ingredient_'+j].display(101 + i)
-##            else:
-##                pass
-        
+            prob.constraints[ot] = lp_var[ot] == LpAffineExpression(linear_combo)         # Relate this variable to the other variables.      
 
     def update_ingredient_dict(self, current_recipe, ingredient_select_button, entry_type):
         # Run when updating ingredients.  Needs improvement since it removes stars from ingredients that correspond to x or y variables.
@@ -322,43 +307,42 @@ class IngredientEditor(MainWindow):
             rec.update_variables(restr_keys(rec.oxides, rec.ingredients, rec.other))
         json_write_recipes()
 ##      
-    def new_ingredient(self, toggle_ingredient):
-
-        with shelve.open("./data/IngredientShelf") as ingredient_shelf:
-            r = max([int(index) for index in ingredient_shelf]) + 1
-            index = str(r)
-            ing = ingredient_shelf[str(r)] = Ingredient('Ingredient #'+index, notes='', oxide_comp={}, other_attributes={})
-                            # If we just had Ingredient('Ingredient #'+index) above, the default values of the notes, oxide_comp
-                            # and other_attributes attributes would change when the last instance of the class defined had those
-                            # attributes changed
-    ##        ing = Ingredient('Ingredient #'+index, oxide_comp = {})
-    ##        print(ing.oxide_comp)
-    ##        print(ing.name)
-    ##        ingredient_shelf[str(r)] = copy.deepcopy(ing)
-
-        with shelve.open("./data/OrderShelf") as order_shelf:
-            temp_list = order_shelf['ingredients']
-            temp_list.append(index)
-            order_shelf['ingredients'] = temp_list
-            self.ingredient_order = temp_list
-        
-        self.ingredient_dict[index] = ing
-        ing.displayable_version(index, self.i_e_scrollframe.interior, lambda i : self.pre_delete_ingredient(i, recipe_dict))
-        ing.display(len(temp_list)-1)
-        self.ing_dnd.add_dragable(self.ingredient_dict[index].display_widgets['name'])    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
-        restr_dict['ingredient_'+index] = Restriction('ingredient_'+index, ing.name, 'ingredient_'+index, "0.01*lp_var['ingredient_total']", 0, 100)
-
-        lp_var['ingredient_'+index] = pulp.LpVariable('ingredient_'+index, 0, None, pulp.LpContinuous)
-        prob.constraints['ing_total'] = lp_var['ingredient_total'] == sum(lp_var['ingredient_'+index] for index in self.ingredient_dict)
-
-        ingredient_select_button[index] = ttk.Button(vsf.interior, text=ing.name, width=20,
-                                                     command=partial(toggle_ingredient, index))
-        ingredient_select_button[index].grid(row=r)
-
-    ##    i_e_scrollframe.vscrollbar.set(100,0)  # Doesn't do anything
-        self.i_e_scrollframe.canvas.yview_moveto(1)  # Supposed to move the scrollbar to the bottom, but misses the last row
-        
-        restr = restr_dict['ingredient_'+index]
-        restr.left_label.bind("<Button-1>", partial(update_var, current_recipe, restr, 'x'))
-        restr.right_label.bind("<Button-1>", partial(update_var, current_recipe, restr, 'y'))
-
+##    def new_ingredient(self, toggle_ingredient):
+##
+##        with shelve.open("./data/IngredientShelf") as ingredient_shelf:
+##            r = max([int(index) for index in ingredient_shelf]) + 1
+##            index = str(r)
+##            ing = ingredient_shelf[str(r)] = Ingredient('Ingredient #'+index, notes='', oxide_comp={}, other_attributes={})
+##                            # If we just had Ingredient('Ingredient #'+index) above, the default values of the notes, oxide_comp
+##                            # and other_attributes attributes would change when the last instance of the class defined had those
+##                            # attributes changed
+##    ##        ing = Ingredient('Ingredient #'+index, oxide_comp = {})
+##    ##        print(ing.oxide_comp)
+##    ##        print(ing.name)
+##    ##        ingredient_shelf[str(r)] = copy.deepcopy(ing)
+##
+##        with shelve.open("./data/OrderShelf") as order_shelf:
+##            temp_list = order_shelf['ingredients']
+##            temp_list.append(index)
+##            order_shelf['ingredients'] = temp_list
+##            self.ingredient_order = temp_list
+##        
+##        self.ingredient_dict[index] = ing
+##        ing.displayable_version(index, self.i_e_scrollframe.interior, lambda i : self.pre_delete_ingredient(i, recipe_dict))
+##        ing.display(len(temp_list)-1)
+##        self.ing_dnd.add_dragable(self.ingredient_dict[index].display_widgets['name'])    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
+##        restr_dict['ingredient_'+index] = Restriction('ingredient_'+index, ing.name, 'ingredient_'+index, "0.01*lp_var['ingredient_total']", 0, 100)
+##
+##        lp_var['ingredient_'+index] = pulp.LpVariable('ingredient_'+index, 0, None, pulp.LpContinuous)
+##        prob.constraints['ing_total'] = lp_var['ingredient_total'] == sum(lp_var['ingredient_'+index] for index in self.ingredient_dict)
+##
+##        ingredient_select_button[index] = ttk.Button(vsf.interior, text=ing.name, width=20,
+##                                                     command=partial(toggle_ingredient, index))
+##        ingredient_select_button[index].grid(row=r)
+##
+##    ##    i_e_scrollframe.vscrollbar.set(100,0)  # Doesn't do anything
+##        self.i_e_scrollframe.canvas.yview_moveto(1)  # Supposed to move the scrollbar to the bottom, but misses the last row
+##        
+##        restr = restr_dict['ingredient_'+index]
+##        restr.left_label.bind("<Button-1>", partial(update_var, current_recipe, restr, 'x'))
+##        restr.right_label.bind("<Button-1>", partial(update_var, current_recipe, restr, 'y'))
