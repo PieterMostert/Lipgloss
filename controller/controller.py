@@ -274,7 +274,20 @@ class Controller:
         try:
             self.ing_editor.toplevel.lift() # lift the recipe selector, if it already exists
         except:
-            self.ing_editor = IngredientEditor(self.cd, self.mod.order)
+            self.ing_editor = IngredientEditor(self.cd, self.mod.order, self.reorder_ingredients)
+
+    def reorder_ingredients(self, new_order):
+        # Run when reordering the ingredients using dragmanager.
+        self.mod.order["ingredients"] = new_order
+        # TODO: Update order shelf
+
+        #Regrid ingredients in selection window and those that have been selected.
+        for i, j in enumerate(new_order):
+            self.mw.ingredient_select_button[j].grid(row=i)
+            if j in self.mod.current_recipe.ingredients:
+                self.display_restr_dict['ingredient_'+j].display(101 + i)
+            else:
+                pass
 
     def toggle_ingredient(self, i):
         """Adds or removes ingredient_dict[i] to or from the current recipe, depending on whether it isn't or is an ingredient already."""

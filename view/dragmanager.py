@@ -20,7 +20,7 @@ class DragManager():
                                         # order_shelf[family_name] is a list of indices in the order they will be displayed
         self.family_name = family_name  # Text string denoting the family in question.
         self.grid_func = grid_func      # Function that grids widgets associated to members of the family.
-                                        # To be more specific, grid_func(family_dict[j],i) grids family_dict[j] in row i.
+                                        # To be more specific, grid_func(family_dict[j], i) grids family_dict[j] in row i.
         self.reorder_func = reorder_func
         
     def add_dragable(self, widget):
@@ -44,8 +44,8 @@ class DragManager():
         # Find the widget under the cursor:
         y0 = event.widget.grid_info()['row']           # Row of widget you're dragging.
         #print('y0 = '+str(y0))
-        x,y = event.widget.winfo_pointerxy()
-        target = event.widget.winfo_containing(x,y)    # Widget whose position will be taken over by dragged widget.
+        x, y = event.widget.winfo_pointerxy()
+        target = event.widget.winfo_containing(x, y)    # Widget whose position will be taken over by dragged widget.
         
         try:
             yr = target.grid_info()['row']             # Row you want to drag the widget to.
@@ -53,7 +53,8 @@ class DragManager():
             
             with shelve.open(self.order_shelf) as order_shelf:
                 temp_list = order_shelf[self.family_name]
-                temp_list.insert(yr,temp_list.pop(y0))
+                #print(temp_list)
+                temp_list.insert(yr, temp_list.pop(y0))
                 order_shelf[self.family_name] = temp_list
                 
 

@@ -25,6 +25,11 @@ from .main_window import MainWindow
 from .vert_scrolled_frame import VerticalScrolledFrame
 from .pretty_names import prettify
 
+from os.path import abspath, dirname
+from inspect import getsourcefile
+order_pathname = dirname(dirname(abspath(getsourcefile(lambda:0))))+'\model\persistent_data\OrderShelf'
+raw_order_pathname = "%r"%order_pathname
+
 # Functions relating to the ingredient editor window (accessed through Options > Edit Ingredients)
 
 ###Need to access the following. Just defining trivial values for now. Also need toggle_ingredient and update_var
@@ -85,7 +90,7 @@ class IngredientEditor(MainWindow):
     """Window that lets users enter / delete ingredients, edit oxide compositions and other attributes, and rearrange \\
        the order in which ingredients are displayed"""
 
-    def __init__(self, core_data, order): #, ingredient_order, ingredient_dict, oxides, other_attr_dict): #, recipe_dict, ingredient_select_button, toggle_ingredient, update_var, entry_type):
+    def __init__(self, core_data, order, reorder_ingredients): #, ingredient_order, ingredient_dict, oxides, other_attr_dict): #, recipe_dict, ingredient_select_button, toggle_ingredient, update_var, entry_type):
         pass
 
         self.toplevel = Toplevel()
@@ -117,25 +122,25 @@ class IngredientEditor(MainWindow):
             #Label(master=self.ingredient_editor_headings, text=attr.name, width=5).grid(row=0, column=c+attr.pos)
             Label(master=self.ingredient_editor_headings, text=attr, width=5).grid(row=0, column=c+int(i))
 
-
-        # Create drag manager for ingredient rows:
-        self.ing_dnd = DragManager(core_data.ingredient_dict, "./data/OrderShelf", 'ingredients',
-                              lambda ing, i: ing.display(i),
-                              lambda ing_list : self.reorder_ingredients(ing_list, current_recipe, ingredient_select_button))
-
         # Create and display the rows:
         self.line = {}
         for i, index in enumerate(order["ingredients"]):
             self.line[index] = DisplayIngredient(index, core_data, self.i_e_scrollframe.interior, lambda i : self.pre_delete_ingredient(i, recipe_dict))
             self.line[index].display(i, core_data)
+
+        # Create drag manager for ingredient rows:
+        self.ing_dnd = DragManager(self.line, order_pathname, "ingredients",
+                              lambda ing, i: ing.display(i, core_data), reorder_ingredients)
+
+        for i, index in enumerate(order["ingredients"]):        
             self.ing_dnd.add_dragable(self.line[index].name_entry)    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
                 
         # This label is hack to make sure that when a new ingredient is added, you don't have to scroll down to see it:
         Label(master=self.i_e_scrollframe.interior).grid(row=9000) 
 
-        new_ingr_button = ttk.Button(ingredient_editor_buttons, text = 'New ingredient', width=20, command=lambda : self.new_ingredient(toggle_ingredient))
+        new_ingr_button = ttk.Button(ingredient_editor_buttons, text='New ingredient', width=20, command=lambda : self.new_ingredient(toggle_ingredient))
         new_ingr_button.pack(side='left')   
-        update_button = ttk.Button(ingredient_editor_buttons, text = 'Update', width=20,
+        update_button = ttk.Button(ingredient_editor_buttons, text='Update', width=20,
                                    command=lambda : self.update_ingredient_dict(current_recipe, ingredient_select_button, entry_type))
         update_button.pack(side='right')
 
@@ -160,19 +165,19 @@ class IngredientEditor(MainWindow):
             linear_combo = [(lp_var[key], coefs[key]) for key in coefs]
             prob.constraints[ot] = lp_var[ot] == LpAffineExpression(linear_combo)         # Relate this variable to the other variables.
 
-    def reorder_ingredients(self, ing_list, current_recipe, ingredient_select_button):
-        # Run when reordering the ingredients using dragmanager.
-
-        self.ingredient_order = ing_list
-
-        #Regrid ingredients in selection window and those that have been selected.
-        for i, j in enumerate(ing_list):
-            # uncomment the folloiwn line once ingredient_select_button has been defined
-            ingredient_select_button[j].grid(row=i)
-            if j in current_recipe.ingredients:
-                restr_dict['ingredient_'+j].display(101 + i)
-            else:
-                pass
+##    def reorder_ingredients(self, ing_list, current_recipe, ingredient_select_button):
+##        # Run when reordering the ingredients using dragmanager.
+##
+##        self.ingredient_order = ing_list
+##
+##        #Regrid ingredients in selection window and those that have been selected.
+##        for i, j in enumerate(ing_list):
+##            # uncomment the folloiwn line once ingredient_select_button has been defined
+##            ingredient_select_button[j].grid(row=i)
+##            if j in current_recipe.ingredients:
+##                restr_dict['ingredient_'+j].display(101 + i)
+##            else:
+##                pass
         
 
     def update_ingredient_dict(self, current_recipe, ingredient_select_button, entry_type):
