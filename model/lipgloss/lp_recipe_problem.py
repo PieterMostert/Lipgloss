@@ -42,7 +42,7 @@ class LpRecipeProblem(LpProblem):
         self.ingredient_dict = core_data.ingredient_dict
         self.oxide_dict = core_data.oxide_dict
         self.other_dict = core_data.other_dict
-        self.ingredient_compositions = core_data.ingredient_compositions
+        self.ingredient_compositions = None  # Set to core_data.ingredient_compositions when self.update_ingredient_compositions(core_data) is run
 
         self.lp_var = {}     # self.lp_var is a dictionary for the variables in the linear programming problem
 
@@ -59,10 +59,8 @@ class LpRecipeProblem(LpProblem):
             self.lp_var['mass_'+ox] = pulp.LpVariable('mass_'+ox, 0, None, pulp.LpContinuous)
             # Relate mole percent and unity:
             self += self.lp_var['mole_'+ox] * self.oxide_dict[ox].molar_mass == self.lp_var['mass_'+ox]   
-            # Relate ingredients and oxides:
-            self += sum(self.ingredient_compositions[index][ox] * self.lp_var['ingredient_'+index]/100 \
-                        for index in self.ingredient_dict if ox in self.ingredient_compositions[index]) \
-                    == self.lp_var['mass_'+ox], ox
+        # Relate ingredients and oxides:
+        self.update_ingredient_compositions(core_data)
 
         for index in self.other_dict:
             ot = 'other_'+index
@@ -76,6 +74,14 @@ class LpRecipeProblem(LpProblem):
         self += self.lp_var['fluxes_total'] == sum(self.oxide_dict[ox].flux * self.lp_var['mole_'+ox] for ox in self.oxide_dict)
         self += self.lp_var['ox_mass_total'] == sum(self.lp_var['mass_'+ox] for ox in self.oxide_dict)
         self += self.lp_var['ox_mole_total'] == sum(self.lp_var['mole_'+ox] for ox in self.oxide_dict)
+
+    def update_ingredient_compositions(self, core_data):
+        "To be run when the composition of any ingredient is changed. May be better to do this for a specific ingredient"
+        self.ingredient_compositions = core_data.ingredient_compositions
+        for ox in self.oxide_dict:
+            self.constraints[ox] = sum(self.ingredient_compositions[index][ox] * self.lp_var['ingredient_'+index]/100 \
+                                   for index in self.ingredient_dict if ox in self.ingredient_compositions[index]) \
+                                   == self.lp_var['mass_'+ox]
 
     def calc_restrictions(self, recipe, restr_dict):   # first update recipe
         

@@ -140,9 +140,8 @@ class IngredientEditor(MainWindow):
 
         self.new_ingr_button = ttk.Button(ingredient_editor_buttons, text='New ingredient', width=20)
         self.new_ingr_button.pack(side='left')   
-        update_button = ttk.Button(ingredient_editor_buttons, text='Update', width=20,
-                                   command=lambda : self.update_ingredient_dict(current_recipe, ingredient_select_button, entry_type))
-        update_button.pack(side='right')
+        self.update_button = ttk.Button(ingredient_editor_buttons, text='Update', width=20)
+        self.update_button.pack(side='right')
 
         self.i_e_scrollframe.interior.focus_force()
 
@@ -165,58 +164,58 @@ class IngredientEditor(MainWindow):
             linear_combo = [(lp_var[key], coefs[key]) for key in coefs]
             prob.constraints[ot] = lp_var[ot] == LpAffineExpression(linear_combo)         # Relate this variable to the other variables.      
 
-    def update_ingredient_dict(self, current_recipe, ingredient_select_button, entry_type):
-        # Run when updating ingredients.  Needs improvement since it removes stars from ingredients that correspond to x or y variables.
-
-        for index in self.ingredient_dict:
-            # Maybe the restriction class should have an update_data method
-            ing = self.ingredient_dict[index]
-            ing.name = ing.display_widgets['name'].get()                 # update ingredient name
-            restr_dict['ingredient_'+index].name = ing.name              # update corresponding restriction name
-            restr_dict['ingredient_'+index].left_label_text.set(ing.name+' : ')
-            restr_dict['ingredient_'+index].right_label_text.set(' : '+ing.name)
-            ingredient_select_button[index].config(text = ing.name)
-            for ox in oxides:
-                try:
-                    val = eval(ing.display_widgets[ox].get())
-                except:
-                    val = 0
-                if isinstance(val,Number) and val != 0:
-                    ing.oxide_comp[ox] = val
-                else:
-                    ing.display_widgets[ox].delete(0,END)
-                    try:
-                        del ing.oxide_comp[ox]
-                    except:
-                        pass
-
-    ##        for t, i in current_recipe.variables.items():
-    ##            restr_dict[i].select(t)
-
-            for i, attr in other_attr_dict.items():
-                try:
-                    val = eval(ing.display_widgets['other_attr_'+i].get())
-                except:
-                    val = 0
-                if isinstance(val,Number) and val != 0:
-                    ing.other_attributes[i] = val
-                else:
-                    ing.display_widgets['other_attr_'+i].delete(0,END)
-                    try:
-                        del ing.other_attributes[i]
-                    except:
-                        pass
-
-            self.ingredient_dict[index] = ing
-        
-        with shelve.open("./data/IngredientShelf") as ingredient_shelf:
-            for index in ingredient_shelf:
-                ingredient_shelf[index] = self.ingredient_dict[index].pickleable_version()
-        ingredient_compositions = get_ing_comp(self.ingredient_dict)
-
-        self.update_basic_constraints(ingredient_compositions, other_dict)
-
-        current_recipe.update_oxides(restr_dict, entry_type.get())
+##    def update_ingredient_dict(self, current_recipe, ingredient_select_button, entry_type):
+##        # Run when updating ingredients.  Needs improvement since it removes stars from ingredients that correspond to x or y variables.
+##
+##        for index in self.ingredient_dict:
+##            # Maybe the restriction class should have an update_data method
+##            ing = self.ingredient_dict[index]
+##            ing.name = ing.display_widgets['name'].get()                 # update ingredient name
+##            restr_dict['ingredient_'+index].name = ing.name              # update corresponding restriction name
+##            restr_dict['ingredient_'+index].left_label_text.set(ing.name+' : ')
+##            restr_dict['ingredient_'+index].right_label_text.set(' : '+ing.name)
+##            ingredient_select_button[index].config(text = ing.name)
+##            for ox in oxides:
+##                try:
+##                    val = eval(ing.display_widgets[ox].get())
+##                except:
+##                    val = 0
+##                if isinstance(val,Number) and val != 0:
+##                    ing.oxide_comp[ox] = val
+##                else:
+##                    ing.display_widgets[ox].delete(0,END)
+##                    try:
+##                        del ing.oxide_comp[ox]
+##                    except:
+##                        pass
+##
+##    ##        for t, i in current_recipe.variables.items():
+##    ##            restr_dict[i].select(t)
+##
+##            for i, attr in other_attr_dict.items():
+##                try:
+##                    val = eval(ing.display_widgets['other_attr_'+i].get())
+##                except:
+##                    val = 0
+##                if isinstance(val,Number) and val != 0:
+##                    ing.other_attributes[i] = val
+##                else:
+##                    ing.display_widgets['other_attr_'+i].delete(0,END)
+##                    try:
+##                        del ing.other_attributes[i]
+##                    except:
+##                        pass
+##
+##            self.ingredient_dict[index] = ing
+##        
+##        with shelve.open("./data/IngredientShelf") as ingredient_shelf:
+##            for index in ingredient_shelf:
+##                ingredient_shelf[index] = self.ingredient_dict[index].pickleable_version()
+##        ingredient_compositions = get_ing_comp(self.ingredient_dict)
+##
+##        self.update_basic_constraints(ingredient_compositions, other_dict)
+##
+##        current_recipe.update_oxides(restr_dict, entry_type.get())
 
     def close_conf_window_and_delete_ing(self, index, recipes_affected):
         self.delete_ingredient(index, recipes_affected)

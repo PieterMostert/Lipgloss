@@ -91,7 +91,7 @@ class DisplayRestriction:
 
         self.right_label.grid(row=line, column=6, sticky=tk.W)       # grid right restriction name
 
-    def remove(self, recipe):     # remove recipe from this?
+    def remove(self, var):
         for widget in [self.left_label, self.lower_bound, self.upper_bound, self.calc_bounds['lower'], self.calc_bounds['upper'],
                        self.right_label]:
             widget.grid_forget()    # remove widgets corresponding to that restriction
@@ -99,11 +99,9 @@ class DisplayRestriction:
         self.upp.set(self.default_upp)
         for eps in ['lower', 'upper']:
             self.calc_bounds[eps].config(text='')
-        v = dict(recipe.variables)
-        for t in v:
-            if self.index == v[t]:
+        for t in var:
+            if self.index == var[t]:
                 self.deselect(t)
-                del recipe.variables[t]
 
     def hide(self):  # to be used with oxide options
         for widget in [self.left_label, self.lower_bound, self.upper_bound, self.calc_bounds['lower'], self.calc_bounds['upper'],
