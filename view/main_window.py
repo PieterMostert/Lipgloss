@@ -134,7 +134,7 @@ class MainWindow:
         # grid other part of restriction frame
         other_heading_frame = ttk.Frame(self.restriction_sf.interior)
         other_heading_frame.grid(row = 1000, column = 0, columnspan = 7)
-        Label(other_heading_frame, text = 'Other', font = ('Helvetica', 12)).grid()
+        Label(other_heading_frame, text = 'Other Restrictions', font = ('Helvetica', 12)).grid()
 
         # grid calc frame
         calc_frame.grid(row = 1)
@@ -154,12 +154,7 @@ class MainWindow:
             # SECTION 6
         # Create menus
         self.file_menu = Menu(self.menubar, tearoff=0)    
-        self.menubar.add_cascade(label="File", menu=self.file_menu)
-
-        self.options_menu.add_command(label="Edit Oxides", command=edit_oxides)
-        self.options_menu.add_command(label="Edit Other Restrictions", command=edit_other_restrictions)
-        self.options_menu.add_command(label="Restriction Settings", command=restriction_settings)
-        
+        self.menubar.add_cascade(label="File", menu=self.file_menu)        
         self.menubar.add_cascade(label="Options", menu=self.options_menu)
         self.root.config(menu=self.menubar)
 

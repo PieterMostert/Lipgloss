@@ -99,11 +99,10 @@ class Controller:
         self.mw.file_menu.add_command(label="Save", command=self.save_recipe)
         self.mw.file_menu.add_command(label="Save as new recipe", command=self.save_new_recipe)
 
+        self.mw.options_menu.add_command(label="Edit Oxides", command=None)
         self.mw.options_menu.add_command(label="Edit Ingredients", command=self.open_ingredient_editor)
-##                self.options_menu.add_command(label="Edit Ingredients",
-##                                command=lambda : ing_dat.open_ingredient_editor(current_recipe, recipe_dict,
-##                                                                                self.ingredient_select_button, toggle_ingredient, update_var, self.entry_type))
-
+        self.mw.options_menu.add_command(label="Edit Other Restrictions", command=self.open_ingredient_editor)
+        self.mw.options_menu.add_command(label="Restriction Settings", command=self.open_ingredient_editor)
         
         self.mw.calc_button.config(command=self.calc_restr)
         
@@ -314,10 +313,6 @@ class Controller:
                             # If we just had Ingredient('Ingredient #'+index) above, the default values of the notes, oxide_comp
                             # and other_attributes attributes would change when the last instance of the class defined had those
                             # attributes changed
-    ##        ing = Ingredient('Ingredient #'+index, oxide_comp = {})
-    ##        print(ing.oxide_comp)
-    ##        print(ing.name)
-    ##        ingredient_shelf[str(r)] = copy.deepcopy(ing)
 
         with shelve.open(persistent_data_path+"/OrderShelf") as order_shelf:
             temp_list = order_shelf['ingredients']
@@ -354,17 +349,14 @@ class Controller:
         self.ing_editor.i_e_scrollframe.canvas.yview_moveto(1)  # Supposed to move the scrollbar to the bottom, but misses the last row
         
     def update_ingredient_dict(self):
-        # Run when updating ingredients.  Needs improvement since it removes stars from ingredients that correspond to x or y variables.
+        """"Run when updating ingredients (via ingredient editor)"""
 
         for index, ing in self.cd.ingredient_dict.items():
             # Maybe the restriction class should have an update_data method
             ing.name = self.ing_editor.line[index].name_entry.get()                 # update ingredient name
-            # turn the next 3 lines into a DisplayRestiction method
-            self.restr_dict['ingredient_'+index].name = ing.name      
-            self.display_restr_dict['ingredient_'+index].name = ing.name
-            self.display_restr_dict['ingredient_'+index].left_label_text.set(ing.name+' : ')
-            self.display_restr_dict['ingredient_'+index].right_label_text.set(' : '+ing.name)
-            self.mw.ingredient_select_button[index].config(text = ing.name)
+            self.restr_dict['ingredient_'+index].name = ing.name
+            self.display_restr_dict['ingredient_'+index].set_name(ing.name)
+            self.mw.ingredient_select_button[index].config(text=ing.name)
             for ox in self.cd.oxide_dict:
                 try:
                     val = eval(self.ing_editor.line[index].oxide_entry[ox].get()   )
@@ -379,9 +371,6 @@ class Controller:
                     except:
                         pass
 
-    ##        for t, i in current_recipe.variables.items():
-    ##            restr_dict[i].select(t)
-
             for i, attr in self.cd.other_attr_dict.items():
                 try:
                     val = eval(self.ing_editor.line[index].other_attr_entry[i].get())
@@ -395,46 +384,37 @@ class Controller:
                         del ing.other_attributes[i]
                     except:
                         pass
-##
+
             self.cd.ingredient_dict[index] = ing
             self.cd.ingredient_compositions[index] = self.cd.ingredient_dict[index].oxide_comp
 
-            with shelve.open(persistent_data_path+"/IngredientShelf") as ingredient_shelf:
-                for index in ingredient_shelf:
-                    ingredient_shelf[index] = self.cd.ingredient_dict[index]
+        with shelve.open(persistent_data_path+"/IngredientShelf") as ingredient_shelf:
+            for index in ingredient_shelf:
+                ingredient_shelf[index] = self.cd.ingredient_dict[index]
 ##                    ingredient_shelf[index].oxide_comp = self.cd.ingredient_dict[index].oxide_comp
 ##                    ingredient_shelf[index].other_attributes = self.cd.ingredient_dict[index].other_attributes
+                
+        self.lprp.update_ingredient_compositions(self.cd) 
+                
+        old_oxides = copy.copy(self.mod.current_recipe.oxides)
+        old_variables = copy.copy(self.mod.current_recipe.variables)
+        # Reinsert stars next to ingredients that are variables:
+        for t, res in old_variables.items():
+            if res[0:10] == 'ingredient':
+                self.display_restr_dict[res].select(t)
 
-            self.lprp.update_ingredient_compositions(self.cd) 
-##
-##        self.update_basic_constraints(ingredient_compositions, other_dict)
+        self.mod.current_recipe.update_oxides(self.cd)   # Do this for all recipes?
+        
+        for ox in old_oxides - self.mod.current_recipe.oxides:
+            for et in ['umf_', 'mass_perc_', 'mole_perc_']:
+                self.display_restr_dict[et+ox].remove(old_variables)
 
-            old_oxides = copy.copy(self.mod.current_recipe.oxides)
-            old_variables = copy.copy(self.mod.current_recipe.variables)
-
-            self.mod.current_recipe.update_oxides(self.cd)   # Do this for all recipes?
-            
-            for ox in old_oxides:
-                if ox not in self.mod.current_recipe.oxides:
-                    for et in ['umf_', 'mass_perc_', 'mole_perc_']:
-                        self.display_restr_dict[et+ox].remove(old_variables)
-
-            et = self.mw.entry_type.get()
-            for ox in self.mod.current_recipe.oxides:
-                if ox not in old_oxides:
-                    self.display_restr_dict[et+ox].display(1 + self.cd.oxide_dict[ox].pos)
-##            for ox in old_oxides:
-##                if ox not in new_oxides:
-##                    for et in ['umf_', 'mass_perc_', 'mole_perc_']:
-##                        self.display_restr_dict[et+ox].remove(self.mod.current_recipe)
-##            for ox in new_oxides:
-##                if ox not in old_oxides:
-##                    for et in ['umf_', 'mass_perc_', 'mole_perc_']:
-##                        
-##            #TODO self.mw.update_oxides() ?
+        et = self.mw.entry_type.get()
+        for ox in self.mod.current_recipe.oxides - old_oxides:
+            self.display_restr_dict[et+ox].display(1 + self.cd.oxide_dict[ox].pos)
 
     def toggle_ingredient(self, i):
-        """Adds or removes ingredient_dict[i] to or from the current recipe, depending on whether it isn't or is an ingredient already."""
+        """Adds/removes ingredient_dict[i] to/from the current recipe, depending on whether it isn't/is an ingredient already."""
         recipe = self.mod.current_recipe
         if i in recipe.ingredients:
             old_variables = copy.copy(recipe.variables)
@@ -463,7 +443,7 @@ class Controller:
         #self.mod.current_recipe = recipe
 
     def toggle_other(self, i):
-        """Adds or removes other_dict[index] to or from the current recipe, depending on whether it isn't or is an other restriction already."""
+        """Adds/removes other_dict[index] to/from the current recipe, depending on whether it isn't/is an other restriction already."""
         recipe = self.mod.current_recipe
         if i in recipe.other:
             recipe.remove_other(self.cd, i)

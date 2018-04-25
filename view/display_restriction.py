@@ -108,6 +108,9 @@ class DisplayRestriction:
                        self.right_label]:
             widget.grid_forget()
 
-    def display_calc_bounds(self, calc_value):  # Do we use this?
-        for eps in ['lower', 'upper']:
-            self.calc_bounds[eps].config(text=('%.' + str(self.dec_pt) + 'f') % self.calc_value[eps])
+    def set_name(self, name):
+        "Note that this will remove stars from restrictions that are variables, and won't update the names in the 2 dimensional projection"
+        self.name = name
+        self.left_label_text.set(name+' : ')
+        self.right_label_text.set(' : '+name)
+        

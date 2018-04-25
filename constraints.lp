@@ -20,7 +20,7 @@ B2O3_umf_lower: mole_B2O3 >= 0
 B2O3_umf_upper: - fluxes_total + mole_B2O3 <= 0
 B2O3_wt_%_lower: mass_B2O3 >= 0
 B2O3_wt_%_upper: mass_B2O3 - ox_mass_total <= 0
-BaO: 0.22 ingredient_22 - mass_BaO = 0
+BaO: 0.08 ingredient_22 - mass_BaO = 0
 CaO: 0.0564 ingredient_11 + 0.1407 ingredient_12 + 0.2013 ingredient_13
  + 0.1136 ingredient_14 + 0.5422 ingredient_15 + 0.2299 ingredient_18
  + 0.0181 ingredient_19 + 0.003 ingredient_2 + 0.007 ingredient_5
@@ -33,6 +33,12 @@ CaO_wt_%_lower: mass_CaO >= 0
 CaO_wt_%_upper: mass_CaO - ox_mass_total <= 0
 Fe2O3: 0.95 ingredient_17 + 0.0019 ingredient_19 + 0.0102 ingredient_2
  + 0.001 ingredient_5 - mass_Fe2O3 = 0
+Fe2O3_mol_%_lower: mole_Fe2O3 >= 0
+Fe2O3_mol_%_upper: mole_Fe2O3 - ox_mole_total <= 0
+Fe2O3_umf_lower: mole_Fe2O3 >= 0
+Fe2O3_umf_upper: - fluxes_total + mole_Fe2O3 <= 0
+Fe2O3_wt_%_lower: mass_Fe2O3 >= 0
+Fe2O3_wt_%_upper: mass_Fe2O3 - ox_mass_total <= 0
 K2O: 0.0345 ingredient_11 + 0.0068 ingredient_12 + 0.043 ingredient_19
  + 0.009 ingredient_2 + 0.1692 ingredient_3 + 0.046 ingredient_5 - mass_K2O
  = 0
@@ -42,7 +48,7 @@ K2O_umf_lower: mole_K2O >= 0
 K2O_umf_upper: - fluxes_total + mole_K2O <= 0
 K2O_wt_%_lower: mass_K2O >= 0
 K2O_wt_%_upper: mass_K2O - ox_mass_total <= 0
-Li2O: 0.4074 ingredient_16 - mass_Li2O = 0
+Li2O: 0.4074 ingredient_16 + 0.07 ingredient_26 - mass_Li2O = 0
 MgO: 0.039 ingredient_18 + 0.0014 ingredient_19 + 0.003 ingredient_2
  + 0.001 ingredient_5 + 0.3187 ingredient_8 + 0.478 ingredient_9 - mass_MgO
  = 0
@@ -75,9 +81,15 @@ SiO2_umf_lower: mole_SiO2 >= 0
 SiO2_umf_upper: - 100 fluxes_total + mole_SiO2 <= 0
 SiO2_wt_%_lower: mass_SiO2 >= 0
 SiO2_wt_%_upper: mass_SiO2 - ox_mass_total <= 0
-SrO: 0.67 ingredient_22 - mass_SrO = 0
+SrO: mass_SrO = 0
 TiO2: 0.0015 ingredient_19 + 0.01 ingredient_2 - mass_TiO2 = 0
-ZnO: ingredient_10 + 0.43 ingredient_26 - mass_ZnO = 0
+TiO2_mol_%_lower: mole_TiO2 >= 0
+TiO2_mol_%_upper: mole_TiO2 - ox_mole_total <= 0
+TiO2_umf_lower: mole_TiO2 >= 0
+TiO2_umf_upper: - fluxes_total + mole_TiO2 <= 0
+TiO2_wt_%_lower: mass_TiO2 >= 0
+TiO2_wt_%_upper: mass_TiO2 - ox_mass_total <= 0
+ZnO: ingredient_10 + 0.78 ingredient_22 - mass_ZnO = 0
 _C1: - mass_SiO2 + 60.085 mole_SiO2 = 0
 _C10: - mass_Na2O + 61.979 mole_Na2O = 0
 _C11: - mass_K2O + 94.196 mole_K2O = 0
@@ -143,11 +155,11 @@ ingredient_23_upper: ingredient_23 <= 0
 ingredient_24_lower: ingredient_24 >= 0
 ingredient_24_upper: ingredient_24 <= 0
 ingredient_25_lower: ingredient_25 >= 0
-ingredient_25_upper: ingredient_25 <= 0
+ingredient_25_upper: ingredient_25 - ingredient_total <= 0
 ingredient_26_lower: ingredient_26 >= 0
 ingredient_26_upper: ingredient_26 <= 0
 ingredient_2_lower: ingredient_2 >= 0
-ingredient_2_upper: ingredient_2 <= 0
+ingredient_2_upper: ingredient_2 - ingredient_total <= 0
 ingredient_3_lower: ingredient_3 >= 0
 ingredient_3_upper: ingredient_3 <= 0
 ingredient_4_lower: ingredient_4 >= 0
