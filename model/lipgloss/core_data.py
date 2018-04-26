@@ -366,15 +366,20 @@ class CoreData(OxideData):
         with shelve.open(path) as other_shelf:
             self.other_dict = dict(other_shelf)
 
-    def add_ingredient(self, ing):
+    def add_ingredient(self, ing, default_low = 0, default_upp = 100):
+        """Adds ingredient ing to the ingredient dictionary. The index is determined automatically"""
         m = max([int(j) for j in self.ingredient_dict]) + 1
         i = str(m)
         self.ingredient_dict[i] = ing
-        self.ingredient_compositions[i] = ingredient_dict[i].oxide_comp
+        self.ingredient_compositions[i] = ing.oxide_comp
+        self.default_lower_bounds['ingredient_'+i] = default_low
+        self.default_upper_bounds['ingredient_'+i] = default_upp
 
     def remove_ingredient(self, i):
         del self.ingredient_dict[i]
         del self.ingredient_compositions[i]
+        del self.default_lower_bounds['ingredient_'+index]
+        del self.default_upper_bounds['ingredient_'+index]
     
             
 ##        self.set_current_recipe('0')

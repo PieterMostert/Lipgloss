@@ -306,44 +306,49 @@ class Controller:
                 pass
             
     def new_ingredient(self):
-        with shelve.open(persistent_data_path+"/IngredientShelf") as ingredient_shelf:
-            r = max([int(index) for index in ingredient_shelf]) + 1
-            index = str(r)
-            ing = ingredient_shelf[str(r)] = Ingredient('Ingredient #'+index, notes='', oxide_comp={}, other_attributes={})
+        ing = Ingredient('', notes='', oxide_comp={}, other_attributes={})
                             # If we just had Ingredient('Ingredient #'+index) above, the default values of the notes, oxide_comp
                             # and other_attributes attributes would change when the last instance of the class defined had those
                             # attributes changed
+        self.cd.add_ingredient(ing)
+        i = list(self.cd.ingredient_dict.keys())[-1]     # index of new ingredient
+        #self.cd.ingredient_dict[i].
+        ing.name = 'Ingredient #'+i
+        with shelve.open(persistent_data_path+"/IngredientShelf") as ingredient_shelf:
+            ingredient_shelf[i] = self.cd.ingredient_dict[i]
 
         with shelve.open(persistent_data_path+"/OrderShelf") as order_shelf:
             temp_list = order_shelf['ingredients']
-            temp_list.append(index)
+            temp_list.append(i)
             order_shelf['ingredients'] = temp_list
-            self.mod.order['ingredients'] = temp_list
+        self.mod.order['ingredients'] = temp_list
+##        
+##        self.cd.ingredient_dict[index] = ing
+##        self.cd.ingredient_compositions[index] = ing.oxide_comp
+##        self.cd.default_lower_bounds['ingredient_'+index] = 0
+##        self.cd.default_upper_bounds['ingredient_'+index] = 100
         
-        self.cd.ingredient_dict[index] = ing
-        self.cd.ingredient_compositions[index] = ing.oxide_comp
-        self.cd.default_lower_bounds['ingredient_'+index] = 0
-        self.cd.default_upper_bounds['ingredient_'+index] = 100
-        
-        self.ing_editor.line[index] = DisplayIngredient(index, self.cd, self.ing_editor.i_e_scrollframe.interior,
-                                                               lambda i : self.ing_editor.pre_delete_ingredient(i, self.mod.recipe_dict))
-        self.ing_editor.line[index].display(r, self.cd)
-        self.ing_editor.ing_dnd.add_dragable(self.ing_editor.line[index].name_entry)    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
+        self.ing_editor.line[i] = DisplayIngredient(i, self.cd, self.ing_editor.i_e_scrollframe.interior,
+                                                               lambda j : self.ing_editor.pre_delete_ingredient(j, self.mod.recipe_dict))
+        self.ing_editor.line[i].display(int(i), self.cd)
+        self.ing_editor.ing_dnd.add_dragable(self.ing_editor.line[i].name_entry)    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
 
-        self.restr_dict['ingredient_'+index] = Restriction('ingredient_'+index, ing.name, 'ingredient_'+index, "0.01*self.lp_var['ingredient_total']", 0, 100)
-        self.display_restr_dict['ingredient_'+index] = DisplayRestriction(self.mw.restriction_sf.interior, self.mw.x_lab, self.mw.y_lab,
-                                                                          'ingredient_'+index, ing.name, 0, 100)
+        self.restr_dict['ingredient_'+i] = Restriction('ingredient_'+i, ing.name, 'ingredient_'+i, "0.01*self.lp_var['ingredient_total']", 0, 100)
+        self.display_restr_dict['ingredient_'+i] = DisplayRestriction(self.mw.restriction_sf.interior, self.mw.x_lab, self.mw.y_lab,
+                                                                          'ingredient_'+i, ing.name, 0, 100)
         # Set the command for x and y variable selection boxes
-        display_restr = self.display_restr_dict['ingredient_'+index]
-        display_restr.left_label.bind("<Button-1>", partial(self.update_var, 'ingredient_'+index, 'x'))
-        display_restr.right_label.bind("<Button-1>", partial(self.update_var, 'ingredient_'+index, 'y'))
+        display_restr = self.display_restr_dict['ingredient_'+i]
+        display_restr.left_label.bind("<Button-1>", partial(self.update_var, 'ingredient_'+i, 'x'))
+        display_restr.right_label.bind("<Button-1>", partial(self.update_var, 'ingredient_'+i, 'y'))
 
-        self.lprp.lp_var['ingredient_'+index] = pulp.LpVariable('ingredient_'+index, 0, None, pulp.LpContinuous)
-        self.lprp.constraints['ing_total'] = self.lprp.lp_var['ingredient_total'] == sum(self.lprp.lp_var['ingredient_'+index] for index in self.cd.ingredient_dict)
+        self.lprp.lp_var['ingredient_'+i] = pulp.LpVariable('ingredient_'+i, 0, None, pulp.LpContinuous)
+        self.lprp.constraints['ing_total'] = \
+                                           self.lprp.lp_var['ingredient_total'] \
+                                           == sum(self.lprp.lp_var['ingredient_'+j] for j in self.cd.ingredient_dict)
 
-        self.mw.ingredient_select_button[index] = ttk.Button(self.mw.vsf.interior, text=ing.name, width=20,
-                                                     command=partial(self.toggle_ingredient, index))
-        self.mw.ingredient_select_button[index].grid(row=r)
+        self.mw.ingredient_select_button[i] = ttk.Button(self.mw.vsf.interior, text=ing.name, width=20,
+                                                     command=partial(self.toggle_ingredient, i))
+        self.mw.ingredient_select_button[i].grid(row=int(i))
 
     ##    i_e_scrollframe.vscrollbar.set(100,0)  # Doesn't do anything
         self.ing_editor.i_e_scrollframe.canvas.yview_moveto(1)  # Supposed to move the scrollbar to the bottom, but misses the last row
