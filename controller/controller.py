@@ -461,20 +461,11 @@ class Controller:
 
     def delete_ingredient(self, i, recipes_affected):
 
-        oxides_to_update = self.cd.ingredient_dict[i].oxide_comp
-    ##    self.lprp._variables.remove(self.lprp.lp_var['ingredient_'+i])
-        # The commented-out line above doesn't work in general since self.lprp.lp_var['ingredient_'+index] is regarded as
-        # being equal to all entries of self.lprp._variables, so it removes the first entry. Instead, we need to use 'is'.
-        # Should probably make this an LpRecipeProblem method
-        for k, j in enumerate(self.lprp._variables):
-            if j is self.lprp.lp_var['ingredient_'+i]:
-                del self.lprp._variables[k]  
-
-##        self.update_basic_constraints(ingredient_compositions, other_dict)   # I should probably update other_dict, no?
+        #self.update_basic_constraints(ingredient_compositions, other_dict)   # I should probably update other_dict, no?
 
         if i in self.mod.current_recipe.ingredients:
-            self.toggle_ingredient(i)
-            self.mod.current_recipe.remove_ingredient(self.cd, i)
+            self.toggle_ingredient(i)   # gets rid of stars, if the ingredient is a variable
+            #self.mod.current_recipe.remove_ingredient(self.cd, i)
 
         self.cd.remove_ingredient(i)
         with shelve.open(persistent_data_path+"/IngredientShelf") as ingredient_shelf:
@@ -486,27 +477,8 @@ class Controller:
             temp_list.remove(i)
             order_shelf['ingredients'] = temp_list
 
-        self.ing_editor.line[i].delete()
-        for k, j in enumerate(self.mod.order['ingredients']):
-            self.ing_editor.line[j].display(k, self.cd)    # We actually only need to do this for the rows that are below the one that was deleted
-
-        # Remove the deleted ingredient from the list of ingredients to select from:
-        self.mw.ingredient_select_button[i].destroy()
-##        
-##        try:
-##            del prob.constraints['ingredient_'+index+'_lower']  # Is this necessary?
-##        except:
-##            pass
-##        try:
-##            del prob.constraints['ingredient_'+index+'_upper']  # Is this necessary?
-##        except:
-##            pass
-##        prob.constraints['ing_total'] = lp_var['ingredient_total'] == sum(lp_var['ingredient_'+i] for i in self.ingredient_dict)
-##
-        del self.display_restr_dict['ingredient_'+i]
-
-
-            
+        self.lprp.remove_ingredient(i, self.cd)
+             
         # Remove the ingredient from all recipes that contain it.
         for j in recipes_affected:
             self.mod.recipe_dict[j].remove_ingredient(self.cd, i)
@@ -517,6 +489,15 @@ class Controller:
 ##            rec.update_variables(restr_keys(rec.oxides, rec.ingredients, rec.other))
             
         self.mod.json_write_recipes()
+
+        self.ing_editor.line[i].delete()
+        for k, j in enumerate(self.mod.order['ingredients']):
+            self.ing_editor.line[j].display(k, self.cd)    # We actually only need to do this for the rows that are below the one that was deleted
+
+        # Remove the deleted ingredient from the list of ingredients to select from:
+        self.mw.ingredient_select_button[i].destroy()
+        del self.display_restr_dict['ingredient_'+i]
+
         
     def toggle_ingredient(self, i):
         """Adds/removes ingredient_dict[i] to/from the current recipe, depending on whether it isn't/is an ingredient already."""

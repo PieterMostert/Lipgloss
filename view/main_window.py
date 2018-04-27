@@ -88,8 +88,8 @@ class MainWindow:
         variable_info = ttk.Frame(proj_frame)
         self.proj_canvas = Canvas(proj_frame, width=450, height=450, bg='white', borderwidth=1, relief='solid')
 
-        self.x_lab = Label(variable_info, text='x variable: Click right restriction name to select')
-        self.y_lab = Label(variable_info, text='y variable: Click left restriction name to select')
+        self.x_lab = Label(variable_info, text='x variable: Click left restriction name to select')
+        self.y_lab = Label(variable_info, text='y variable: Click right restriction name to select')
 
         self.options_menu = Menu(self.menubar, tearoff=0)
 

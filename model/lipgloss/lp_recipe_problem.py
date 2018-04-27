@@ -42,8 +42,8 @@ class LpRecipeProblem(LpProblem):
         self.ingredient_dict = core_data.ingredient_dict
         self.oxide_dict = core_data.oxide_dict
         self.other_dict = core_data.other_dict
-        self.ingredient_compositions = None  # Set to core_data.ingredient_compositions when self.update_ingredient_compositions(core_data) is run
-
+        self.ingredient_compositions = core_data.ingredient_compositions
+        
         self.lp_var = {}     # self.lp_var is a dictionary for the variables in the linear programming problem
 
         # Create variables used to normalize:
@@ -77,11 +77,42 @@ class LpRecipeProblem(LpProblem):
 
     def update_ingredient_compositions(self, core_data):
         "To be run when the composition of any ingredient is changed. May be better to do this for a specific ingredient"
-        self.ingredient_compositions = core_data.ingredient_compositions
+        #self.ingredient_compositions = core_data.ingredient_compositions #unnecessary
         for ox in self.oxide_dict:
-            self.constraints[ox] = sum(self.ingredient_compositions[index][ox] * self.lp_var['ingredient_'+index]/100 \
-                                   for index in self.ingredient_dict if ox in self.ingredient_compositions[index]) \
+            self.constraints[ox] = sum(self.ingredient_compositions[j][ox] * self.lp_var['ingredient_'+j]/100 \
+                                   for j in self.ingredient_dict if ox in self.ingredient_compositions[j]) \
                                    == self.lp_var['mass_'+ox]
+
+    def remove_ingredient(self, i, core_data):
+        try:
+            core_data.remove_ingredient(i)
+        except:
+            pass
+        ##    self._variables.remove(self.lp_var['ingredient_'+i])
+        # The commented-out line above doesn't work in general since self.lp_var['ingredient_'+i] is regarded as
+        # being equal to all entries of self._variables, so it removes the first entry. Instead, we need to use 'is'.
+        for k, j in enumerate(self._variables):
+            if j is self.lp_var['ingredient_'+i]:
+                del self._variables[k]  
+        try:
+            del self.constraints['ingredient_'+i+'_lower']  # Is this necessary?
+            del self.constraints['ingredient_'+i+'_upper']  # Is this necessary?
+        except:
+            pass
+
+        #del self.ingredient_dict[i]
+        #del self.ingredient_compositions[i]
+        self.constraints['ing_total'] = self.lp_var['ingredient_total'] == \
+                                        sum(self.lp_var['ingredient_'+j] for j in self.ingredient_dict)
+
+##        try:
+##            del core_data.ingredient_compositions[i]
+##        except:
+##            pass
+        self.update_ingredient_compositions(core_data)
+
+    def add_ingredient(self, i, core_data):
+        pass     
 
     def calc_restrictions(self, recipe, restr_dict):   # first update recipe
         

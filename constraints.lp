@@ -1,6 +1,6 @@
 \* Glaze recipe *\
 Maximize
-KNaO_%_mol: - other_2
+Total_clay: - other_4
 Subject To
 Al2O3: 0.4021 ingredient_1 + 0.0602 ingredient_11 + 0.099 ingredient_12
  + 0.1198 ingredient_14 + 0.017 ingredient_18 + 0.1633 ingredient_19
@@ -14,12 +14,6 @@ Al2O3_wt_%_lower: mass_Al2O3 >= 0
 Al2O3_wt_%_upper: mass_Al2O3 - ox_mass_total <= 0
 B2O3: 0.0289 ingredient_11 + 0.1377 ingredient_12 + 0.2309 ingredient_13
  + 0.2262 ingredient_14 + 0.2449 ingredient_18 - mass_B2O3 = 0
-B2O3_mol_%_lower: mole_B2O3 >= 0
-B2O3_mol_%_upper: mole_B2O3 - ox_mole_total <= 0
-B2O3_umf_lower: mole_B2O3 >= 0
-B2O3_umf_upper: - fluxes_total + mole_B2O3 <= 0
-B2O3_wt_%_lower: mass_B2O3 >= 0
-B2O3_wt_%_upper: mass_B2O3 - ox_mass_total <= 0
 BaO: mass_BaO = 0
 CaO: 0.0564 ingredient_11 + 0.1407 ingredient_12 + 0.2013 ingredient_13
  + 0.1136 ingredient_14 + 0.5422 ingredient_15 + 0.2299 ingredient_18
@@ -48,7 +42,7 @@ K2O_umf_lower: mole_K2O >= 0
 K2O_umf_upper: - fluxes_total + mole_K2O <= 0
 K2O_wt_%_lower: mass_K2O >= 0
 K2O_wt_%_upper: mass_K2O - ox_mass_total <= 0
-Li2O: 0.4074 ingredient_16 + 0.07 ingredient_26 - mass_Li2O = 0
+Li2O: 0.4074 ingredient_16 - mass_Li2O = 0
 MgO: 0.039 ingredient_18 + 0.0014 ingredient_19 + 0.003 ingredient_2
  + 0.001 ingredient_5 + 0.3187 ingredient_8 + 0.478 ingredient_9 - mass_MgO
  = 0
@@ -116,15 +110,14 @@ _C9: - mass_Li2O + 29.881 mole_Li2O = 0
 ing_total: - ingredient_0 - ingredient_1 - ingredient_10 - ingredient_11
  - ingredient_12 - ingredient_13 - ingredient_14 - ingredient_15
  - ingredient_16 - ingredient_17 - ingredient_18 - ingredient_19
- - ingredient_2 - ingredient_20 - ingredient_26 - ingredient_3 - ingredient_31
- - ingredient_4 - ingredient_5 - ingredient_6 - ingredient_7 - ingredient_8
- - ingredient_9 + ingredient_total = 0
+ - ingredient_2 - ingredient_3 - ingredient_4 - ingredient_5 - ingredient_6
+ - ingredient_7 - ingredient_8 - ingredient_9 + ingredient_total = 0
 ingredient_0_lower: ingredient_0 >= 0
 ingredient_0_upper: ingredient_0 - ingredient_total <= 0
 ingredient_10_lower: ingredient_10 >= 0
 ingredient_10_upper: ingredient_10 <= 0
 ingredient_11_lower: ingredient_11 >= 0
-ingredient_11_upper: ingredient_11 - ingredient_total <= 0
+ingredient_11_upper: ingredient_11 <= 0
 ingredient_12_lower: ingredient_12 >= 0
 ingredient_12_upper: ingredient_12 <= 0
 ingredient_13_lower: ingredient_13 >= 0
@@ -143,14 +136,10 @@ ingredient_19_lower: ingredient_19 >= 0
 ingredient_19_upper: ingredient_19 <= 0
 ingredient_1_lower: ingredient_1 >= 0
 ingredient_1_upper: ingredient_1 - ingredient_total <= 0
-ingredient_26_lower: ingredient_26 >= 0
-ingredient_26_upper: ingredient_26 <= 0
 ingredient_2_lower: ingredient_2 >= 0
 ingredient_2_upper: ingredient_2 - ingredient_total <= 0
-ingredient_31_lower: ingredient_31 >= 0
-ingredient_31_upper: ingredient_31 <= 0
 ingredient_3_lower: ingredient_3 >= 0
-ingredient_3_upper: ingredient_3 <= 0
+ingredient_3_upper: ingredient_3 - ingredient_total <= 0
 ingredient_4_lower: ingredient_4 >= 0
 ingredient_4_upper: ingredient_4 <= 0
 ingredient_5_lower: ingredient_5 >= 0
@@ -160,19 +149,17 @@ ingredient_6_upper: ingredient_6 - ingredient_total <= 0
 ingredient_7_lower: ingredient_7 >= 0
 ingredient_7_upper: ingredient_7 <= 0
 ingredient_8_lower: ingredient_8 >= 0
-ingredient_8_upper: ingredient_8 - ingredient_total <= 0
+ingredient_8_upper: ingredient_8 <= 0
 ingredient_9_lower: ingredient_9 >= 0
 ingredient_9_upper: ingredient_9 <= 0
-normalization: 0.01 ox_mole_total = 1
+normalization: 0.01 ingredient_total = 1
 other_0: - mole_SiO2 + other_0 = 0
 other_1: - mole_K2O - mole_Na2O + other_1 = 0
 other_2: - mole_K2O - mole_Na2O + other_2 = 0
-other_2_lower: other_2 >= 0
-other_2_upper: other_2 - ox_mole_total <= 0
 other_3: - mole_BaO - mole_CaO - mole_MgO - mole_SrO + other_3 = 0
-other_3_lower: other_3 >= 0
-other_3_upper: - fluxes_total + other_3 <= 0
 other_4: - ingredient_1 - ingredient_2 + other_4 = 0
+other_4_lower: other_4 >= 0
+other_4_upper: - ingredient_total + other_4 <= 0
 other_5: - 0.125 ingredient_1 - 0.5926 ingredient_16 - 0.05 ingredient_17
  - 0.309 ingredient_18 - 0.12 ingredient_2 - 0.007 ingredient_5
  - 0.439 ingredient_7 - 0.0475 ingredient_8 - 0.522 ingredient_9 + other_5 = 0
