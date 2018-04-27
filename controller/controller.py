@@ -271,10 +271,10 @@ class Controller:
         self.mod.save_new_recipe()
         self.mw.recipe_name.set(self.mod.current_recipe.name)  
 
-    def delete_recipe(self, index):
+    def delete_recipe(self, i):
         """Delete the recipe from the recipe_dict, then write out the updated recipe_dict to JSON file."""
-        self.mod.delete_recipe(index)
-        if index == self.mod.recipe_index:
+        self.mod.delete_recipe(i)
+        if i == self.mod.recipe_index:
             # We have deleted the current recipe.  Go to default recipe
             self.open_recipe('0')
         # TODO: remove recipe from recipe selector
@@ -291,6 +291,8 @@ class Controller:
             self.ing_editor = IngredientEditor(self.cd, self.mod.order, self.reorder_ingredients)
             self.ing_editor.new_ingr_button.config(command=self.new_ingredient)
             self.ing_editor.update_button.config(command=self.update_ingredient_dict)
+            for i in self.mod.order['ingredients']:
+                self.ing_editor.line[i].delete_button.config(command=partial(self.pre_delete_ingredient, i))
 
     def reorder_ingredients(self, new_order):
         # Run when reordering the ingredients using dragmanager.
@@ -327,12 +329,14 @@ class Controller:
 ##        self.cd.ingredient_compositions[index] = ing.oxide_comp
 ##        self.cd.default_lower_bounds['ingredient_'+index] = 0
 ##        self.cd.default_upper_bounds['ingredient_'+index] = 100
-        
-        self.ing_editor.line[i] = DisplayIngredient(i, self.cd, self.ing_editor.i_e_scrollframe.interior,
-                                                               lambda j : self.ing_editor.pre_delete_ingredient(j, self.mod.recipe_dict))
+
+        # Move next section to IngredientEditor
+        self.ing_editor.line[i] = DisplayIngredient(i, self.cd, self.ing_editor.i_e_scrollframe.interior) #,
+                                                               #lambda j : self.ing_editor.pre_delete_ingredient(j, self.mod.recipe_dict))
         self.ing_editor.line[i].display(int(i), self.cd)
         self.ing_editor.ing_dnd.add_dragable(self.ing_editor.line[i].name_entry)    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
-
+        self.ing_editor.line[i].delete_button.config(command=partial(self.pre_delete_ingredient, i))
+        
         self.restr_dict['ingredient_'+i] = Restriction('ingredient_'+i, ing.name, 'ingredient_'+i, "0.01*self.lp_var['ingredient_total']", 0, 100)
         self.display_restr_dict['ingredient_'+i] = DisplayRestriction(self.mw.restriction_sf.interior, self.mw.x_lab, self.mw.y_lab,
                                                                           'ingredient_'+i, ing.name, 0, 100)
@@ -418,6 +422,102 @@ class Controller:
         for ox in self.mod.current_recipe.oxides - old_oxides:
             self.display_restr_dict[et+ox].display(1 + self.cd.oxide_dict[ox].pos)
 
+    def pre_delete_ingredient(self, i):
+        """Deletes ingredient if not in any recipes, otherwise opens dialogue window asking for confirmation."""
+        recipe_dict = self.mod.recipe_dict
+        ingredient_dict = self.cd.ingredient_dict
+        recipes_affected = [j for j in recipe_dict if i in recipe_dict[j].ingredients]
+        n = len(recipes_affected)
+        if n > 0:
+            self.confirmation_window = tk.Toplevel()
+            question_frame = tk.Frame(self.confirmation_window)
+            question_frame.grid()
+            text1 = ingredient_dict[i].name+' occurs in '+recipe_dict[recipes_affected[0]].name
+            text2 = 'Are you sure you want to delete '+ingredient_dict[i].name+'?'
+            if n == 1:
+                tk.Label(master=question_frame, text=text1+'.').grid(row=0)
+                tk.Label(master=question_frame, text=text2).grid(row=1)
+            elif n == 2:
+                tk.Label(master=question_frame, text=text1+' and '+recipe_dict[recipes_affected[1]].name+'.').grid(row=0)
+                tk.Label(master=question_frame, text=text2).grid(row=1)
+            elif n == 3:
+                tk.Label(master=question_frame, text=text1+', '+recipe_dict[recipes_affected[1]].name).grid(row=0)
+                tk.Label(master=question_frame, text=' and 1 other recipe.').grid(row=1)
+                tk.Label(master=question_frame, text=text2).grid(row=2)
+            else:
+                tk.Label(master=question_frame, text=text1+', '+recipe_dict[recipes_affected[1]].name).grid(row=0)
+                tk.Label(master=question_frame, text=' and '+str(n-2)+' other recipes.').grid(row=1)
+                tk.Label(master=question_frame, text=text2).grid(row=2)  
+            answer_frame = tk.Frame(self.confirmation_window)
+            answer_frame.grid()
+            ttk.Button(answer_frame, text='Yes', width=10, command=partial(self.close_conf_window_and_delete_ing, i, recipes_affected)).grid(column=0, row=0)
+            ttk.Button(answer_frame, text='No', width=10, command=lambda : self.confirmation_window.destroy()).grid(column=1, row=0)
+        else:
+            self.delete_ingredient(i, [])
+
+    def close_conf_window_and_delete_ing(self, i, recipes_affected):
+        self.delete_ingredient(i, recipes_affected)
+        self.confirmation_window.destroy()
+
+    def delete_ingredient(self, i, recipes_affected):
+
+        oxides_to_update = self.cd.ingredient_dict[i].oxide_comp
+    ##    self.lprp._variables.remove(self.lprp.lp_var['ingredient_'+i])
+        # The commented-out line above doesn't work in general since self.lprp.lp_var['ingredient_'+index] is regarded as
+        # being equal to all entries of self.lprp._variables, so it removes the first entry. Instead, we need to use 'is'.
+        # Should probably make this an LpRecipeProblem method
+        for k, j in enumerate(self.lprp._variables):
+            if j is self.lprp.lp_var['ingredient_'+i]:
+                del self.lprp._variables[k]  
+
+##        self.update_basic_constraints(ingredient_compositions, other_dict)   # I should probably update other_dict, no?
+
+        if i in self.mod.current_recipe.ingredients:
+            self.toggle_ingredient(i)
+            self.mod.current_recipe.remove_ingredient(self.cd, i)
+
+        self.cd.remove_ingredient(i)
+        with shelve.open(persistent_data_path+"/IngredientShelf") as ingredient_shelf:
+            del ingredient_shelf[i]
+
+        self.mod.order['ingredients'].remove(i)
+        with shelve.open(persistent_data_path+"/OrderShelf") as order_shelf:
+            temp_list = order_shelf['ingredients']
+            temp_list.remove(i)
+            order_shelf['ingredients'] = temp_list
+
+        self.ing_editor.line[i].delete()
+        for k, j in enumerate(self.mod.order['ingredients']):
+            self.ing_editor.line[j].display(k, self.cd)    # We actually only need to do this for the rows that are below the one that was deleted
+
+        # Remove the deleted ingredient from the list of ingredients to select from:
+        self.mw.ingredient_select_button[i].destroy()
+##        
+##        try:
+##            del prob.constraints['ingredient_'+index+'_lower']  # Is this necessary?
+##        except:
+##            pass
+##        try:
+##            del prob.constraints['ingredient_'+index+'_upper']  # Is this necessary?
+##        except:
+##            pass
+##        prob.constraints['ing_total'] = lp_var['ingredient_total'] == sum(lp_var['ingredient_'+i] for i in self.ingredient_dict)
+##
+        del self.display_restr_dict['ingredient_'+i]
+
+
+            
+        # Remove the ingredient from all recipes that contain it.
+        for j in recipes_affected:
+            self.mod.recipe_dict[j].remove_ingredient(self.cd, i)
+##            rec = self.mod.recipe_dict[j]
+##            rec.ingredients.remove(i)
+##            rec.update_oxides(restr_dict, entry_type.get())
+##            #recipe_dict[i] = rec
+##            rec.update_variables(restr_keys(rec.oxides, rec.ingredients, rec.other))
+            
+        self.mod.json_write_recipes()
+        
     def toggle_ingredient(self, i):
         """Adds/removes ingredient_dict[i] to/from the current recipe, depending on whether it isn't/is an ingredient already."""
         recipe = self.mod.current_recipe

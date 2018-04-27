@@ -20,7 +20,7 @@ B2O3_umf_lower: mole_B2O3 >= 0
 B2O3_umf_upper: - fluxes_total + mole_B2O3 <= 0
 B2O3_wt_%_lower: mass_B2O3 >= 0
 B2O3_wt_%_upper: mass_B2O3 - ox_mass_total <= 0
-BaO: 0.08 ingredient_22 - mass_BaO = 0
+BaO: mass_BaO = 0
 CaO: 0.0564 ingredient_11 + 0.1407 ingredient_12 + 0.2013 ingredient_13
  + 0.1136 ingredient_14 + 0.5422 ingredient_15 + 0.2299 ingredient_18
  + 0.0181 ingredient_19 + 0.003 ingredient_2 + 0.007 ingredient_5
@@ -89,7 +89,7 @@ TiO2_umf_lower: mole_TiO2 >= 0
 TiO2_umf_upper: - fluxes_total + mole_TiO2 <= 0
 TiO2_wt_%_lower: mass_TiO2 >= 0
 TiO2_wt_%_upper: mass_TiO2 - ox_mass_total <= 0
-ZnO: ingredient_10 + 0.78 ingredient_22 - mass_ZnO = 0
+ZnO: ingredient_10 - mass_ZnO = 0
 _C1: - mass_SiO2 + 60.085 mole_SiO2 = 0
 _C10: - mass_Na2O + 61.979 mole_Na2O = 0
 _C11: - mass_K2O + 94.196 mole_K2O = 0
@@ -116,10 +116,9 @@ _C9: - mass_Li2O + 29.881 mole_Li2O = 0
 ing_total: - ingredient_0 - ingredient_1 - ingredient_10 - ingredient_11
  - ingredient_12 - ingredient_13 - ingredient_14 - ingredient_15
  - ingredient_16 - ingredient_17 - ingredient_18 - ingredient_19
- - ingredient_2 - ingredient_20 - ingredient_21 - ingredient_22
- - ingredient_23 - ingredient_24 - ingredient_25 - ingredient_26
- - ingredient_3 - ingredient_4 - ingredient_5 - ingredient_6 - ingredient_7
- - ingredient_8 - ingredient_9 + ingredient_total = 0
+ - ingredient_2 - ingredient_20 - ingredient_26 - ingredient_3 - ingredient_31
+ - ingredient_4 - ingredient_5 - ingredient_6 - ingredient_7 - ingredient_8
+ - ingredient_9 + ingredient_total = 0
 ingredient_0_lower: ingredient_0 >= 0
 ingredient_0_upper: ingredient_0 - ingredient_total <= 0
 ingredient_10_lower: ingredient_10 >= 0
@@ -144,22 +143,12 @@ ingredient_19_lower: ingredient_19 >= 0
 ingredient_19_upper: ingredient_19 <= 0
 ingredient_1_lower: ingredient_1 >= 0
 ingredient_1_upper: ingredient_1 - ingredient_total <= 0
-ingredient_20_lower: ingredient_20 >= 0
-ingredient_20_upper: ingredient_20 <= 0
-ingredient_21_lower: ingredient_21 >= 0
-ingredient_21_upper: ingredient_21 <= 0
-ingredient_22_lower: ingredient_22 >= 0
-ingredient_22_upper: ingredient_22 <= 0
-ingredient_23_lower: ingredient_23 >= 0
-ingredient_23_upper: ingredient_23 <= 0
-ingredient_24_lower: ingredient_24 >= 0
-ingredient_24_upper: ingredient_24 <= 0
-ingredient_25_lower: ingredient_25 >= 0
-ingredient_25_upper: ingredient_25 - ingredient_total <= 0
 ingredient_26_lower: ingredient_26 >= 0
 ingredient_26_upper: ingredient_26 <= 0
 ingredient_2_lower: ingredient_2 >= 0
 ingredient_2_upper: ingredient_2 - ingredient_total <= 0
+ingredient_31_lower: ingredient_31 >= 0
+ingredient_31_upper: ingredient_31 <= 0
 ingredient_3_lower: ingredient_3 >= 0
 ingredient_3_upper: ingredient_3 <= 0
 ingredient_4_lower: ingredient_4 >= 0

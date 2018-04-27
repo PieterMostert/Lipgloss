@@ -45,7 +45,7 @@ raw_order_pathname = "%r"%order_pathname
 
 class DisplayIngredient:
     """A class used to display the line corresponding to an ingredient in the ingredient editor"""
-    def __init__(self, index, core_data, frame, delete_ingredient_fn):
+    def __init__(self, index, core_data, frame):
         ing = core_data.ingredient_dict[index]
         self.delete_button =  ttk.Button(master=frame, text='X', width=2) #, command = partial(delete_ingredient_fn, index))
 ##        sdw['del'] =  ttk.Label(master=frame, text='X', width=2)
@@ -85,6 +85,9 @@ class DisplayIngredient:
         for i, other_attr in core_data.other_attr_dict.items(): 
             self.other_attr_entry[i].grid(row=pos, column=c+int(i), padx=3, pady=3)
 
+    def delete(self):
+        for widget in [self.delete_button, self.name_entry] + list(self.oxide_entry.values()) + list(self.other_attr_entry.values()):
+            widget.destroy()
 
 class IngredientEditor(MainWindow):
     """Window that lets users enter / delete ingredients, edit oxide compositions and other attributes, and rearrange \\
@@ -125,7 +128,7 @@ class IngredientEditor(MainWindow):
         # Create and display the rows:
         self.line = {}
         for i, index in enumerate(order["ingredients"]):
-            self.line[index] = DisplayIngredient(index, core_data, self.i_e_scrollframe.interior, lambda i : self.pre_delete_ingredient(i, recipe_dict))
+            self.line[index] = DisplayIngredient(index, core_data, self.i_e_scrollframe.interior) #, lambda i : self.pre_delete_ingredient(i, recipe_dict))
             self.line[index].display(i, core_data)
 
         # Create drag manager for ingredient rows:

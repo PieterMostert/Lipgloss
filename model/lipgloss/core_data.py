@@ -378,8 +378,8 @@ class CoreData(OxideData):
     def remove_ingredient(self, i):
         del self.ingredient_dict[i]
         del self.ingredient_compositions[i]
-        del self.default_lower_bounds['ingredient_'+index]
-        del self.default_upper_bounds['ingredient_'+index]
+        del self.default_lower_bounds['ingredient_'+i]
+        del self.default_upper_bounds['ingredient_'+i]
     
             
 ##        self.set_current_recipe('0')
