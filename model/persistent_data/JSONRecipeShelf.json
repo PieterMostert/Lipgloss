@@ -174,24 +174,24 @@
             "x": "mole_perc_Na2O"
         }
     },
-    "4": {
-        "name": "Recipe Bounds 4",
-        "entry_type": "umf_",
+    "3": {
+        "name": "Recipe Bounds 3",
+        "entry_type": "mole_perc_",
         "oxides": [
             "TiO2",
-            "K2O",
-            "Fe2O3",
-            "Na2O",
             "CaO",
+            "Na2O",
+            "Fe2O3",
+            "MgO",
+            "K2O",
             "SiO2",
-            "Al2O3",
-            "MgO"
+            "Al2O3"
         ],
         "ingredients": [
             "0",
             "1",
             "2",
-            "5"
+            "7"
         ],
         "other": [],
         "lower_bounds": {
@@ -206,7 +206,7 @@
             "mole_perc_MgO": 0.0,
             "umf_CaO": 0.0,
             "mass_perc_CaO": 0.0,
-            "mole_perc_CaO": 0.0,
+            "mole_perc_CaO": 2.0,
             "umf_Na2O": 0.0,
             "mass_perc_Na2O": 0.0,
             "mole_perc_Na2O": 0.0,
@@ -222,7 +222,7 @@
             "ingredient_0": 0.0,
             "ingredient_1": 0.0,
             "ingredient_2": 0.0,
-            "ingredient_5": 0.0
+            "ingredient_7": 0.0
         },
         "upper_bounds": {
             "umf_SiO2": 100.0,
@@ -252,12 +252,11 @@
             "ingredient_0": 100.0,
             "ingredient_1": 100.0,
             "ingredient_2": 100.0,
-            "ingredient_5": 100.0
+            "ingredient_7": 100.0
         },
-        "pos": 4,
+        "pos": 3,
         "variables": {
-            "x": "umf_MgO",
-            "y": "umf_TiO2"
+            "x": "mole_perc_Na2O"
         }
     }
 }

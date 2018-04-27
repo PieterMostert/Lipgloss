@@ -190,7 +190,7 @@ class MainWindow:
 class RecipeMenu:
     """A window that lets users select which recipe to open"""
     
-    def __init__(self):   # Opens window that lets you select a recipe to open
+    def __init__(self):
 
         self.recipe_selector = Toplevel()
         self.recipe_selector.title("Recipe Selector")
@@ -198,12 +198,18 @@ class RecipeMenu:
         self.r_s_scrollframe = VerticalScrolledFrame(self.recipe_selector)
         self.r_s_scrollframe.frame_height = 200
         self.r_s_scrollframe.grid(row=0)
-        recipe_selector_buttons = Frame(self.recipe_selector)
-        recipe_selector_buttons.grid(row=1)
+##        recipe_selector_buttons = Frame(self.recipe_selector)
+##        recipe_selector_buttons.grid(row=1)
+        self.name_buttons = {}
+        self.delete_buttons = {}
 
         Label(master=self.r_s_scrollframe.interior, text='Name', width=35).grid(row=0, column=0)  
-        Label(master=self.r_s_scrollframe.interior, text='Delete', width=5).grid(row=0, column=1)  
+        Label(master=self.r_s_scrollframe.interior, text='Delete', width=5).grid(row=0, column=1)
 
+    def delete_recipe(self, i):
+        self.name_buttons[i].destroy()
+        self.delete_buttons[i].destroy()
+        
 ##class DisplayRestriction:
 ##    'Oxide UMF, oxide % molar, oxide % weight, ingredient, SiO2:Al2O3 molar, LOI, cost, etc'
 ##    

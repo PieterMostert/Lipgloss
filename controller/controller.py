@@ -234,26 +234,24 @@ class Controller:
     def open_recipe_menu(self):
         """Opens a pop-up window that lets users select which recipes bounds to display, or delete existing recipe bounds (except the default)"""
         try:
-            self.mw.recipe_menu.recipe_selector.destroy() # destroy previous recipe selectors, if still open
+            self.mw.recipe_menu.recipe_selector.lift() # destroy previous recipe selectors, if still open
         except:
-            pass
-            
-        self.mw.recipe_menu = RecipeMenu()
-        for index in self.mod.recipe_dict:
-            self.display_recipe(index) 
-        self.mw.recipe_menu.r_s_scrollframe.interior.focus_force()
+            self.mw.recipe_menu = RecipeMenu()
+            for i in self.mod.recipe_dict:
+                self.display_recipe(i) 
+            self.mw.recipe_menu.r_s_scrollframe.interior.focus_force()
 
     def display_recipe(self, index):
-
+        """Displays recipe name and delete button in recipe menu"""
         recipe = self.mod.recipe_dict[index]
-        name_button =  ttk.Button(master=self.mw.recipe_menu.r_s_scrollframe.interior, text=recipe.name, width=30,
+        self.mw.recipe_menu.name_buttons[index] =  ttk.Button(master=self.mw.recipe_menu.r_s_scrollframe.interior, text=recipe.name, width=30,
                                  command=partial(self.open_recipe, index))
-        name_button.grid(row=recipe.pos+1, column=0)
+        self.mw.recipe_menu.name_buttons[index].grid(row=recipe.pos+1, column=0)
         if index != '0': 
             # Only allow deletion of user recipes.  Index '0' denotes the default recipe bounds
-            delete_button = ttk.Button(master=self.mw.recipe_menu.r_s_scrollframe.interior, text="X", width=5,
+            self.mw.recipe_menu.delete_buttons[index] = ttk.Button(master=self.mw.recipe_menu.r_s_scrollframe.interior, text="X", width=5,
                                       command=partial(self.delete_recipe, index))
-            delete_button.grid(row=recipe.pos+1, column=1)
+            self.mw.recipe_menu.delete_buttons[index].grid(row=recipe.pos+1, column=1)
 
     def save_recipe(self):
         """Save a recipe to the global recipe_dict, then update the JSON data file"""
@@ -277,6 +275,7 @@ class Controller:
         if i == self.mod.recipe_index:
             # We have deleted the current recipe.  Go to default recipe
             self.open_recipe('0')
+        self.mw.recipe_menu.delete_recipe(i)
         # TODO: remove recipe from recipe selector
 ##        try:
 ##            self.mw.recipe_menu.recipe_selector.destroy() # destroy the recipe selection window
