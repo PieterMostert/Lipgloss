@@ -99,15 +99,14 @@ class Controller:
         self.mw.file_menu.add_command(label="Save", command=self.save_recipe)
         self.mw.file_menu.add_command(label="Save as new recipe", command=self.save_new_recipe)
 
-        self.mw.options_menu.add_command(label="Edit Oxides", command=None)
+        #self.mw.options_menu.add_command(label="Edit Oxides", command=None)
         self.mw.options_menu.add_command(label="Edit Ingredients", command=self.open_ingredient_editor)
-        self.mw.options_menu.add_command(label="Edit Other Restrictions", command=self.open_ingredient_editor)
-        self.mw.options_menu.add_command(label="Restriction Settings", command=self.open_ingredient_editor)
+        #self.mw.options_menu.add_command(label="Edit Other Restrictions", command=self.open_ingredient_editor)
+        #self.mw.options_menu.add_command(label="Restriction Settings", command=self.open_ingredient_editor)
         
         self.mw.calc_button.config(command=self.calc_restr)
         
         # Create and grid ingredient selection buttons:
-        #for r, i in enumerate(Ingredient.order):
         for r, i in enumerate(self.mod.order["ingredients"]):
             self.mw.ingredient_select_button[i] = ttk.Button(self.mw.vsf.interior, text=self.cd.ingredient_dict[i].name, width=20, \
                                                              command=partial(self.toggle_ingredient, i))
@@ -169,7 +168,29 @@ class Controller:
     def get_bounds(self):
         for key in self.mod.current_recipe.restriction_keys:
             self.mod.current_recipe.lower_bounds[key] = self.display_restr_dict[key].low.get()
-            self.mod.current_recipe.upper_bounds[key] = self.display_restr_dict[key].upp.get()  
+            self.mod.current_recipe.upper_bounds[key] = self.display_restr_dict[key].upp.get()
+
+    def open_recipe_menu(self):
+        """Opens a pop-up window that lets users select which recipes bounds to display, or delete existing recipe bounds (except the default)"""
+        try:
+            self.mw.recipe_menu.recipe_selector.lift()
+        except:
+            self.mw.recipe_menu = RecipeMenu()
+            for i in self.mod.recipe_dict:
+                self.display_recipe(i) 
+            self.mw.recipe_menu.r_s_scrollframe.interior.focus_force()
+
+    def display_recipe(self, index):
+        """Displays recipe name and delete button in recipe menu"""
+        recipe = self.mod.recipe_dict[index]
+        self.mw.recipe_menu.name_buttons[index] =  ttk.Button(master=self.mw.recipe_menu.r_s_scrollframe.interior, text=recipe.name, width=30,
+                                 command=partial(self.open_recipe, index))
+        self.mw.recipe_menu.name_buttons[index].grid(row=recipe.pos+1, column=0)
+        if index != '0': 
+            # Only allow deletion of user recipes.  Index '0' denotes the default recipe bounds
+            self.mw.recipe_menu.delete_buttons[index] = ttk.Button(master=self.mw.recipe_menu.r_s_scrollframe.interior, text="X", width=5,
+                                      command=partial(self.delete_recipe, index))
+            self.mw.recipe_menu.delete_buttons[index].grid(row=recipe.pos+1, column=1)
 
     def open_recipe(self, index):   # To be used when opening a recipe, (or when ingredients have been updated?). Be careful.
 
@@ -186,7 +207,7 @@ class Controller:
         
         self.mw.recipe_name.set(self.mod.current_recipe.name)      # update the displayed recipe name
 
-        r_k = self.mod.current_recipe.restriction_keys  #restr_keys(self.mod.current_recipe.oxides, self.mod.current_recipe.ingredients, self.mod.current_recipe.other)
+        r_k = self.mod.current_recipe.restriction_keys
         for i in r_k:
             try:
                 self.display_restr_dict[i].low.set(self.mod.current_recipe.lower_bounds[i])
@@ -224,34 +245,10 @@ class Controller:
             restr.left_label.bind("<Button-1>", partial(self.update_var, key, 'x'))
             restr.right_label.bind("<Button-1>", partial(self.update_var, key, 'y'))
 
-        #bind_restrictions_to_recipe(self.mod.current_recipe, self.restr_dict)
-
         try:
             self.mw.recipe_menu.recipe_selector.destroy()
         except:   # The recipe selector won't be open when the controller opens the default recipe on start-up
             pass  
-
-    def open_recipe_menu(self):
-        """Opens a pop-up window that lets users select which recipes bounds to display, or delete existing recipe bounds (except the default)"""
-        try:
-            self.mw.recipe_menu.recipe_selector.lift() # destroy previous recipe selectors, if still open
-        except:
-            self.mw.recipe_menu = RecipeMenu()
-            for i in self.mod.recipe_dict:
-                self.display_recipe(i) 
-            self.mw.recipe_menu.r_s_scrollframe.interior.focus_force()
-
-    def display_recipe(self, index):
-        """Displays recipe name and delete button in recipe menu"""
-        recipe = self.mod.recipe_dict[index]
-        self.mw.recipe_menu.name_buttons[index] =  ttk.Button(master=self.mw.recipe_menu.r_s_scrollframe.interior, text=recipe.name, width=30,
-                                 command=partial(self.open_recipe, index))
-        self.mw.recipe_menu.name_buttons[index].grid(row=recipe.pos+1, column=0)
-        if index != '0': 
-            # Only allow deletion of user recipes.  Index '0' denotes the default recipe bounds
-            self.mw.recipe_menu.delete_buttons[index] = ttk.Button(master=self.mw.recipe_menu.r_s_scrollframe.interior, text="X", width=5,
-                                      command=partial(self.delete_recipe, index))
-            self.mw.recipe_menu.delete_buttons[index].grid(row=recipe.pos+1, column=1)
 
     def save_recipe(self):
         """Save a recipe to the global recipe_dict, then update the JSON data file"""
@@ -276,11 +273,6 @@ class Controller:
             # We have deleted the current recipe.  Go to default recipe
             self.open_recipe('0')
         self.mw.recipe_menu.delete_recipe(i)
-        # TODO: remove recipe from recipe selector
-##        try:
-##            self.mw.recipe_menu.recipe_selector.destroy() # destroy the recipe selection window
-##        except:
-##            pass
 
     def open_ingredient_editor(self):
         """Opens a window that lets users edit ingredients"""

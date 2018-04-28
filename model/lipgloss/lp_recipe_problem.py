@@ -30,6 +30,7 @@ from pulp import *
 import time
 
 solver = GLPK()
+#solver = None
 
 class LpRecipeProblem(LpProblem):
 

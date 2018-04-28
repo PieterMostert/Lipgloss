@@ -36,7 +36,9 @@ LIPGLOSS is a collection of Python scripts designed to construct ceramic recipes
 
 It employs a linear programming algorithm to calculate bounds on oxides and ingredients, hence its full name: \textit{LInear Programming GLaze Oxide Software System}. Since that's a terrible name, it\'s better to just stick with the acronym LIPGLOSS.
 
-The plan is that LIPGLOSS will eventually be released as a stand-alone app that users can customize with their own ingredients and restrictions. This will be designed to import and export recipes from \href{https://glazy.org}{Glazy}, as well as other glaze calculation software; alternatively, part of the code could be incorporated within Glazy.
+The plan is that LIPGLOSS will eventually be released as a desktop app that users can customize with their own ingredients and restrictions. This will be designed to import and export recipes from \href{https://glazy.org}{Glazy}, as well as other glaze calculation software; alternatively, part of the code could be incorporated within Glazy.
+
+\textit{NOTE: This document refers to an older version of the code. The functionality is still mostly the same, but the code has been refactored to fit the MVC pattern (well, sort of...).}
 
 \section{Using LIPGLOSS}
 
@@ -181,7 +183,7 @@ will print a list of all ingredient indices, in the order the ingredients are di
 \begin{itemize}
 \item Fix bugs above.
 \item For the 2d graphing, have a button to the right of the restriction panel that when clicked on, opens a panel with instructions on how to select the two variables, as well as a button that calculates only the region corresponding to two variables, not all the other lower and upper bounds (Before updating the restrictions, you may want to compare several pairs of variables. In this case there's no need to recalculate all the other bounds). Include labels on the axes when the region is calculated, and make sure the numbers along the axes don't overlap. 
-\item Implement the ability to plot the feasible region corresponding to any two restrictions.
+\item Implement the ability to plot the feasible region corresponding to any two restrictions. EDIT: This has been done, but using a brute-force approach, which may not give accurate results.
 \item Clicking Options $>$ Edit restriction settings, should open a window that allows you to set default lower and upper bounds for each oxide, ingredient and other restriction.
 \item Allow users to define custom `other restrictions'. Users would need to specify an objective function, and a normalization.
 \item Implement the ability to add other attributes to ingredients, using the restriction editor. Each other attribute will be assigned a variable, and an `other restriction' corresponding to that attribute will automatically be added. For example, an other attribute could be the percentage of an ingredient having particle diameters between two bounds.
