@@ -1,5 +1,8 @@
 import json
-from lipgloss.recipes import Recipe
+try:
+    from lipgloss.recipes import Recipe
+except:
+    from ..lipgloss.recipes import Recipe
 #import lipgloss
 ##from ..lipgloss.core_data import CoreData
 

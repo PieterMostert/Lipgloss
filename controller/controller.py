@@ -15,15 +15,24 @@
 # <http://www.gnu.org/licenses/>.
 
 # Contact: pi.mostert@gmail.com
+
 import sys
 from os.path import abspath, dirname
 from inspect import getsourcefile
-sys.path.append(dirname(dirname(abspath(getsourcefile(lambda:0))))+'\model') # allows us to treat lipgloss like a built in package
+model_path = dirname(dirname(abspath(getsourcefile(lambda:0)))) + '\model'
+print('model_path = '+model_path)
+sys.path.append(model_path) # Allows us to treat lipgloss like a built-in package. Doesn't seem to work on OSX
 
-from lipgloss.core_data import OxideData, CoreData, Oxide, Ingredient
-from lipgloss.lp_recipe_problem import LpRecipeProblem
-from lipgloss.recipes import Recipe, restr_keys
-from lipgloss.restrictions import Restriction
+try:    # This should work if lipgloss behaves like a built-in package
+    from lipgloss.core_data import OxideData, CoreData, Oxide, Ingredient
+    from lipgloss.lp_recipe_problem import LpRecipeProblem
+    from lipgloss.recipes import Recipe, restr_keys
+    from lipgloss.restrictions import Restriction
+except:
+    from model.lipgloss.core_data import OxideData, CoreData, Oxide, Ingredient
+    from model.lipgloss.lp_recipe_problem import LpRecipeProblem
+    from model.lipgloss.recipes import Recipe, restr_keys
+    from model.lipgloss.restrictions import Restriction
 
 import model.serializers.recipeserializer
 from model.model import Model
@@ -41,7 +50,7 @@ import shelve
 import copy
 from numbers import Number
 
-persistent_data_path = dirname(dirname(abspath(getsourcefile(lambda:0))))+'\model\persistent_data'
+persistent_data_path = model_path + '\persistent_data'
 
 def default_restriction_bounds(ox_dict, ing_dict, other_dict):
     """This will eventually be replaced by a function the reads the default restriction bounds from a JSON file"""
@@ -73,12 +82,12 @@ class Controller:
     def __init__(self):
         OxideData.set_default_oxides()   # Replace by function that sets data saved by user
         self.cd = CoreData()
-        #self.cd.set_default_data()   # Replace by function that sets data saved by user
+        self.cd.set_default_data()   # Replace by function that sets data saved by user
         #self.cd.save_ingredient_dict(persistent_data_path+'\IngredientShelf')
-        self.cd.set_ingredient_dict(persistent_data_path+'\IngredientShelf')
+        #self.cd.set_ingredient_dict(persistent_data_path+'\IngredientShelf')
         
         #self.cd.save_other_dict(persistent_data_path+'\OtherShelf')
-        self.cd.set_other_dict(persistent_data_path+'\OtherShelf')
+        #self.cd.set_other_dict(persistent_data_path+'\OtherShelf')
 
         self.cd.other_attr_dict = {'0': 'LOI', '2': 'Clay', '1': 'Cost'}
 

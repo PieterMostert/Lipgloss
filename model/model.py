@@ -18,8 +18,14 @@
 
 import pulp
 import shelve
-import lipgloss as lg
-from serializers.recipeserializer import RecipeSerializer
+try:
+    import lipgloss as lg
+except:
+    from . import lipgloss as lg
+try:
+    from serializers.recipeserializer import RecipeSerializer
+except:
+    from .serializers.recipeserializer import RecipeSerializer
 from inspect import getsourcefile
 import os
 from os.path import abspath, dirname
