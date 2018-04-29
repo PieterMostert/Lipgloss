@@ -81,21 +81,23 @@ def default_restriction_bounds(ox_dict, ing_dict, other_dict):
 class Controller:
     def __init__(self):
         OxideData.set_default_oxides()   # Replace by function that sets data saved by user
-        self.cd = CoreData()
-        self.cd.set_default_data()   # Replace by function that sets data saved by user
-        #self.cd.save_ingredient_dict(persistent_data_path+'\IngredientShelf')
-        #self.cd.set_ingredient_dict(persistent_data_path+'\IngredientShelf')
-        
-        #self.cd.save_other_dict(persistent_data_path+'\OtherShelf')
-        #self.cd.set_other_dict(persistent_data_path+'\OtherShelf')
-
-        self.cd.other_attr_dict = {'0': 'LOI', '2': 'Clay', '1': 'Cost'}
-
-        self.cd.set_default_default_bounds()
-
-        self.lprp = LpRecipeProblem("Glaze recipe", pulp.LpMaximize, self.cd)
-        
+        #self.cd = CoreData()
         self.mod = Model()
+        #self.cd = self.mod
+        self.mod.set_default_data()   # Replace by function that sets data saved by user
+        #self.mod.save_ingredient_dict(persistent_data_path+'\IngredientShelf')
+        #self.mod.set_ingredient_dict(persistent_data_path+'\IngredientShelf')
+        
+        #self.mod.save_other_dict(persistent_data_path+'\OtherShelf')
+        #self.mod.set_other_dict(persistent_data_path+'\OtherShelf')
+
+        self.mod.other_attr_dict = {'0': 'LOI', '2': 'Clay', '1': 'Cost'}
+
+        self.mod.set_default_default_bounds()
+
+        self.lprp = LpRecipeProblem("Glaze recipe", pulp.LpMaximize, self.mod)
+        
+        #self.mod = Model()
         
         self.mw = MainWindow()
   
@@ -117,20 +119,20 @@ class Controller:
         
         # Create and grid ingredient selection buttons:
         for r, i in enumerate(self.mod.order["ingredients"]):
-            self.mw.ingredient_select_button[i] = ttk.Button(self.mw.vsf.interior, text=self.cd.ingredient_dict[i].name, width=20, \
+            self.mw.ingredient_select_button[i] = ttk.Button(self.mw.vsf.interior, text=self.mod.ingredient_dict[i].name, width=20, \
                                                              command=partial(self.toggle_ingredient, i))
             self.mw.ingredient_select_button[i].grid(row=r)
 
         # Create and grid other selection buttons:
-        for i, ot in self.cd.other_dict.items():
+        for i, ot in self.mod.other_dict.items():
             self.mw.other_select_button[i] = ttk.Button(self.mw.other_selection_window, text=prettify(ot.name), width=18, \
                                                         command=partial(self.toggle_other, i))
             self.mw.other_select_button[i].grid(row=ot.pos+1)
 
         #Create Restriction and DisplayRestriction dictionaries
-        self.restr_dict = default_restriction_bounds(self.cd.oxide_dict, self.cd.ingredient_dict, self.cd.other_dict)
+        self.restr_dict = default_restriction_bounds(self.mod.oxide_dict, self.mod.ingredient_dict, self.mod.other_dict)
         self.display_restr_dict = {}      
-        for key in self.cd.restr_keys():
+        for key in self.mod.restr_keys():
             self.display_restr_dict[key] = DisplayRestriction(self.mw.restriction_sf.interior, self.mw.x_lab, self.mw.y_lab, \
                                                               key, self.restr_dict[key].name, self.restr_dict[key].default_low, self.restr_dict[key].default_upp)
 
@@ -210,7 +212,7 @@ class Controller:
             res.remove(self.mod.current_recipe.variables)    # Clear the entries from previous recipes, if opening a new recipe
 
         self.mod.set_current_recipe(index)
-        self.mod.current_recipe.update_oxides(self.cd)  # In case the ingredient compositions have changed.
+        self.mod.current_recipe.update_oxides(self.mod)  # In case the ingredient compositions have changed.
                                                                          # Can get rid of this if we ensure that all recipes are
                                                                          # updated each time the ingredient compositions change
         
@@ -232,7 +234,7 @@ class Controller:
         self.mw.entry_type.set(et)
 
         for ox in self.mod.current_recipe.oxides:
-            self.display_restr_dict[et + ox].display(1 + self.cd.oxide_dict[ox].pos)
+            self.display_restr_dict[et + ox].display(1 + self.mod.oxide_dict[ox].pos)
 
         ingredient_order = self.mod.order["ingredients"]
         for i in ingredient_order:
@@ -242,10 +244,10 @@ class Controller:
             else:
                 self.mw.ingredient_select_button[i].state(['!pressed'])
 
-        for ot in self.cd.other_dict:
+        for ot in self.mod.other_dict:
             if ot in self.mod.current_recipe.other:
                 self.mw.other_select_button[ot].state(['pressed'])
-                self.display_restr_dict['other_'+ot].display(1001 + self.cd.other_dict[ot].pos)
+                self.display_restr_dict['other_'+ot].display(1001 + self.mod.other_dict[ot].pos)
             else:
                 self.mw.other_select_button[ot].state(['!pressed'])
         
@@ -288,7 +290,7 @@ class Controller:
         try:
             self.ing_editor.toplevel.lift() # lift the recipe selector, if it already exists
         except:
-            self.ing_editor = IngredientEditor(self.cd, self.mod.order, self.reorder_ingredients)
+            self.ing_editor = IngredientEditor(self.mod, self.mod.order, self.reorder_ingredients)
             self.ing_editor.new_ingr_button.config(command=self.new_ingredient)
             self.ing_editor.update_button.config(command=self.update_ingredient_dict)
             for i in self.mod.order['ingredients']:
@@ -312,12 +314,12 @@ class Controller:
                             # If we just had Ingredient('Ingredient #'+index) above, the default values of the notes, analysis
                             # and other_attributes attributes would change when the last instance of the class defined had those
                             # attributes changed
-        self.cd.add_ingredient(ing)
-        i = list(self.cd.ingredient_dict.keys())[-1]     # index of new ingredient
-        #self.cd.ingredient_dict[i].
+        self.mod.add_ingredient(ing)
+        i = list(self.mod.ingredient_dict.keys())[-1]     # index of new ingredient
+        #self.mod.ingredient_dict[i].
         ing.name = 'Ingredient #'+i
         with shelve.open(persistent_data_path+"/IngredientShelf") as ingredient_shelf:
-            ingredient_shelf[i] = self.cd.ingredient_dict[i]
+            ingredient_shelf[i] = self.mod.ingredient_dict[i]
 
         with shelve.open(persistent_data_path+"/OrderShelf") as order_shelf:
             temp_list = order_shelf['ingredients']
@@ -325,15 +327,15 @@ class Controller:
             order_shelf['ingredients'] = temp_list
         self.mod.order['ingredients'] = temp_list
 ##        
-##        self.cd.ingredient_dict[index] = ing
-##        self.cd.ingredient_analyses[index] = ing.analysis
-##        self.cd.default_lower_bounds['ingredient_'+index] = 0
-##        self.cd.default_upper_bounds['ingredient_'+index] = 100
+##        self.mod.ingredient_dict[index] = ing
+##        self.mod.ingredient_analyses[index] = ing.analysis
+##        self.mod.default_lower_bounds['ingredient_'+index] = 0
+##        self.mod.default_upper_bounds['ingredient_'+index] = 100
 
         # Move next section to IngredientEditor
-        self.ing_editor.line[i] = DisplayIngredient(i, self.cd, self.ing_editor.i_e_scrollframe.interior) #,
+        self.ing_editor.line[i] = DisplayIngredient(i, self.mod, self.ing_editor.i_e_scrollframe.interior) #,
                                                                #lambda j : self.ing_editor.pre_delete_ingredient(j, self.mod.recipe_dict))
-        self.ing_editor.line[i].display(int(i), self.cd)
+        self.ing_editor.line[i].display(int(i), self.mod)
         self.ing_editor.ing_dnd.add_dragable(self.ing_editor.line[i].name_entry)    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
         self.ing_editor.line[i].delete_button.config(command=partial(self.pre_delete_ingredient, i))
         
@@ -348,7 +350,7 @@ class Controller:
         self.lprp.lp_var['ingredient_'+i] = pulp.LpVariable('ingredient_'+i, 0, None, pulp.LpContinuous)
         self.lprp.constraints['ing_total'] = \
                                            self.lprp.lp_var['ingredient_total'] \
-                                           == sum(self.lprp.lp_var['ingredient_'+j] for j in self.cd.ingredient_dict)
+                                           == sum(self.lprp.lp_var['ingredient_'+j] for j in self.mod.ingredient_dict)
 
         self.mw.ingredient_select_button[i] = ttk.Button(self.mw.vsf.interior, text=ing.name, width=20,
                                                      command=partial(self.toggle_ingredient, i))
@@ -360,13 +362,13 @@ class Controller:
     def update_ingredient_dict(self):
         """"Run when updating ingredients (via ingredient editor)"""
 
-        for index, ing in self.cd.ingredient_dict.items():
+        for index, ing in self.mod.ingredient_dict.items():
             # Maybe the restriction class should have an update_data method
             ing.name = self.ing_editor.line[index].name_entry.get()                 # update ingredient name
             self.restr_dict['ingredient_'+index].name = ing.name
             self.display_restr_dict['ingredient_'+index].set_name(ing.name)
             self.mw.ingredient_select_button[index].config(text=ing.name)
-            for ox in self.cd.oxide_dict:
+            for ox in self.mod.oxide_dict:
                 try:
                     val = eval(self.ing_editor.line[index].oxide_entry[ox].get()   )
                 except:
@@ -380,7 +382,7 @@ class Controller:
                     except:
                         pass
 
-            for i, attr in self.cd.other_attr_dict.items():
+            for i, attr in self.mod.other_attr_dict.items():
                 try:
                     val = eval(self.ing_editor.line[index].other_attr_entry[i].get())
                 except:
@@ -394,16 +396,16 @@ class Controller:
                     except:
                         pass
 
-            self.cd.ingredient_dict[index] = ing
-            self.cd.ingredient_analyses[index] = self.cd.ingredient_dict[index].analysis
+            self.mod.ingredient_dict[index] = ing
+            self.mod.ingredient_analyses[index] = self.mod.ingredient_dict[index].analysis
 
         with shelve.open(persistent_data_path+"/IngredientShelf") as ingredient_shelf:
             for index in ingredient_shelf:
-                ingredient_shelf[index] = self.cd.ingredient_dict[index]
-##                    ingredient_shelf[index].analysis = self.cd.ingredient_dict[index].analysis
-##                    ingredient_shelf[index].other_attributes = self.cd.ingredient_dict[index].other_attributes
+                ingredient_shelf[index] = self.mod.ingredient_dict[index]
+##                    ingredient_shelf[index].analysis = self.mod.ingredient_dict[index].analysis
+##                    ingredient_shelf[index].other_attributes = self.mod.ingredient_dict[index].other_attributes
                 
-        self.lprp.update_ingredient_analyses(self.cd) 
+        self.lprp.update_ingredient_analyses(self.mod) 
                 
         old_oxides = copy.copy(self.mod.current_recipe.oxides)
         old_variables = copy.copy(self.mod.current_recipe.variables)
@@ -412,7 +414,7 @@ class Controller:
             if res[0:10] == 'ingredient':
                 self.display_restr_dict[res].select(t)
 
-        self.mod.current_recipe.update_oxides(self.cd)   # Do this for all recipes?
+        self.mod.current_recipe.update_oxides(self.mod)   # Do this for all recipes?
         
         for ox in old_oxides - self.mod.current_recipe.oxides:
             for et in ['umf_', 'mass_perc_', 'mole_perc_']:
@@ -420,12 +422,12 @@ class Controller:
 
         et = self.mw.entry_type.get()
         for ox in self.mod.current_recipe.oxides - old_oxides:
-            self.display_restr_dict[et+ox].display(1 + self.cd.oxide_dict[ox].pos)
+            self.display_restr_dict[et+ox].display(1 + self.mod.oxide_dict[ox].pos)
 
     def pre_delete_ingredient(self, i):
         """Deletes ingredient if not in any recipes, otherwise opens dialogue window asking for confirmation."""
         recipe_dict = self.mod.recipe_dict
-        ingredient_dict = self.cd.ingredient_dict
+        ingredient_dict = self.mod.ingredient_dict
         recipes_affected = [j for j in recipe_dict if i in recipe_dict[j].ingredients]
         n = len(recipes_affected)
         if n > 0:
@@ -465,9 +467,9 @@ class Controller:
 
         if i in self.mod.current_recipe.ingredients:
             self.toggle_ingredient(i)   # gets rid of stars, if the ingredient is a variable
-            #self.mod.current_recipe.remove_ingredient(self.cd, i)
+            #self.mod.current_recipe.remove_ingredient(self.mod, i)
 
-        self.cd.remove_ingredient(i)
+        self.mod.remove_ingredient(i)
         with shelve.open(persistent_data_path+"/IngredientShelf") as ingredient_shelf:
             del ingredient_shelf[i]
 
@@ -477,11 +479,11 @@ class Controller:
             temp_list.remove(i)
             order_shelf['ingredients'] = temp_list
 
-        self.lprp.remove_ingredient(i, self.cd)
+        self.lprp.remove_ingredient(i, self.mod)
              
         # Remove the ingredient from all recipes that contain it.
         for j in recipes_affected:
-            self.mod.recipe_dict[j].remove_ingredient(self.cd, i)
+            self.mod.recipe_dict[j].remove_ingredient(self.mod, i)
 ##            rec = self.mod.recipe_dict[j]
 ##            rec.ingredients.remove(i)
 ##            rec.update_oxides(restr_dict, entry_type.get())
@@ -492,7 +494,7 @@ class Controller:
 
         self.ing_editor.line[i].delete()
         for k, j in enumerate(self.mod.order['ingredients']):
-            self.ing_editor.line[j].display(k, self.cd)    # We actually only need to do this for the rows that are below the one that was deleted
+            self.ing_editor.line[j].display(k, self.mod)    # We actually only need to do this for the rows that are below the one that was deleted
 
         # Remove the deleted ingredient from the list of ingredients to select from:
         self.mw.ingredient_select_button[i].destroy()
@@ -504,41 +506,41 @@ class Controller:
         recipe = self.mod.current_recipe
         if i in recipe.ingredients:
             old_variables = copy.copy(recipe.variables)
-            recipe.remove_ingredient(self.cd, i)
+            recipe.remove_ingredient(self.mod, i)
             self.mw.ingredient_select_button[i].state(['!pressed'])
             self.display_restr_dict['ingredient_'+i].remove(old_variables)
             # Remove the restrictions on the oxides no longer present:
-            for ox in set(self.cd.ingredient_analyses[i]) - recipe.oxides:
+            for ox in set(self.mod.ingredient_analyses[i]) - recipe.oxides:
                 for et in ['umf_', 'mass_perc_', 'mole_perc_']:
                     self.display_restr_dict[et+ox].remove(old_variables)
 
         else:
-            recipe.add_ingredient(self.cd, i)
+            recipe.add_ingredient(self.mod, i)
             self.mw.ingredient_select_button[i].state(['pressed'])
             self.display_restr_dict['ingredient_'+i].display(101 + self.mod.order["ingredients"].index(i))
-##            for ox in self.cd.ingredient_analyses[i]:
+##            for ox in self.mod.ingredient_analyses[i]:
 ##                if ox not in recipe.oxides:  # i.e. if we're introducing a new oxide
 ##                    for t in ['umf_', 'mass_perc_', 'mole_perc_']:
 ##                        key = t + ox
 ##                        recipe.lower_bounds[key] = self.restr_dict[key].default_low
 ##                        recipe.upper_bounds[key] = self.restr_dict[key].default_upp
-##            recipe.oxides = recipe.oxides.union(set(self.cd.ingredient_analyses[i]))    # update the available oxides
+##            recipe.oxides = recipe.oxides.union(set(self.mod.ingredient_analyses[i]))    # update the available oxides
             et = self.mw.entry_type.get()
             for ox in recipe.oxides:
-                self.display_restr_dict[et+ox].display(1 + self.cd.oxide_dict[ox].pos)
+                self.display_restr_dict[et+ox].display(1 + self.mod.oxide_dict[ox].pos)
         #self.mod.current_recipe = recipe
 
     def toggle_other(self, i):
         """Adds/removes other_dict[index] to/from the current recipe, depending on whether it isn't/is an other restriction already."""
         recipe = self.mod.current_recipe
         if i in recipe.other:
-            recipe.remove_other(self.cd, i)
+            recipe.remove_other(self.mod, i)
             self.mw.other_select_button[i].state(['!pressed'])
             self.display_restr_dict['other_'+i].remove(recipe.variables)
         else:
-            recipe.add_other(self.cd, i)
+            recipe.add_other(self.mod, i)
             self.mw.other_select_button[i].state(['pressed'])         
-            self.display_restr_dict['other_'+i].display(1001 + self.cd.other_dict[i].pos)
+            self.display_restr_dict['other_'+i].display(1001 + self.mod.other_dict[i].pos)
             self.mw.restriction_sf.canvas.yview_moveto(1)
 
     def update_var(self, key, t, mystery_variable):     # t should be either 'x' or 'y'. Might be a better way of doing this
@@ -561,7 +563,7 @@ class Controller:
         for et in ['umf_', 'mass_perc_', 'mole_perc_']:
             if et == entry_type:
                 for ox in self.mod.current_recipe.oxides:
-                    self.display_restr_dict[et+ox].display(1 + self.cd.oxide_dict[ox].pos)
+                    self.display_restr_dict[et+ox].display(1 + self.mod.oxide_dict[ox].pos)
             else:
                 for ox in self.mod.current_recipe.oxides:
                     self.display_restr_dict[et+ox].hide()

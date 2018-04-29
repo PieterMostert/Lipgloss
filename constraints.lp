@@ -89,7 +89,7 @@ ing_total: - ingredient_0 - ingredient_1 - ingredient_10 - ingredient_11
  - ingredient_2 - ingredient_3 - ingredient_4 - ingredient_5 - ingredient_6
  - ingredient_7 - ingredient_8 - ingredient_9 + ingredient_total = 0
 ingredient_0_lower: ingredient_0 >= 0
-ingredient_0_upper: ingredient_0 - 0.1 ingredient_total <= 0
+ingredient_0_upper: ingredient_0 - ingredient_total <= 0
 ingredient_10_lower: ingredient_10 >= 0
 ingredient_10_upper: ingredient_10 <= 0
 ingredient_11_lower: ingredient_11 >= 0
@@ -111,7 +111,7 @@ ingredient_18_upper: ingredient_18 <= 0
 ingredient_19_lower: ingredient_19 >= 0
 ingredient_19_upper: ingredient_19 <= 0
 ingredient_1_lower: ingredient_1 >= 0
-ingredient_1_upper: ingredient_1 - 0.1 ingredient_total <= 0
+ingredient_1_upper: ingredient_1 - ingredient_total <= 0
 ingredient_2_lower: ingredient_2 >= 0
 ingredient_2_upper: ingredient_2 <= 0
 ingredient_3_lower: ingredient_3 >= 0
