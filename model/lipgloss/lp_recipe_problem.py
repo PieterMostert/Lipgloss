@@ -43,7 +43,7 @@ class LpRecipeProblem(LpProblem):
         self.ingredient_dict = core_data.ingredient_dict
         self.oxide_dict = core_data.oxide_dict
         self.other_dict = core_data.other_dict
-        self.ingredient_compositions = core_data.ingredient_compositions
+        self.ingredient_analyses = core_data.ingredient_analyses
         
         self.lp_var = {}     # self.lp_var is a dictionary for the variables in the linear programming problem
 
@@ -61,7 +61,7 @@ class LpRecipeProblem(LpProblem):
             # Relate mole percent and unity:
             self += self.lp_var['mole_'+ox] * self.oxide_dict[ox].molar_mass == self.lp_var['mass_'+ox]   
         # Relate ingredients and oxides:
-        self.update_ingredient_compositions(core_data)
+        self.update_ingredient_analyses(core_data)
 
         for index in self.other_dict:
             ot = 'other_'+index
@@ -76,12 +76,12 @@ class LpRecipeProblem(LpProblem):
         self += self.lp_var['ox_mass_total'] == sum(self.lp_var['mass_'+ox] for ox in self.oxide_dict)
         self += self.lp_var['ox_mole_total'] == sum(self.lp_var['mole_'+ox] for ox in self.oxide_dict)
 
-    def update_ingredient_compositions(self, core_data):
+    def update_ingredient_analyses(self, core_data):
         "To be run when the composition of any ingredient is changed. May be better to do this for a specific ingredient"
-        #self.ingredient_compositions = core_data.ingredient_compositions #unnecessary
+        #self.ingredient_analyses = core_data.ingredient_analyses #unnecessary
         for ox in self.oxide_dict:
-            self.constraints[ox] = sum(self.ingredient_compositions[j][ox] * self.lp_var['ingredient_'+j]/100 \
-                                   for j in self.ingredient_dict if ox in self.ingredient_compositions[j]) \
+            self.constraints[ox] = sum(self.ingredient_analyses[j][ox] * self.lp_var['ingredient_'+j]/100 \
+                                   for j in self.ingredient_dict if ox in self.ingredient_analyses[j]) \
                                    == self.lp_var['mass_'+ox]
 
     def remove_ingredient(self, i, core_data):
@@ -102,15 +102,15 @@ class LpRecipeProblem(LpProblem):
             pass
 
         #del self.ingredient_dict[i]
-        #del self.ingredient_compositions[i]
+        #del self.ingredient_analyses[i]
         self.constraints['ing_total'] = self.lp_var['ingredient_total'] == \
                                         sum(self.lp_var['ingredient_'+j] for j in self.ingredient_dict)
 
 ##        try:
-##            del core_data.ingredient_compositions[i]
+##            del core_data.ingredient_analyses[i]
 ##        except:
 ##            pass
-        self.update_ingredient_compositions(core_data)
+        self.update_ingredient_analyses(core_data)
 
     def add_ingredient(self, i, core_data):
         pass     

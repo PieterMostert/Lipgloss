@@ -24,17 +24,17 @@ from .core_data import Observable, CoreData
 
 
 ##def get_ing_comp():                           # Redo. This function is defined in the main (gui) file
-##    ingredient_compositions = {}
+##    ingredient_analyses = {}
 ##    with shelve.open("./data/IngredientShelf") as ingredient_shelf:
 ##        for index in ingredient_shelf:
-##            ingredient_compositions[index] = ingredient_shelf[index].oxide_comp
-##    return ingredient_compositions
+##            ingredient_analyses[index] = ingredient_shelf[index].analysis
+##    return ingredient_analyses
 
 ##def associated_oxides(ingredients):  #move this to CoreData ?
 ##
 ##    assoc_oxides = set()
 ##    for index in ingredients:
-##        assoc_oxides = assoc_oxides.union(set(CoreData().ingredient_compositions[index]))  # update the available oxides. Probably not the most
+##        assoc_oxides = assoc_oxides.union(set(CoreData().ingredient_analyses[index]))  # update the available oxides. Probably not the most
 ##                                                                                                      # efficient way to do this
 ##    return assoc_oxides
 
@@ -114,7 +114,7 @@ class Recipe(Observable):
             print(core_data.ingredient_dict[i].name+' already occurs in recipe')
         else:
             self.ingredients.append(i) 
-            self.oxides = self.oxides.union(set(core_data.ingredient_compositions[i]))
+            self.oxides = self.oxides.union(set(core_data.ingredient_analyses[i]))
             self.update_restriction_keys()       # Could just make the changes by hand
             for key in self.restriction_keys:
                 if key not in self.lower_bounds:
@@ -228,7 +228,7 @@ class Recipe(Observable):
 ##        with shelve.open("./data/IngredientShelf") as ingredient_shelf:
 ##            ingredient_dict = dict(ingredient_shelf)
 ##
-##        ingredient_compositions = get_ing_comp(ingredient_dict)
+##        ingredient_analyses = get_ing_comp(ingredient_dict)
 ##        restrictions = [restr_dict[index] for index in restr_keys(self.oxides, self.ingredients, self.other)]
 ##         
 ##        # first, test for obvious errors

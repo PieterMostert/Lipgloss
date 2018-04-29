@@ -52,7 +52,7 @@ class DisplayIngredient:
 ##        sdw['del'].bind('<Button-1>', partial(delete_ingredient_fn, index))
         self.name_entry = Entry(master=frame, width=20)
         self.name_entry.insert(0, ing.name)
-        ox_comp = ing.oxide_comp
+        ox_comp = ing.analysis
         self.oxide_entry = {}
         
         c = 3
@@ -149,23 +149,23 @@ class IngredientEditor(MainWindow):
         self.i_e_scrollframe.interior.focus_force()
 
 
-    def update_basic_constraints(self, ingredient_compositions, other_dict):
-        # We could remove the dependence on ingredient_compositions.
-        # I think the current implementation is more efficient, but I'm not sure.
-        
-        for ox in oxide_dict:
-            prob.constraints[ox] = sum(ingredient_compositions[index][ox]*lp_var['ingredient_'+index]/100 \
-                                       for index in self.ingredient_dict if ox in ingredient_compositions[index]) \
-                                   == lp_var['mass_'+ox]     # relate ingredients and oxides
-            
-        # We only need to update the constraints that depend on the other attributes, since the ones depending only on the
-        # oxides have already been updated.  However, I don't feel like writing code to identify these constraints, so I'm
-        # just going to update all other constraints.
-        for index in other_dict:      
-            ot = 'other_'+index
-            coefs = other_dict[index].numerator_coefs
-            linear_combo = [(lp_var[key], coefs[key]) for key in coefs]
-            prob.constraints[ot] = lp_var[ot] == LpAffineExpression(linear_combo)         # Relate this variable to the other variables.      
+##    def update_basic_constraints(self, ingredient_analyses, other_dict):
+##        # We could remove the dependence on ingredient_analyses.
+##        # I think the current implementation is more efficient, but I'm not sure.
+##        
+##        for ox in oxide_dict:
+##            prob.constraints[ox] = sum(ingredient_analyses[index][ox]*lp_var['ingredient_'+index]/100 \
+##                                       for index in self.ingredient_dict if ox in ingredient_analyses[index]) \
+##                                   == lp_var['mass_'+ox]     # relate ingredients and oxides
+##            
+##        # We only need to update the constraints that depend on the other attributes, since the ones depending only on the
+##        # oxides have already been updated.  However, I don't feel like writing code to identify these constraints, so I'm
+##        # just going to update all other constraints.
+##        for index in other_dict:      
+##            ot = 'other_'+index
+##            coefs = other_dict[index].numerator_coefs
+##            linear_combo = [(lp_var[key], coefs[key]) for key in coefs]
+##            prob.constraints[ot] = lp_var[ot] == LpAffineExpression(linear_combo)         # Relate this variable to the other variables.      
 
 ##    def update_ingredient_dict(self, current_recipe, ingredient_select_button, entry_type):
 ##        # Run when updating ingredients.  Needs improvement since it removes stars from ingredients that correspond to x or y variables.
@@ -184,11 +184,11 @@ class IngredientEditor(MainWindow):
 ##                except:
 ##                    val = 0
 ##                if isinstance(val,Number) and val != 0:
-##                    ing.oxide_comp[ox] = val
+##                    ing.analysis[ox] = val
 ##                else:
 ##                    ing.display_widgets[ox].delete(0,END)
 ##                    try:
-##                        del ing.oxide_comp[ox]
+##                        del ing.analysis[ox]
 ##                    except:
 ##                        pass
 ##
@@ -214,112 +214,112 @@ class IngredientEditor(MainWindow):
 ##        with shelve.open("./data/IngredientShelf") as ingredient_shelf:
 ##            for index in ingredient_shelf:
 ##                ingredient_shelf[index] = self.ingredient_dict[index].pickleable_version()
-##        ingredient_compositions = get_ing_comp(self.ingredient_dict)
+##        ingredient_analyses = get_ing_comp(self.ingredient_dict)
 ##
-##        self.update_basic_constraints(ingredient_compositions, other_dict)
+##        self.update_basic_constraints(ingredient_analyses, other_dict)
 ##
 ##        current_recipe.update_oxides(restr_dict, entry_type.get())
 
-    def close_conf_window_and_delete_ing(self, index, recipes_affected):
-        self.delete_ingredient(index, recipes_affected)
-        self.confirmation_window.destroy()
+##    def close_conf_window_and_delete_ing(self, index, recipes_affected):
+##        self.delete_ingredient(index, recipes_affected)
+##        self.confirmation_window.destroy()
+##
+##    def pre_delete_ingredient(self, index, recipe_dict):
+##        """Deletes ingredient if not in any recipes, otherwise opens dialogue window asking for confirmation."""
+##        recipes_affected = [i for i in recipe_dict if index in recipe_dict[i].ingredients]
+##        n = len(recipes_affected)
+##        if n > 0:
+##            self.confirmation_window = Toplevel()
+##            question_frame = Frame(self.confirmation_window)
+##            question_frame.grid()
+##            if n == 1:
+##                Label(master=question_frame, text=ingredient_dict[index].name+' occurs in '+recipe_dict[recipes_affected[0]].name+'.').grid(row=0)
+##                Label(master=question_frame, text='Are you sure you want to delete '+ingredient_dict[index].name+'?').grid(row=1)
+##            elif n == 2:
+##                Label(master=question_frame, text=ingredient_dict[index].name+' occurs in '+recipe_dict[recipes_affected[0]].name+' and '+recipe_dict[recipes_affected[1]].name+'.').grid(row=0)
+##                Label(master=question_frame, text='Are you sure you want to delete '+ingredient_dict[index].name+'?').grid(row=1)
+##            elif n == 3:
+##                Label(master=question_frame, text=ingredient_dict[index].name+' occurs in '+recipe_dict[recipes_affected[0]].name+', '+recipe_dict[recipes_affected[1]].name).grid(row=0)
+##                Label(master=question_frame, text=' and 1 other recipe.').grid(row=1)
+##                Label(master=question_frame, text='Are you sure you want to delete '+ingredient_dict[index].name+'?').grid(row=2)
+##            else:
+##                Label(master=question_frame, text=ingredient_dict[index].name+' occurs in '+recipe_dict[recipes_affected[0]].name+', '+recipe_dict[recipes_affected[1]].name).grid(row=0)
+##                Label(master=question_frame, text=' and '+str(n-2)+' other recipes.').grid(row=1)
+##                Label(master=question_frame, text='Are you sure you want to delete '+ingredient_dict[index].name+'?').grid(row=2)  
+##            answer_frame = Frame(confirmation_window)
+##            answer_frame.grid()
+##            ttk.Button(answer_frame, text='Yes', width=10, command=partial(close_conf_window_and_delete_ing, index, recipes_affected)).grid(column=0, row=0)
+##            ttk.Button(answer_frame, text='No', width=10, command=lambda : self.confirmation_window.destroy()).grid(column=1, row=0)
+##        else:
+##            self.delete_ingredient(index, [])
 
-    def pre_delete_ingredient(self, index, recipe_dict):
-        """Deletes ingredient if not in any recipes, otherwise opens dialogue window asking for confirmation."""
-        recipes_affected = [i for i in recipe_dict if index in recipe_dict[i].ingredients]
-        n = len(recipes_affected)
-        if n > 0:
-            self.confirmation_window = Toplevel()
-            question_frame = Frame(self.confirmation_window)
-            question_frame.grid()
-            if n == 1:
-                Label(master=question_frame, text=ingredient_dict[index].name+' occurs in '+recipe_dict[recipes_affected[0]].name+'.').grid(row=0)
-                Label(master=question_frame, text='Are you sure you want to delete '+ingredient_dict[index].name+'?').grid(row=1)
-            elif n == 2:
-                Label(master=question_frame, text=ingredient_dict[index].name+' occurs in '+recipe_dict[recipes_affected[0]].name+' and '+recipe_dict[recipes_affected[1]].name+'.').grid(row=0)
-                Label(master=question_frame, text='Are you sure you want to delete '+ingredient_dict[index].name+'?').grid(row=1)
-            elif n == 3:
-                Label(master=question_frame, text=ingredient_dict[index].name+' occurs in '+recipe_dict[recipes_affected[0]].name+', '+recipe_dict[recipes_affected[1]].name).grid(row=0)
-                Label(master=question_frame, text=' and 1 other recipe.').grid(row=1)
-                Label(master=question_frame, text='Are you sure you want to delete '+ingredient_dict[index].name+'?').grid(row=2)
-            else:
-                Label(master=question_frame, text=ingredient_dict[index].name+' occurs in '+recipe_dict[recipes_affected[0]].name+', '+recipe_dict[recipes_affected[1]].name).grid(row=0)
-                Label(master=question_frame, text=' and '+str(n-2)+' other recipes.').grid(row=1)
-                Label(master=question_frame, text='Are you sure you want to delete '+ingredient_dict[index].name+'?').grid(row=2)  
-            answer_frame = Frame(confirmation_window)
-            answer_frame.grid()
-            ttk.Button(answer_frame, text='Yes', width=10, command=partial(close_conf_window_and_delete_ing, index, recipes_affected)).grid(column=0, row=0)
-            ttk.Button(answer_frame, text='No', width=10, command=lambda : self.confirmation_window.destroy()).grid(column=1, row=0)
-        else:
-            self.delete_ingredient(index, [])
-
-    def delete_ingredient(self, index, recipes_affected):
-
-        oxides_to_update = self.ingredient_dict[index].oxide_comp
-
-    ##    prob._variables.remove(lp_var['ingredient_'+index])
-        # The commented-out line above doesn't work in general since lp_var['ingredient_'+index] is regarded as
-        # being equal to all entries of prob._variables, so it removes the first entry. Instead, we need to use 'is'.
-        for i,j in enumerate(prob._variables):
-            if j is lp_var['ingredient_'+index]:
-                del prob._variables[i]  
-
-        self.update_basic_constraints(ingredient_compositions, other_dict)   # I should probably update other_dict, no?
-
-        for widget in ['del', 'name'] + self.oxides + ['other_attr_'+i for i in other_attr_dict]:
-            self.ingredient_dict[index].display_widgets[widget].destroy()
-
-        if index in current_recipe.ingredients:
-            toggle_ingredient(index)
-
-        del self.ingredient_dict[index]
-        with shelve.open("./data/IngredientShelf") as ingredient_shelf:
-            del ingredient_shelf[index]
-
-        with shelve.open("./data/OrderShelf") as order_shelf:
-            temp_list = order_shelf['ingredients']
-            temp_list.remove(index)
-            order_shelf['ingredients'] = temp_list
-            self.ingredient_order = temp_list
-
-        for i,j in enumerate(self.ingredient_order):
-            self.ingredient_dict[j].display(i)    # We actually only need to do this for the rows that are below the one that was deleted
-
-        # Remove the deleted ingredient from the list of ingredients to select from:
-        ingredient_select_button[index].destroy()
-        
-        try:
-            del prob.constraints['ingredient_'+index+'_lower']  # Is this necessary?
-        except:
-            pass
-        try:
-            del prob.constraints['ingredient_'+index+'_upper']  # Is this necessary?
-        except:
-            pass
-        prob.constraints['ing_total'] = lp_var['ingredient_total'] == sum(lp_var['ingredient_'+i] for i in self.ingredient_dict)
-
-        del restr_dict['ingredient_'+index]
-
-        # Remove the ingredient from all recipes that contain it.
-        for i in recipes_affected:
-            rec = recipe_dict[i]
-            rec.ingredients.remove(index)
-            rec.update_oxides(restr_dict, entry_type.get())
-            #recipe_dict[i] = rec
-            rec.update_variables(restr_keys(rec.oxides, rec.ingredients, rec.other))
-        json_write_recipes()
+##    def delete_ingredient(self, index, recipes_affected):
+##
+##        oxides_to_update = self.ingredient_dict[index].analysis
+##
+##    ##    prob._variables.remove(lp_var['ingredient_'+index])
+##        # The commented-out line above doesn't work in general since lp_var['ingredient_'+index] is regarded as
+##        # being equal to all entries of prob._variables, so it removes the first entry. Instead, we need to use 'is'.
+##        for i,j in enumerate(prob._variables):
+##            if j is lp_var['ingredient_'+index]:
+##                del prob._variables[i]  
+##
+##        self.update_basic_constraints(ingredient_analyses, other_dict)   # I should probably update other_dict, no?
+##
+##        for widget in ['del', 'name'] + self.oxides + ['other_attr_'+i for i in other_attr_dict]:
+##            self.ingredient_dict[index].display_widgets[widget].destroy()
+##
+##        if index in current_recipe.ingredients:
+##            toggle_ingredient(index)
+##
+##        del self.ingredient_dict[index]
+##        with shelve.open("./data/IngredientShelf") as ingredient_shelf:
+##            del ingredient_shelf[index]
+##
+##        with shelve.open("./data/OrderShelf") as order_shelf:
+##            temp_list = order_shelf['ingredients']
+##            temp_list.remove(index)
+##            order_shelf['ingredients'] = temp_list
+##            self.ingredient_order = temp_list
+##
+##        for i,j in enumerate(self.ingredient_order):
+##            self.ingredient_dict[j].display(i)    # We actually only need to do this for the rows that are below the one that was deleted
+##
+##        # Remove the deleted ingredient from the list of ingredients to select from:
+##        ingredient_select_button[index].destroy()
+##        
+##        try:
+##            del prob.constraints['ingredient_'+index+'_lower']  # Is this necessary?
+##        except:
+##            pass
+##        try:
+##            del prob.constraints['ingredient_'+index+'_upper']  # Is this necessary?
+##        except:
+##            pass
+##        prob.constraints['ing_total'] = lp_var['ingredient_total'] == sum(lp_var['ingredient_'+i] for i in self.ingredient_dict)
+##
+##        del restr_dict['ingredient_'+index]
+##
+##        # Remove the ingredient from all recipes that contain it.
+##        for i in recipes_affected:
+##            rec = recipe_dict[i]
+##            rec.ingredients.remove(index)
+##            rec.update_oxides(restr_dict, entry_type.get())
+##            #recipe_dict[i] = rec
+##            rec.update_variables(restr_keys(rec.oxides, rec.ingredients, rec.other))
+##        json_write_recipes()
 ##      
 ##    def new_ingredient(self, toggle_ingredient):
 ##
 ##        with shelve.open("./data/IngredientShelf") as ingredient_shelf:
 ##            r = max([int(index) for index in ingredient_shelf]) + 1
 ##            index = str(r)
-##            ing = ingredient_shelf[str(r)] = Ingredient('Ingredient #'+index, notes='', oxide_comp={}, other_attributes={})
-##                            # If we just had Ingredient('Ingredient #'+index) above, the default values of the notes, oxide_comp
+##            ing = ingredient_shelf[str(r)] = Ingredient('Ingredient #'+index, notes='', analysis={}, other_attributes={})
+##                            # If we just had Ingredient('Ingredient #'+index) above, the default values of the notes, analysis
 ##                            # and other_attributes attributes would change when the last instance of the class defined had those
 ##                            # attributes changed
-##    ##        ing = Ingredient('Ingredient #'+index, oxide_comp = {})
-##    ##        print(ing.oxide_comp)
+##    ##        ing = Ingredient('Ingredient #'+index, analysis = {})
+##    ##        print(ing.analysis)
 ##    ##        print(ing.name)
 ##    ##        ingredient_shelf[str(r)] = copy.deepcopy(ing)
 ##

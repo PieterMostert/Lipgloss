@@ -15,7 +15,7 @@ class IngredientSerializer(object):
         serializable_ingredient = {}
         serializable_ingredient["name"] = ingredient.name
         serializable_ingredient["notes"] = ingredient.notes
-        serializable_ingredient["oxide_comp"] = ingredient.oxide_comp
+        serializable_ingredient["analysis"] = ingredient.analysis
         serializable_ingredient["other_attributes"] = ingredient.other_attributes
         serializable_ingredient["glaze_calculator_ids"] = ingredient.glaze_calculator_ids
         return serializable_ingredient
@@ -38,7 +38,7 @@ class IngredientSerializer(object):
         """Convert a dict returned by the JSON decoder into a ingredient object."""
         ingredient = Ingredient(serialized_ingredient_dict["name"], 
                             serialized_ingredient_dict["notes"],
-                            serialized_ingredient_dict["oxide_comp"],
+                            serialized_ingredient_dict["analysis"],
                             serialized_ingredient_dict["ingredients"],
                             serialized_ingredient_dict["other_attributes"],
                             serialized_ingredient_dict["glaze_calculator_ids"]) 

@@ -133,14 +133,14 @@ class OxideData():
 # Define Ingredient class.  Ingredients will be referenced by their index, a string consisting of a unique natural number.
 class Ingredient(Observable):
     
-    def __init__(self, name='New ingredient', notes='', oxide_comp={}, other_attributes={}, glaze_calculator_ids={}):
+    def __init__(self, name='New ingredient', notes='', analysis={}, other_attributes={}, glaze_calculator_ids={}):
 
         Observable.__init__(self)
         self.name = name
         # notes not implemented yet.
         self.notes = notes
-        # oxide_comp is a dictionary giving the weight percent of each oxide in the ingredient.
-        self.oxide_comp = oxide_comp
+        # analysis is a dictionary giving the weight percent of each oxide in the ingredient.
+        self.analysis = analysis
         # other attributes is a dictionary giving the values of each other attribute of the ingredient
         self.other_attributes = other_attributes
         # glaze_calculator_ids is a dictionary with keys being strings referring to various glaze calc software,
@@ -159,13 +159,13 @@ def ingredient_reset():
 
             temp_order_list.append(str(pos))
 
-            ing_init = Ingredient(name=ing, oxide_comp=dict([(ox, ingredientfile.ingredient_compositions[ing][ox]) \
-                                                                   for ox in OxideData.oxides() if ox in ingredientfile.ingredient_compositions[ing]]),\
+            ing_init = Ingredient(name=ing, analysis=dict([(ox, ingredientfile.ingredient_analyses[ing][ox]) \
+                                                                   for ox in OxideData.oxides() if ox in ingredientfile.ingredient_analyses[ing]]),\
                                   other_attributes = {})
 
             for attr in []: #other_attr_dict:
                 try:
-                    ing_init.other_attributes[attr] = ingredientfile.ingredient_compositions[ing][attr]
+                    ing_init.other_attributes[attr] = ingredientfile.ingredient_analyses[ing][attr]
                 except:
                     pass
             
@@ -205,23 +205,19 @@ class Other(Observable):
         self.dec_pt = dec_pt
 
 def get_ing_comp(ingredient_dict):
-    ingredient_compositions = {}
+    ingredient_analyses = {}
     for index in ingredient_dict:
-        ingredient_compositions[index] = ingredient_dict[index].oxide_comp
-    return ingredient_compositions
+        ingredient_analyses[index] = ingredient_dict[index].analysis
+    return ingredient_analyses
 
 class CoreData(OxideData):
     '''Class used to store the dictionaries of ingredients and 'other' restrictions, as well as
        the dictionary of other attributes ingredients may have'''
-
-##    recipe_dict = {}
-##
-##    current_recipe = None
     
     def __init__(self):
         self.other_attr_dict = {}
         self.ingredient_dict = {}
-        self.ingredient_compositions = {}    # Could do without this  
+        self.ingredient_analyses = {}    # Could do without this  
         self.other_dict = {}
         self.default_lower_bounds = {}
         self.default_upper_bounds = {}
@@ -234,7 +230,7 @@ class CoreData(OxideData):
     def associated_oxides(self, ingredients):
         assoc_oxides = set()
         for index in ingredients:
-            assoc_oxides = assoc_oxides.union(set(self.ingredient_compositions[index]))  # update the available oxides. Probably not the most
+            assoc_oxides = assoc_oxides.union(set(self.ingredient_analyses[index]))  # update the available oxides. Probably not the most
                                                                                                       # efficient way to do this
         return assoc_oxides
 
@@ -245,16 +241,16 @@ class CoreData(OxideData):
         self.ingredient_dict = {}
         from .default_data import ingredientfile as ingredientfile
         for pos, ing in enumerate(ingredientfile.ingredient_names):
-            ox_comp = dict([(ox, ingredientfile.ingredient_compositions[ing][ox]) \
-                            for ox in self.oxides() if ox in ingredientfile.ingredient_compositions[ing]])
-            ing_init = Ingredient(name=ing, oxide_comp=ox_comp, other_attributes={})
+            ox_comp = dict([(ox, ingredientfile.ingredient_analyses[ing][ox]) \
+                            for ox in self.oxides() if ox in ingredientfile.ingredient_analyses[ing]])
+            ing_init = Ingredient(name=ing, analysis=ox_comp, other_attributes={})
             for attr in self.other_attr_dict:
                 try:
-                    ing_init.other_attributes[attr] = ingredientfile.ingredient_compositions[ing][attr]
+                    ing_init.other_attributes[attr] = ingredientfile.ingredient_analyses[ing][attr]
                 except:
                     pass  
             self.ingredient_dict[str(pos)] = ing_init
-        self.ingredient_compositions = get_ing_comp(self.ingredient_dict) 
+        self.ingredient_analyses = get_ing_comp(self.ingredient_dict) 
 
         self.other_dict = {}
         self.other_dict['0'] = Other(0, 'SiO2_Al2O3', {'mole_SiO2':1}, "self.lp_var['mole_Al2O3']", 3, 18, 2)   # Using 'SiO2:Al2O3' gives an error
@@ -305,7 +301,7 @@ class CoreData(OxideData):
     def set_ingredient_dict(self, path):    # change to JSON?
         with shelve.open(path) as ingredient_shelf:
             self.ingredient_dict = dict(ingredient_shelf)
-        self.ingredient_compositions = get_ing_comp(self.ingredient_dict)
+        self.ingredient_analyses = get_ing_comp(self.ingredient_dict)
 
     def save_other_dict(self, path):    # change to JSON?
         with shelve.open(path) as other_shelf:
@@ -325,13 +321,13 @@ class CoreData(OxideData):
         m = max([int(j) for j in self.ingredient_dict]) + 1
         i = str(m)
         self.ingredient_dict[i] = ing
-        self.ingredient_compositions[i] = ing.oxide_comp
+        self.ingredient_analyses[i] = ing.analysis
         self.default_lower_bounds['ingredient_'+i] = default_low
         self.default_upper_bounds['ingredient_'+i] = default_upp
 
     def remove_ingredient(self, i):
         del self.ingredient_dict[i]
-        del self.ingredient_compositions[i]
+        del self.ingredient_analyses[i]
         del self.default_lower_bounds['ingredient_'+i]
         del self.default_upper_bounds['ingredient_'+i]
             
@@ -342,7 +338,7 @@ class CoreData(OxideData):
 ##
 ##    def update_ingredient_data(self, new_dict):
 ##        self.ingredient_dict = new_dict
-##        self.ingredient_compositions = get_ing_comp(new_dict)
+##        self.ingredient_analyses = get_ing_comp(new_dict)
 ##
 ##    def update_other_data(self, new_dict):
 ##        self.self.other_dict = new_dict

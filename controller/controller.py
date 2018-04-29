@@ -308,8 +308,8 @@ class Controller:
                 pass
             
     def new_ingredient(self):
-        ing = Ingredient('', notes='', oxide_comp={}, other_attributes={})
-                            # If we just had Ingredient('Ingredient #'+index) above, the default values of the notes, oxide_comp
+        ing = Ingredient('', notes='', analysis={}, other_attributes={})
+                            # If we just had Ingredient('Ingredient #'+index) above, the default values of the notes, analysis
                             # and other_attributes attributes would change when the last instance of the class defined had those
                             # attributes changed
         self.cd.add_ingredient(ing)
@@ -326,7 +326,7 @@ class Controller:
         self.mod.order['ingredients'] = temp_list
 ##        
 ##        self.cd.ingredient_dict[index] = ing
-##        self.cd.ingredient_compositions[index] = ing.oxide_comp
+##        self.cd.ingredient_analyses[index] = ing.analysis
 ##        self.cd.default_lower_bounds['ingredient_'+index] = 0
 ##        self.cd.default_upper_bounds['ingredient_'+index] = 100
 
@@ -372,11 +372,11 @@ class Controller:
                 except:
                     val = 0
                 if isinstance(val, Number) and val != 0:
-                    ing.oxide_comp[ox] = val
+                    ing.analysis[ox] = val
                 else:
                     self.ing_editor.line[index].oxide_entry[ox].delete(0, tk.END)
                     try:
-                        del ing.oxide_comp[ox]
+                        del ing.analysis[ox]
                     except:
                         pass
 
@@ -395,15 +395,15 @@ class Controller:
                         pass
 
             self.cd.ingredient_dict[index] = ing
-            self.cd.ingredient_compositions[index] = self.cd.ingredient_dict[index].oxide_comp
+            self.cd.ingredient_analyses[index] = self.cd.ingredient_dict[index].analysis
 
         with shelve.open(persistent_data_path+"/IngredientShelf") as ingredient_shelf:
             for index in ingredient_shelf:
                 ingredient_shelf[index] = self.cd.ingredient_dict[index]
-##                    ingredient_shelf[index].oxide_comp = self.cd.ingredient_dict[index].oxide_comp
+##                    ingredient_shelf[index].analysis = self.cd.ingredient_dict[index].analysis
 ##                    ingredient_shelf[index].other_attributes = self.cd.ingredient_dict[index].other_attributes
                 
-        self.lprp.update_ingredient_compositions(self.cd) 
+        self.lprp.update_ingredient_analyses(self.cd) 
                 
         old_oxides = copy.copy(self.mod.current_recipe.oxides)
         old_variables = copy.copy(self.mod.current_recipe.variables)
@@ -461,7 +461,7 @@ class Controller:
 
     def delete_ingredient(self, i, recipes_affected):
 
-        #self.update_basic_constraints(ingredient_compositions, other_dict)   # I should probably update other_dict, no?
+        #self.update_basic_constraints(ingredient_analyses, other_dict)   # I should probably update other_dict, no?
 
         if i in self.mod.current_recipe.ingredients:
             self.toggle_ingredient(i)   # gets rid of stars, if the ingredient is a variable
@@ -508,7 +508,7 @@ class Controller:
             self.mw.ingredient_select_button[i].state(['!pressed'])
             self.display_restr_dict['ingredient_'+i].remove(old_variables)
             # Remove the restrictions on the oxides no longer present:
-            for ox in set(self.cd.ingredient_compositions[i]) - recipe.oxides:
+            for ox in set(self.cd.ingredient_analyses[i]) - recipe.oxides:
                 for et in ['umf_', 'mass_perc_', 'mole_perc_']:
                     self.display_restr_dict[et+ox].remove(old_variables)
 
@@ -516,13 +516,13 @@ class Controller:
             recipe.add_ingredient(self.cd, i)
             self.mw.ingredient_select_button[i].state(['pressed'])
             self.display_restr_dict['ingredient_'+i].display(101 + self.mod.order["ingredients"].index(i))
-##            for ox in self.cd.ingredient_compositions[i]:
+##            for ox in self.cd.ingredient_analyses[i]:
 ##                if ox not in recipe.oxides:  # i.e. if we're introducing a new oxide
 ##                    for t in ['umf_', 'mass_perc_', 'mole_perc_']:
 ##                        key = t + ox
 ##                        recipe.lower_bounds[key] = self.restr_dict[key].default_low
 ##                        recipe.upper_bounds[key] = self.restr_dict[key].default_upp
-##            recipe.oxides = recipe.oxides.union(set(self.cd.ingredient_compositions[i]))    # update the available oxides
+##            recipe.oxides = recipe.oxides.union(set(self.cd.ingredient_analyses[i]))    # update the available oxides
             et = self.mw.entry_type.get()
             for ox in recipe.oxides:
                 self.display_restr_dict[et+ox].display(1 + self.cd.oxide_dict[ox].pos)
