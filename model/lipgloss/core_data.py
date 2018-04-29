@@ -147,52 +147,6 @@ class Ingredient(Observable):
         # and values being the corresponding index in that software that encodes the ingredient
         self.glaze_calculator_ids = glaze_calculator_ids
 
-##    def displayable_version(self, index, frame, delete_ingredient_fn):   # move to view
-##        # To be used in the 'Edit ingredients' window.  Only apply this to copies of things in shelve.
-##        sdw = self.display_widgets
-##        sdw['del'] =  ttk.Button(master=frame, text='X', width=2, command = partial(delete_ingredient_fn, index))
-####        sdw['del'] =  ttk.Label(master=frame, text='X', width=2)
-####        sdw['del'].bind('<Button-1>', partial(delete_ingredient_fn, index))
-##        sdw['name'] = Entry(master=frame, width=20)
-##        sdw['name'].insert(0, self.name)
-##
-##        c = 3
-##        
-##        for ox in oxides:
-##            # Use this entry widget to input the percent weight of the oxide that the ingredient contains.
-##            sdw[ox] = Entry(master=frame,  width=5)  
-##            sdw[ox].delete(0, END)
-##            if ox in self.oxide_comp:
-##                sdw[ox].insert(0, self.oxide_comp[ox])
-##            else:
-##                pass
-##            c += 1
-##
-##        for i, other_attr in other_attr_dict.items(): 
-##            sdw['other_attr_'+i] = Entry(master=frame, width=5)
-##            if i in self.other_attributes:
-##                sdw['other_attr_'+i].insert(0, self.other_attributes[i])
-##
-##    def display(self, pos):
-##        sdw = self.display_widgets
-##        sdw['del'].grid(row=pos, column=0)
-##        sdw['name'].grid(row=pos, column=1, padx=3, pady=3)
-##
-##        c = 3
-##        
-##        for ox in oxides:
-##            sdw[ox].grid(row=pos, column=c, padx=3, pady=1)
-##            c += 1
-##
-##        for i, other_attr in other_attr_dict.items(): 
-##            sdw['other_attr_'+i].grid(row=pos, column=c+other_attr.pos, padx=3, pady=3)
-##
-##    def pickleable_version(self):   
-##        temp = copy.copy(self)
-##        # The values in self.display_widgets that the ingredient editor introduces can't be pickled, so we discard them:
-##        temp.display_widgets = {}    
-##        return temp
-
 def ingredient_reset():
     import ingredientfile
         

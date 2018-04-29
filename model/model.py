@@ -16,27 +16,27 @@
 
 # Contact: pi.mostert@gmail.com
 
-import pulp
-import shelve
 try:
-    import lipgloss as lg
+    from lipgloss.core_data import CoreData
 except:
-    from . import lipgloss as lg
+    from .lipgloss.core_data import CoreData
+    
 try:
     from serializers.recipeserializer import RecipeSerializer
 except:
     from .serializers.recipeserializer import RecipeSerializer
+    
 from inspect import getsourcefile
 import os
 from os.path import abspath, dirname
 import sys
-
-persistent_data_path = dirname(abspath(getsourcefile(lambda:0)))+'\persistent_data'  # please tell me there's an easier way to import stuff in Python
+persistent_data_path = dirname(abspath(getsourcefile(lambda:0))) + '\persistent_data'  # please tell me there's an easier way to import stuff in Python
 #print(persistent_data_path)
 sys.path.append(persistent_data_path)
 
+import pulp
+import shelve
 import copy
-
 
 # initialize oxides, ingredients, recipe_dict, etc.
 ##lg.core_data.OxideData.set_default_oxides()
@@ -44,10 +44,11 @@ import copy
 ##cd.set_default_data()
 #CoreData.load_ingredients(path)
 
-class Model:
-    "A partial model for the GUI. The full model consists of this together the CoreData class."
+class Model(CoreData):
+    "A partial model for the GUI. The full model consists of this together with the CoreData class."
 
     def __init__(self):
+        CoreData.__init__(self)
         
         f = open(persistent_data_path+"/JSONRecipeShelf.json", 'r')
         json_str = f.read()

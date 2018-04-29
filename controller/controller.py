@@ -20,7 +20,7 @@ import sys
 from os.path import abspath, dirname
 from inspect import getsourcefile
 model_path = dirname(dirname(abspath(getsourcefile(lambda:0)))) + '\model'
-print('model_path = '+model_path)
+print('model_path = ' + model_path)
 sys.path.append(model_path) # Allows us to treat lipgloss like a built-in package. Doesn't seem to work on OSX
 
 try:    # This should work if lipgloss behaves like a built-in package
