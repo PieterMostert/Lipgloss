@@ -18,9 +18,6 @@
 
 import tkinter as tk
 from tkinter import ttk
-import os
-from inspect import getsourcefile
-from os.path import abspath, dirname
 from functools import partial
 
 try:

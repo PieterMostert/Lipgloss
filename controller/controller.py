@@ -18,12 +18,13 @@
 
 import sys
 from os.path import abspath, dirname
+from os import path
 from inspect import getsourcefile
-model_path = dirname(dirname(abspath(getsourcefile(lambda:0)))) + '\model'
+model_path = path.join(dirname(dirname(abspath(getsourcefile(lambda:0)))), 'model')
 print('model_path = ' + model_path)
-sys.path.append(model_path) # Allows us to treat lipgloss like a built-in package. Doesn't seem to work on OSX
+sys.path.append(model_path) # Allows us to import lipgloss like a built-in package. Doesn't seem to work on OSX
 
-try:    # This should work if lipgloss behaves like a built-in package
+try:    # This should work if lipgloss can be imported like a built-in package
     from lipgloss.core_data import OxideData, CoreData, Oxide, Ingredient
     from lipgloss.lp_recipe_problem import LpRecipeProblem
     from lipgloss.recipes import Recipe, restr_keys
@@ -50,7 +51,7 @@ import shelve
 import copy
 from numbers import Number
 
-persistent_data_path = model_path + '\persistent_data'
+persistent_data_path = path.join(model_path, 'persistent_data')
 
 def default_restriction_bounds(ox_dict, ing_dict, other_dict):
     """This will eventually be replaced by a function the reads the default restriction bounds from a JSON file"""
@@ -310,27 +311,7 @@ class Controller:
                 pass
             
     def new_ingredient(self):
-        ing = Ingredient('', notes='', analysis={}, other_attributes={})
-                            # If we just had Ingredient('Ingredient #'+index) above, the default values of the notes, analysis
-                            # and other_attributes attributes would change when the last instance of the class defined had those
-                            # attributes changed
-        self.mod.add_ingredient(ing)
-        i = list(self.mod.ingredient_dict.keys())[-1]     # index of new ingredient
-        #self.mod.ingredient_dict[i].
-        ing.name = 'Ingredient #'+i
-        with shelve.open(persistent_data_path+"/IngredientShelf") as ingredient_shelf:
-            ingredient_shelf[i] = self.mod.ingredient_dict[i]
-
-        with shelve.open(persistent_data_path+"/OrderShelf") as order_shelf:
-            temp_list = order_shelf['ingredients']
-            temp_list.append(i)
-            order_shelf['ingredients'] = temp_list
-        self.mod.order['ingredients'] = temp_list
-##        
-##        self.mod.ingredient_dict[index] = ing
-##        self.mod.ingredient_analyses[index] = ing.analysis
-##        self.mod.default_lower_bounds['ingredient_'+index] = 0
-##        self.mod.default_upper_bounds['ingredient_'+index] = 100
+        i, ing = self.mod.new_ingredient()    # i = index of new ingredient ing
 
         # Move next section to IngredientEditor
         self.ing_editor.line[i] = DisplayIngredient(i, self.mod, self.ing_editor.i_e_scrollframe.interior) #,
@@ -398,12 +379,13 @@ class Controller:
 
             self.mod.ingredient_dict[index] = ing
             self.mod.ingredient_analyses[index] = self.mod.ingredient_dict[index].analysis
+            self.mod.json_write_ingredients()
 
-        with shelve.open(persistent_data_path+"/IngredientShelf") as ingredient_shelf:
-            for index in ingredient_shelf:
-                ingredient_shelf[index] = self.mod.ingredient_dict[index]
-##                    ingredient_shelf[index].analysis = self.mod.ingredient_dict[index].analysis
-##                    ingredient_shelf[index].other_attributes = self.mod.ingredient_dict[index].other_attributes
+##        with shelve.open(persistent_data_path+"/IngredientShelf") as ingredient_shelf:
+##            for index in ingredient_shelf:
+##                ingredient_shelf[index] = self.mod.ingredient_dict[index]
+####                    ingredient_shelf[index].analysis = self.mod.ingredient_dict[index].analysis
+####                    ingredient_shelf[index].other_attributes = self.mod.ingredient_dict[index].other_attributes
                 
         self.lprp.update_ingredient_analyses(self.mod) 
                 
@@ -470,11 +452,11 @@ class Controller:
             #self.mod.current_recipe.remove_ingredient(self.mod, i)
 
         self.mod.remove_ingredient(i)
-        with shelve.open(persistent_data_path+"/IngredientShelf") as ingredient_shelf:
+        with shelve.open(path.join(persistent_data_path, "IngredientShelf")) as ingredient_shelf:
             del ingredient_shelf[i]
 
         self.mod.order['ingredients'].remove(i)
-        with shelve.open(persistent_data_path+"/OrderShelf") as order_shelf:
+        with shelve.open(path.join(persistent_data_path, "OrderShelf")) as order_shelf:
             temp_list = order_shelf['ingredients']
             temp_list.remove(i)
             order_shelf['ingredients'] = temp_list

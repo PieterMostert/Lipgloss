@@ -1,8 +1,8 @@
 import json
 try:
-    from lipgloss.ingredients import ingredient
+    from lipgloss.core_data import Ingredient
 except:
-    from ..lipgloss.ingredients import ingredient
+    from ..lipgloss.core_data import Ingredient
 #import lipgloss
 ##from ..lipgloss.core_data import CoreData
 
@@ -29,8 +29,8 @@ class IngredientSerializer(object):
     def serialize_dict(ingredient_dict):
         """Serialize a dict containing ingredient objects indexed by ID keys to JSON."""
         serializable_dict = {};
-        for index in ingredient_dict:
-            serializable_dict[index] = ingredientSerializer.get_serializable_ingredient(ingredient_dict[index])
+        for i in ingredient_dict:
+            serializable_dict[i] = IngredientSerializer.get_serializable_ingredient(ingredient_dict[i])
         return json.dumps(serializable_dict, indent=4)
 
     @staticmethod
@@ -57,7 +57,7 @@ class IngredientSerializer(object):
         serialized_ingredients = json.loads(json_str)
         for index in serialized_ingredients:
             serialized_ingredient_dict = serialized_ingredients[index]
-            ingredient = ingredientSerializer.get_ingredient(serialized_ingredient_dict)                           
+            ingredient = IngredientSerializer.get_ingredient(serialized_ingredient_dict)                           
             ingredient_dict[index] = ingredient
         return ingredient_dict
 

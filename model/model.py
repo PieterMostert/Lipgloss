@@ -17,20 +17,23 @@
 # Contact: pi.mostert@gmail.com
 
 try:
-    from lipgloss.core_data import CoreData
+    from lipgloss.core_data import CoreData, Ingredient
 except:
-    from .lipgloss.core_data import CoreData
+    from .lipgloss.core_data import CoreData, Ingredient
     
 try:
     from serializers.recipeserializer import RecipeSerializer
+    from serializers.ingredientserializer import IngredientSerializer
 except:
     from .serializers.recipeserializer import RecipeSerializer
+    from .serializers.ingredientserializer import IngredientSerializer
     
 from inspect import getsourcefile
 import os
 from os.path import abspath, dirname
+from os import path
 import sys
-persistent_data_path = dirname(abspath(getsourcefile(lambda:0))) + '\persistent_data'  # please tell me there's an easier way to import stuff in Python
+persistent_data_path = path.join(dirname(abspath(getsourcefile(lambda:0))), 'persistent_data')  # please tell me there's an easier way to import stuff in Python
 #print(persistent_data_path)
 sys.path.append(persistent_data_path)
 
@@ -45,12 +48,12 @@ import copy
 #CoreData.load_ingredients(path)
 
 class Model(CoreData):
-    "A partial model for the GUI. The full model consists of this together with the CoreData class."
+    "A partial model for the GUI. The full model consists of this together with the LpRecipeProblem class."
 
     def __init__(self):
         CoreData.__init__(self)
         
-        f = open(persistent_data_path+"/JSONRecipeShelf.json", 'r')
+        f = open(path.join(persistent_data_path, "JSONRecipeShelf.json"), 'r')
         json_str = f.read()
         f.close()
         self.recipe_dict = RecipeSerializer.deserialize_dict(json_str)
@@ -62,7 +65,7 @@ class Model(CoreData):
         self.recipe_index = None
         self.set_current_recipe('0')
 
-        with shelve.open(persistent_data_path+"/OrderShelf") as order_shelf:
+        with shelve.open(path.join(persistent_data_path, "OrderShelf")) as order_shelf:
             self.order = dict(order_shelf)
         
     def set_current_recipe(self, index):
@@ -90,17 +93,44 @@ class Model(CoreData):
         
     def json_write_recipes(self):
         """Write all recipes from the global recipe_dict to file, overwriting previous data"""
-        f = open(persistent_data_path+"/JSONRecipeShelf.json", 'w')
+        f = open(path.join(persistent_data_path, "JSONRecipeShelf.json"), 'w')
         json_string = RecipeSerializer.serialize_dict(self.recipe_dict)
         f.write(json_string)
         f.close()
 
-    def update_recipe_dict(self, core_data):
+    def update_recipe_dict(self):
         for recipe in self.recipe_dict.values():
-            recipe.update_core_data(core_data)
+            recipe.update_core_data(self)
         self.json_write_recipes()
         
     def update_order(self, key):  # Is this used at all?
-        with shelve.open(persistent_data_path+"/OrderShelf") as order_shelf:
+        with shelve.open(path.join(persistent_data_path, "OrderShelf")) as order_shelf:
             order_shelf[key] = self.order[key]
+
+    def new_ingredient(self):
+        ing = Ingredient('', notes='', analysis={}, other_attributes={})
+                            # If we just had Ingredient('Ingredient #'+index) above, the default values of the notes, analysis
+                            # and other_attributes attributes would change when the last instance of the class defined had those
+                            # attributes changed
+        self.add_ingredient(ing)
+        i = list(self.ingredient_dict.keys())[-1]     # index of new ingredient
+        ing.name = 'Ingredient #'+i
+
+        self.json_write_ingredients()  # replace by function that just updates a single ingredient
+##        with shelve.open(persistent_data_path+"/IngredientShelf") as ingredient_shelf:
+##            ingredient_shelf[i] = self.ingredient_dict[i]
+
+        with shelve.open(path.join(persistent_data_path, "OrderShelf")) as order_shelf:
+            temp_list = order_shelf['ingredients']
+            temp_list.append(i)
+            order_shelf['ingredients'] = temp_list
+        self.order['ingredients'] = temp_list
+        
+        return i, ing
             
+    def json_write_ingredients(self):
+        """Write all ingredients from self.ingredient_dict to file, overwriting previous data"""
+        f = open(path.join(persistent_data_path, "JSONIngredientShelf.json"), 'w')
+        json_string = IngredientSerializer.serialize_dict(self.ingredient_dict)
+        f.write(json_string)
+        f.close()

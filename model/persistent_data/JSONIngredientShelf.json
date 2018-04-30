@@ -1,0 +1,262 @@
+{
+    "0": {
+        "name": "Silica",
+        "notes": "",
+        "analysis": {
+            "SiO2": 100
+        },
+        "other_attributes": {},
+        "glaze_calculator_ids": {}
+    },
+    "1": {
+        "name": "Kaolin",
+        "notes": "",
+        "analysis": {
+            "SiO2": 47.29,
+            "Al2O3": 40.21
+        },
+        "other_attributes": {
+            "0": 12.5,
+            "2": 100
+        },
+        "glaze_calculator_ids": {}
+    },
+    "2": {
+        "name": "Ball Clay",
+        "notes": "",
+        "analysis": {
+            "SiO2": 59.06,
+            "Al2O3": 25.02,
+            "MgO": 0.3,
+            "CaO": 0.3,
+            "Na2O": 0.2,
+            "K2O": 0.9,
+            "Fe2O3": 1.02,
+            "TiO2": 1
+        },
+        "other_attributes": {
+            "0": 12,
+            "2": 100
+        },
+        "glaze_calculator_ids": {}
+    },
+    "3": {
+        "name": "Potash Feldspar",
+        "notes": "",
+        "analysis": {
+            "SiO2": 64.72,
+            "Al2O3": 18.32,
+            "K2O": 16.92
+        },
+        "other_attributes": {},
+        "glaze_calculator_ids": {}
+    },
+    "4": {
+        "name": "Soda Feldspar",
+        "notes": "",
+        "analysis": {
+            "SiO2": 68.74,
+            "Al2O3": 19.44,
+            "Na2O": 11.82
+        },
+        "other_attributes": {},
+        "glaze_calculator_ids": {}
+    },
+    "5": {
+        "name": "Neph Sy",
+        "notes": "",
+        "analysis": {
+            "SiO2": 60.7,
+            "Al2O3": 23.3,
+            "MgO": 0.1,
+            "CaO": 0.7,
+            "Na2O": 9.8,
+            "K2O": 4.6,
+            "Fe2O3": 0.1
+        },
+        "other_attributes": {
+            "0": 0.7
+        },
+        "glaze_calculator_ids": {}
+    },
+    "6": {
+        "name": "Wollastonite",
+        "notes": "",
+        "analysis": {
+            "SiO2": 51.72,
+            "CaO": 48.28
+        },
+        "other_attributes": {},
+        "glaze_calculator_ids": {}
+    },
+    "7": {
+        "name": "Whiting",
+        "notes": "",
+        "analysis": {
+            "CaO": 56.1
+        },
+        "other_attributes": {
+            "0": 43.9
+        },
+        "glaze_calculator_ids": {}
+    },
+    "8": {
+        "name": "Talc",
+        "notes": "",
+        "analysis": {
+            "SiO2": 63.38,
+            "MgO": 31.87
+        },
+        "other_attributes": {
+            "0": 4.75
+        },
+        "glaze_calculator_ids": {}
+    },
+    "9": {
+        "name": "Magnesite",
+        "notes": "",
+        "analysis": {
+            "MgO": 47.8
+        },
+        "other_attributes": {
+            "0": 52.2
+        },
+        "glaze_calculator_ids": {}
+    },
+    "10": {
+        "name": "Zinc Oxide",
+        "notes": "",
+        "analysis": {
+            "ZnO": 100
+        },
+        "other_attributes": {},
+        "glaze_calculator_ids": {}
+    },
+    "11": {
+        "name": "Frit 3110",
+        "notes": "",
+        "analysis": {
+            "SiO2": 66.88,
+            "Al2O3": 6.02,
+            "B2O3": 2.89,
+            "CaO": 5.64,
+            "Na2O": 15.12,
+            "K2O": 3.45
+        },
+        "other_attributes": {},
+        "glaze_calculator_ids": {}
+    },
+    "12": {
+        "name": "Frit 3124",
+        "notes": "",
+        "analysis": {
+            "SiO2": 55.3,
+            "Al2O3": 9.9,
+            "B2O3": 13.77,
+            "CaO": 14.07,
+            "Na2O": 6.28,
+            "K2O": 0.68
+        },
+        "other_attributes": {},
+        "glaze_calculator_ids": {}
+    },
+    "13": {
+        "name": "Frit 3134",
+        "notes": "",
+        "analysis": {
+            "SiO2": 46.51,
+            "B2O3": 23.09,
+            "CaO": 20.13,
+            "Na2O": 10.28
+        },
+        "other_attributes": {},
+        "glaze_calculator_ids": {}
+    },
+    "14": {
+        "name": "Frit 3195",
+        "notes": "",
+        "analysis": {
+            "SiO2": 48.35,
+            "Al2O3": 11.98,
+            "B2O3": 22.62,
+            "CaO": 11.36,
+            "Na2O": 5.69
+        },
+        "other_attributes": {},
+        "glaze_calculator_ids": {}
+    },
+    "15": {
+        "name": "Tricalcium Phosphate",
+        "notes": "",
+        "analysis": {
+            "CaO": 54.22,
+            "P2O5": 45.78
+        },
+        "other_attributes": {},
+        "glaze_calculator_ids": {}
+    },
+    "16": {
+        "name": "Lithium Carbonate",
+        "notes": "",
+        "analysis": {
+            "Li2O": 40.74
+        },
+        "other_attributes": {
+            "0": 59.26
+        },
+        "glaze_calculator_ids": {}
+    },
+    "17": {
+        "name": "Red Iron Oxide",
+        "notes": "",
+        "analysis": {
+            "Fe2O3": 95
+        },
+        "other_attributes": {
+            "0": 5
+        },
+        "glaze_calculator_ids": {}
+    },
+    "18": {
+        "name": "Gillespie Borate",
+        "notes": "",
+        "analysis": {
+            "SiO2": 11.8,
+            "Al2O3": 1.7,
+            "B2O3": 24.49,
+            "MgO": 3.9,
+            "CaO": 22.99,
+            "Na2O": 3.77
+        },
+        "other_attributes": {
+            "0": 30.9
+        },
+        "glaze_calculator_ids": {}
+    },
+    "19": {
+        "name": "Cornwall Stone",
+        "notes": "",
+        "analysis": {
+            "SiO2": 73.78,
+            "Al2O3": 16.33,
+            "MgO": 0.14,
+            "CaO": 1.81,
+            "Na2O": 3.3,
+            "K2O": 4.3,
+            "Fe2O3": 0.19,
+            "TiO2": 0.15
+        },
+        "other_attributes": {},
+        "glaze_calculator_ids": {}
+    },
+    "20": {
+        "name": "Ingredient #20",
+        "notes": "",
+        "analysis": {
+            "SrO": 45,
+            "BaO": 34
+        },
+        "other_attributes": {},
+        "glaze_calculator_ids": {}
+    }
+}
