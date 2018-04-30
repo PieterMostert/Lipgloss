@@ -182,7 +182,9 @@ class MainWindow:
     ##    message_frame.grid(row = 3)
 
         self.other_select_button = {}
-        self.recipe_menu = None             
+        self.recipe_menu = None
+
+        self.root.mainloop()
 
 class RecipeMenu:
     """A window that lets users select which recipe to open"""
