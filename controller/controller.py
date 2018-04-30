@@ -101,6 +101,7 @@ class Controller:
         #self.mod = Model()
         
         self.mw = MainWindow()
+        #self.mw.root.mainloop()
   
         for button, t in [(self.mw.unity_radio_button, 'umf_'), \
                           (self.mw.percent_wt_radio_button, 'mass_perc_'), \
