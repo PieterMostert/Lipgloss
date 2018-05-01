@@ -253,8 +253,7 @@
         "name": "Ingredient #20",
         "notes": "",
         "analysis": {
-            "SrO": 45,
-            "BaO": 34
+            "ZnO": 65
         },
         "other_attributes": {},
         "glaze_calculator_ids": {}

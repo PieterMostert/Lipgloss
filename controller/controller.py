@@ -53,55 +53,21 @@ from numbers import Number
 
 persistent_data_path = path.join(model_path, 'persistent_data')
 
-def default_restriction_bounds(ox_dict, ing_dict, other_dict):
-    """This will eventually be replaced by a function the reads the default restriction bounds from a JSON file"""
-    restr_dict = {}
-    # Create oxide restrictions:
-    for ox in ox_dict:   
-        def_upp = 1   # Default upper bound for oxide UMF.
-        dp = 3
-        if ox == 'SiO2':
-            def_upp = 100
-            dp = 2
-        elif ox == 'Al2O3':
-            def_upp = 10
-        restr_dict['umf_'+ox] = Restriction('umf_'+ox, ox, 'mole_'+ox, "self.lp_var['fluxes_total']", 0, def_upp, dec_pt=dp)
-        restr_dict['mass_perc_'+ox] = Restriction('mass_perc_'+ox, ox, 'mass_'+ox, "0.01*self.lp_var['ox_mass_total']", 0, 100, dec_pt=2) 
-        restr_dict['mole_perc_'+ox] = Restriction('mole_perc_'+ox, ox, 'mole_'+ox, "0.01*self.lp_var['ox_mole_total']", 0, 100, dec_pt=2)
-
-    # Create ingredient restrictions:
-    for i in ing_dict:
-        restr_dict['ingredient_'+i] = Restriction('ingredient_'+i, ing_dict[i].name, 'ingredient_'+i, "0.01*self.lp_var['ingredient_total']", 0, 100)
-
-    # Create other restrictions:
-    for index, ot in other_dict.items():
-        restr_dict['other_'+index] = Restriction('other_'+index, ot.name, 'other_'+index, ot.normalization, ot.def_low, ot.def_upp, dec_pt=ot.dec_pt)
-
-    return restr_dict
-
 class Controller:
     def __init__(self):
         OxideData.set_default_oxides()   # Replace by function that sets data saved by user
         #self.cd = CoreData()
         self.mod = Model()
         #self.cd = self.mod
-        self.mod.set_default_data()   # Replace by function that sets data saved by user
         #self.mod.save_ingredient_dict(persistent_data_path+'\IngredientShelf')
         #self.mod.set_ingredient_dict(persistent_data_path+'\IngredientShelf')
         
         #self.mod.save_other_dict(persistent_data_path+'\OtherShelf')
         #self.mod.set_other_dict(persistent_data_path+'\OtherShelf')
 
-        self.mod.other_attr_dict = {'0': 'LOI', '2': 'Clay', '1': 'Cost'}
-
-        self.mod.set_default_default_bounds()
-
         self.lprp = LpRecipeProblem("Glaze recipe", pulp.LpMaximize, self.mod)
         
-        #self.mod = Model()
-        
         self.mw = MainWindow()
-        #self.mw.root.mainloop()
   
         for button, t in [(self.mw.unity_radio_button, 'umf_'), \
                           (self.mw.percent_wt_radio_button, 'mass_perc_'), \
@@ -132,7 +98,33 @@ class Controller:
             self.mw.other_select_button[i].grid(row=ot.pos+1)
 
         #Create Restriction and DisplayRestriction dictionaries
-        self.restr_dict = default_restriction_bounds(self.mod.oxide_dict, self.mod.ingredient_dict, self.mod.other_dict)
+        self.restr_dict = {} #default_restriction_bounds(self.mod.oxide_dict, self.mod.ingredient_dict, self.mod.other_dict)
+
+        # Create oxide restrictions:
+        for ox in self.mod.oxide_dict:
+            key = 'umf_'+ox
+            self.restr_dict[key] = Restriction(key, ox, 'mole_'+ox, "self.lp_var['fluxes_total']", \
+                                               self.mod.default_lower_bounds[key], self.mod.default_upper_bounds[key], dec_pt=3)
+            key = 'mass_perc_'+ox
+            self.restr_dict[key] = Restriction(key, ox, 'mass_'+ox, "0.01*self.lp_var['ox_mass_total']", \
+                                               self.mod.default_lower_bounds[key], self.mod.default_upper_bounds[key], dec_pt=2)
+            key = 'mole_perc_'+ox
+            self.restr_dict[key] = Restriction(key, ox, 'mole_'+ox, "0.01*self.lp_var['ox_mole_total']", \
+                                               self.mod.default_lower_bounds[key], self.mod.default_upper_bounds[key], dec_pt=2)
+
+        # Create ingredient restrictions:
+        for i, ing in self.mod.ingredient_dict.items():
+            key = 'ingredient_'+i
+            self.restr_dict[key] = Restriction(key, ing.name, key, "0.01*self.lp_var['ingredient_total']", \
+                                   self.mod.default_lower_bounds[key], self.mod.default_upper_bounds[key])
+
+        # Create other restrictions:
+        for index, ot in self.mod.other_dict.items():
+            key = 'other_'+index
+            self.restr_dict[key] = Restriction(key, ot.name, key, ot.normalization, ot.def_low, ot.def_upp, dec_pt=ot.dec_pt)
+
+
+        
         self.display_restr_dict = {}      
         for key in self.mod.restr_keys():
             self.display_restr_dict[key] = DisplayRestriction(self.mw.restriction_sf.interior, self.mw.x_lab, self.mw.y_lab, \
@@ -214,10 +206,7 @@ class Controller:
             res.remove(self.mod.current_recipe.variables)    # Clear the entries from previous recipes, if opening a new recipe
 
         self.mod.set_current_recipe(index)
-        self.mod.current_recipe.update_oxides(self.mod)  # In case the ingredient compositions have changed.
-                                                                         # Can get rid of this if we ensure that all recipes are
-                                                                         # updated each time the ingredient compositions change
-        
+                
         self.mw.recipe_name.set(self.mod.current_recipe.name)      # update the displayed recipe name
 
         r_k = self.mod.current_recipe.restriction_keys
@@ -329,6 +318,7 @@ class Controller:
         display_restr.left_label.bind("<Button-1>", partial(self.update_var, 'ingredient_'+i, 'x'))
         display_restr.right_label.bind("<Button-1>", partial(self.update_var, 'ingredient_'+i, 'y'))
 
+        # TODO: Move next section to model
         self.lprp.lp_var['ingredient_'+i] = pulp.LpVariable('ingredient_'+i, 0, None, pulp.LpContinuous)
         self.lprp.constraints['ing_total'] = \
                                            self.lprp.lp_var['ingredient_total'] \
@@ -379,7 +369,7 @@ class Controller:
                         pass
 
             self.mod.ingredient_dict[index] = ing
-            self.mod.ingredient_analyses[index] = self.mod.ingredient_dict[index].analysis
+            self.mod.ingredient_analyses[index] = ing.analysis
             self.mod.json_write_ingredients()
 
 ##        with shelve.open(persistent_data_path+"/IngredientShelf") as ingredient_shelf:
@@ -450,7 +440,6 @@ class Controller:
 
         if i in self.mod.current_recipe.ingredients:
             self.toggle_ingredient(i)   # gets rid of stars, if the ingredient is a variable
-            #self.mod.current_recipe.remove_ingredient(self.mod, i)
 
         self.mod.remove_ingredient(i)
         with shelve.open(path.join(persistent_data_path, "IngredientShelf")) as ingredient_shelf:
@@ -501,17 +490,9 @@ class Controller:
             recipe.add_ingredient(self.mod, i)
             self.mw.ingredient_select_button[i].state(['pressed'])
             self.display_restr_dict['ingredient_'+i].display(101 + self.mod.order["ingredients"].index(i))
-##            for ox in self.mod.ingredient_analyses[i]:
-##                if ox not in recipe.oxides:  # i.e. if we're introducing a new oxide
-##                    for t in ['umf_', 'mass_perc_', 'mole_perc_']:
-##                        key = t + ox
-##                        recipe.lower_bounds[key] = self.restr_dict[key].default_low
-##                        recipe.upper_bounds[key] = self.restr_dict[key].default_upp
-##            recipe.oxides = recipe.oxides.union(set(self.mod.ingredient_analyses[i]))    # update the available oxides
             et = self.mw.entry_type.get()
             for ox in recipe.oxides:
                 self.display_restr_dict[et+ox].display(1 + self.mod.oxide_dict[ox].pos)
-        #self.mod.current_recipe = recipe
 
     def toggle_other(self, i):
         """Adds/removes other_dict[index] to/from the current recipe, depending on whether it isn't/is an other restriction already."""

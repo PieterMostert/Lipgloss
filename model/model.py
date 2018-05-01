@@ -52,6 +52,9 @@ class Model(CoreData):
 
     def __init__(self):
         CoreData.__init__(self)
+
+        self.set_default_data()  # Replace by functions that sets data saved by user
+        self.set_default_default_bounds() # Replace by function that sets data saved by user
         
         f = open(path.join(persistent_data_path, "JSONRecipeShelf.json"), 'r')
         json_str = f.read()
@@ -71,6 +74,9 @@ class Model(CoreData):
     def set_current_recipe(self, index):
         self.current_recipe = copy.deepcopy(self.recipe_dict[index])
         self.recipe_index = index
+        self.current_recipe.update_oxides(self)  # In case the ingredient compositions have changed.
+                                                 # Can get rid of this if we ensure that all recipes are
+                                                 # updated each time the ingredient compositions change
 
     def save_current_recipe(self):
         self.recipe_dict[self.recipe_index] = copy.deepcopy(self.current_recipe)

@@ -30,7 +30,6 @@ except ImportError:
     from polyplot import *
 
 import tkinter.messagebox
-import shelve
 
 def edit_oxides():
     pass
@@ -148,7 +147,6 @@ class MainWindow:
         self.x_lab.grid(row=0, sticky=W)
         self.y_lab.grid(row=1, sticky=W)
 
-            # SECTION 6
         # Create menus
         self.file_menu = Menu(self.menubar, tearoff=0)    
         self.menubar.add_cascade(label="File", menu=self.file_menu)        
@@ -177,14 +175,8 @@ class MainWindow:
         self.calc_button.grid()
 
         self.ingredient_select_button = {}
-
-    ##    # Grid the message frame.  At the moment, this isn't used.
-    ##    message_frame.grid(row = 3)
-
         self.other_select_button = {}
         self.recipe_menu = None
-
-        #self.root.mainloop()
 
 class RecipeMenu:
     """A window that lets users select which recipe to open"""
