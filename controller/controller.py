@@ -21,6 +21,7 @@ from os.path import abspath, dirname
 from os import path
 from inspect import getsourcefile
 model_path = path.join(dirname(dirname(abspath(getsourcefile(lambda:0)))), 'model')
+persistent_data_path = path.join(model_path, 'persistent_data')
 print('model_path = ' + model_path)
 sys.path.append(model_path) # Allows us to import lipgloss like a built-in package. Doesn't seem to work on OSX
 
@@ -47,11 +48,8 @@ import pulp
 import tkinter as tk
 from tkinter import ttk
 from functools import partial
-import shelve
 import copy
 from numbers import Number
-
-persistent_data_path = path.join(model_path, 'persistent_data')
 
 class Controller:
     def __init__(self):
@@ -287,13 +285,15 @@ class Controller:
             for i in self.mod.order['ingredients']:
                 self.ing_editor.line[i].delete_button.config(command=partial(self.pre_delete_ingredient, i))
 
-    def reorder_ingredients(self, new_order):
+    def reorder_ingredients(self, y0, yr):
         # Run when reordering the ingredients using dragmanager.
-        self.mod.order["ingredients"] = new_order
-        # TODO: Update order shelf
+        temp_list = self.mod.order["ingredients"]
+        temp_list.insert(yr, temp_list.pop(y0))
+        self.mod.json_write_order()
 
         #Regrid ingredients in selection window and those that have been selected.
-        for i, j in enumerate(new_order):
+        for i, j in enumerate(temp_list):
+            self.ing_editor.line[j].display(i, self.mod)
             self.mw.ingredient_select_button[j].grid(row=i)
             if j in self.mod.current_recipe.ingredients:
                 self.display_restr_dict['ingredient_'+j].display(101 + i)
@@ -318,19 +318,19 @@ class Controller:
         display_restr.left_label.bind("<Button-1>", partial(self.update_var, 'ingredient_'+i, 'x'))
         display_restr.right_label.bind("<Button-1>", partial(self.update_var, 'ingredient_'+i, 'y'))
 
-        # TODO: Move next section to model
-        self.lprp.lp_var['ingredient_'+i] = pulp.LpVariable('ingredient_'+i, 0, None, pulp.LpContinuous)
-        self.lprp.constraints['ing_total'] = \
-                                           self.lprp.lp_var['ingredient_total'] \
-                                           == sum(self.lprp.lp_var['ingredient_'+j] for j in self.mod.ingredient_dict)
-
         self.mw.ingredient_select_button[i] = ttk.Button(self.mw.vsf.interior, text=ing.name, width=20,
                                                      command=partial(self.toggle_ingredient, i))
         self.mw.ingredient_select_button[i].grid(row=int(i))
 
     ##    i_e_scrollframe.vscrollbar.set(100,0)  # Doesn't do anything
         self.ing_editor.i_e_scrollframe.canvas.yview_moveto(1)  # Supposed to move the scrollbar to the bottom, but misses the last row
-        
+   
+        # TODO: Move next section to model
+        self.lprp.lp_var['ingredient_'+i] = pulp.LpVariable('ingredient_'+i, 0, None, pulp.LpContinuous)
+        self.lprp.constraints['ing_total'] = \
+                                           self.lprp.lp_var['ingredient_total'] \
+                                           == sum(self.lprp.lp_var['ingredient_'+j] for j in self.mod.ingredient_dict)
+     
     def update_ingredient_dict(self):
         """"Run when updating ingredients (via ingredient editor)"""
 
@@ -441,28 +441,9 @@ class Controller:
         if i in self.mod.current_recipe.ingredients:
             self.toggle_ingredient(i)   # gets rid of stars, if the ingredient is a variable
 
-        self.mod.remove_ingredient(i)
-        with shelve.open(path.join(persistent_data_path, "IngredientShelf")) as ingredient_shelf:
-            del ingredient_shelf[i]
-
-        self.mod.order['ingredients'].remove(i)
-        with shelve.open(path.join(persistent_data_path, "OrderShelf")) as order_shelf:
-            temp_list = order_shelf['ingredients']
-            temp_list.remove(i)
-            order_shelf['ingredients'] = temp_list
+        self.mod.delete_ingredient(i, recipes_affected)
 
         self.lprp.remove_ingredient(i, self.mod)
-             
-        # Remove the ingredient from all recipes that contain it.
-        for j in recipes_affected:
-            self.mod.recipe_dict[j].remove_ingredient(self.mod, i)
-##            rec = self.mod.recipe_dict[j]
-##            rec.ingredients.remove(i)
-##            rec.update_oxides(restr_dict, entry_type.get())
-##            #recipe_dict[i] = rec
-##            rec.update_variables(restr_keys(rec.oxides, rec.ingredients, rec.other))
-            
-        self.mod.json_write_recipes()
 
         self.ing_editor.line[i].delete()
         for k, j in enumerate(self.mod.order['ingredients']):

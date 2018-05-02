@@ -132,8 +132,7 @@ class IngredientEditor(MainWindow):
             self.line[index].display(i, core_data)
 
         # Create drag manager for ingredient rows:
-        self.ing_dnd = DragManager(self.line, order_pathname, "ingredients",
-                              lambda ing, i: ing.display(i, core_data), reorder_ingredients)
+        self.ing_dnd = DragManager(reorder_ingredients)
 
         for i, index in enumerate(order["ingredients"]):        
             self.ing_dnd.add_dragable(self.line[index].name_entry)    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   

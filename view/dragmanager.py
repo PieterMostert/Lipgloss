@@ -14,13 +14,7 @@ def update_shelf(name, dictionary):
 # This means if we delete a row, the rows below must have their row numbers decreased by 1.
 
 class DragManager():
-    def __init__(self, family_dict, order_shelf, family_name, grid_func, reorder_func):
-        self.family_dict = family_dict  # Dictionary whose values are those objects whose order is being changed
-        self.order_shelf = order_shelf  # Shelf that keeps track of the orders of difference families of objects.
-                                        # order_shelf[family_name] is a list of indices in the order they will be displayed
-        self.family_name = family_name  # Text string denoting the family in question.
-        self.grid_func = grid_func      # Function that grids widgets associated to members of the family.
-                                        # To be more specific, grid_func(family_dict[j], i) grids family_dict[j] in row i.
+    def __init__(self, reorder_func):
         self.reorder_func = reorder_func
         
     def add_dragable(self, widget):
@@ -51,22 +45,23 @@ class DragManager():
             yr = target.grid_info()['row']             # Row you want to drag the widget to.
             #print('yr = '+str(yr))
             
-            with shelve.open(self.order_shelf) as order_shelf:
-                temp_list = order_shelf[self.family_name]
-                #print(temp_list)
-                temp_list.insert(yr, temp_list.pop(y0))
-                order_shelf[self.family_name] = temp_list
-                
-
-            #new_family_dict = {}
-            for i, j in enumerate(temp_list):
-                #print(j)
-                self.grid_func(self.family_dict[j],i)
-                #new_family_dict[j] = self.family_dict[j]
-
-            #self.family_dict = new_family_dict
-            #print('about to reorder')
-            self.reorder_func(temp_list)   # This changes all the other stuff that needs to be changed.
+##            with shelve.open(self.order_shelf) as order_shelf:
+##                temp_list = order_shelf[self.family_name]
+##                #print(temp_list)
+##                temp_list.insert(yr, temp_list.pop(y0))
+##                order_shelf[self.family_name] = temp_list
+##                
+##
+##            #new_family_dict = {}
+##            for i, j in enumerate(temp_list):
+##                #print(j)
+##                self.grid_func(self.family_dict[j],i)
+##                #new_family_dict[j] = self.family_dict[j]
+##
+##            #self.family_dict = new_family_dict
+##            #print('about to reorder')
+##            self.reorder_func(temp_list)   # This changes all the other stuff that needs to be changed.
+            self.reorder_func(y0, yr)
         except:
             pass
         

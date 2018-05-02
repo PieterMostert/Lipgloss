@@ -248,14 +248,5 @@
         },
         "other_attributes": {},
         "glaze_calculator_ids": {}
-    },
-    "20": {
-        "name": "Ingredient #20",
-        "notes": "",
-        "analysis": {
-            "ZnO": 65
-        },
-        "other_attributes": {},
-        "glaze_calculator_ids": {}
     }
 }

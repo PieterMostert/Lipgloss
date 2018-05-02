@@ -312,9 +312,9 @@ class CoreData(OxideData):
         with shelve.open(path) as other_shelf:
             self.other_dict = dict(other_shelf)
 
-    def set_default_bounds(self, path):
-        with shelve.open(path) as other_shelf:
-            self.other_dict = dict(other_shelf)
+##    def set_default_bounds(self, path):
+##        with shelve.open(path) as other_shelf:
+##            self.other_dict = dict(other_shelf)
 
     def add_ingredient(self, ing, default_low = 0, default_upp = 100):
         """Adds ingredient ing to the ingredient dictionary. The index is determined automatically"""

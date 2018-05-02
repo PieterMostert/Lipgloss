@@ -27,7 +27,8 @@ try:
 except:
     from .serializers.recipeserializer import RecipeSerializer
     from .serializers.ingredientserializer import IngredientSerializer
-    
+
+import json
 from inspect import getsourcefile
 import os
 from os.path import abspath, dirname
@@ -38,7 +39,6 @@ persistent_data_path = path.join(dirname(abspath(getsourcefile(lambda:0))), 'per
 sys.path.append(persistent_data_path)
 
 import pulp
-import shelve
 import copy
 
 # initialize oxides, ingredients, recipe_dict, etc.
@@ -54,12 +54,14 @@ class Model(CoreData):
         CoreData.__init__(self)
 
         self.set_default_data()  # Replace by functions that sets data saved by user
+        with open(path.join(persistent_data_path, "JSONIngredients.json"), 'r') as f:
+            self.ingredient_dict = IngredientSerializer.deserialize_dict(json.load(f))
+        for i, ing in self.ingredient_dict.items():
+            self.ingredient_analyses[i] = ing.analysis
         self.set_default_default_bounds() # Replace by function that sets data saved by user
         
-        f = open(path.join(persistent_data_path, "JSONRecipeShelf.json"), 'r')
-        json_str = f.read()
-        f.close()
-        self.recipe_dict = RecipeSerializer.deserialize_dict(json_str)
+        with open(path.join(persistent_data_path, "JSONRecipes.json"), 'r') as f:
+            self.recipe_dict = RecipeSerializer.deserialize_dict(json.load(f))
     ##    with open(persistent_data_path+"/JSONRecipeShelf.json", 'r') as json_str:
     ##        print(json_str)
     ##        self.recipe_dict = RecipeSerializer.deserialize_dict(json_str)
@@ -68,8 +70,8 @@ class Model(CoreData):
         self.recipe_index = None
         self.set_current_recipe('0')
 
-        with shelve.open(path.join(persistent_data_path, "OrderShelf")) as order_shelf:
-            self.order = dict(order_shelf)
+        with open(path.join(persistent_data_path, "JSONOrder.json"), 'r') as f:
+            self.order = json.load(f)
         
     def set_current_recipe(self, index):
         self.current_recipe = copy.deepcopy(self.recipe_dict[index])
@@ -99,19 +101,22 @@ class Model(CoreData):
         
     def json_write_recipes(self):
         """Write all recipes from the global recipe_dict to file, overwriting previous data"""
-        f = open(path.join(persistent_data_path, "JSONRecipeShelf.json"), 'w')
-        json_string = RecipeSerializer.serialize_dict(self.recipe_dict)
-        f.write(json_string)
-        f.close()
+##        f = open(path.join(persistent_data_path, "JSONRecipeShelf.json"), 'w')
+##        json_string = RecipeSerializer.serialize_dict(self.recipe_dict)
+##        f.write(json_string)
+##        f.close()
+        with open(path.join(persistent_data_path, "JSONRecipes.json"), 'w') as f:
+            json_string = RecipeSerializer.serialize_dict(self.recipe_dict)
+            json.dump(json_string, f, indent = 4)
 
     def update_recipe_dict(self):
         for recipe in self.recipe_dict.values():
             recipe.update_core_data(self)
         self.json_write_recipes()
         
-    def update_order(self, key):  # Is this used at all?
-        with shelve.open(path.join(persistent_data_path, "OrderShelf")) as order_shelf:
-            order_shelf[key] = self.order[key]
+    def json_write_order(self):
+        with open(path.join(persistent_data_path, "JSONOrder.json"), 'w') as f:
+            json.dump(self.order, f, indent = 4)
 
     def new_ingredient(self):
         ing = Ingredient('', notes='', analysis={}, other_attributes={})
@@ -121,22 +126,43 @@ class Model(CoreData):
         self.add_ingredient(ing)
         i = list(self.ingredient_dict.keys())[-1]     # index of new ingredient
         ing.name = 'Ingredient #'+i
+        self.order['ingredients'].append(i)
 
         self.json_write_ingredients()  # replace by function that just updates a single ingredient
+        self.json_write_order()
 ##        with shelve.open(persistent_data_path+"/IngredientShelf") as ingredient_shelf:
 ##            ingredient_shelf[i] = self.ingredient_dict[i]
 
-        with shelve.open(path.join(persistent_data_path, "OrderShelf")) as order_shelf:
-            temp_list = order_shelf['ingredients']
-            temp_list.append(i)
-            order_shelf['ingredients'] = temp_list
-        self.order['ingredients'] = temp_list
+##        with shelve.open(path.join(persistent_data_path, "OrderShelf")) as order_shelf:
+##            temp_list = order_shelf['ingredients']
+##            temp_list.append(i)
+##            order_shelf['ingredients'] = temp_list
+##        self.order['ingredients'] = temp_list
+        
         
         return i, ing
+
+    def delete_ingredient(self, i, recipes_affected):
+        """Uses remove_ingredient() method of CoreData"""
+        self.remove_ingredient(i)
+        self.json_write_ingredients()
+        self.order['ingredients'].remove(i)
+        self.json_write_order()
+##        with shelve.open(path.join(persistent_data_path, "OrderShelf")) as order_shelf:
+##            temp_list = order_shelf['ingredients']
+##            temp_list.remove(i)
+##            order_shelf['ingredients'] = temp_list
+        # Remove the ingredient from all recipes that contain it.
+        for j in recipes_affected:
+            self.recipe_dict[j].remove_ingredient(self, i)
+        self.json_write_recipes()
             
     def json_write_ingredients(self):
         """Write all ingredients from self.ingredient_dict to file, overwriting previous data"""
-        f = open(path.join(persistent_data_path, "JSONIngredientShelf.json"), 'w')
-        json_string = IngredientSerializer.serialize_dict(self.ingredient_dict)
-        f.write(json_string)
-        f.close()
+        with open(path.join(persistent_data_path, "JSONIngredients.json"), 'w') as f:
+            json.dump(IngredientSerializer.serialize_dict(self.ingredient_dict), f, indent=4)
+##        f = open(path.join(persistent_data_path, "JSONIngredients.json"), 'w')
+##        json_string = IngredientSerializer.serialize_dict(self.ingredient_dict)
+##        f.write(json_string)
+##        f.close()
+ 

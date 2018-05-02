@@ -14,15 +14,14 @@ class RecipeSerializer(object):
         """A serializable recipe is one that can be serialized to JSON using the python json encoder."""
         serializable_recipe = {}
         serializable_recipe["name"] = recipe.name
-        serializable_recipe["entry_type"] = recipe.entry_type
-        serializable_recipe["oxides"] = recipe.oxides
+        serializable_recipe["pos"] = recipe.pos
         serializable_recipe["ingredients"] = recipe.ingredients
         serializable_recipe["other"] = recipe.other
         # oxides must be converted from a set to a list
         serializable_recipe["oxides"] = list(recipe.oxides)
         serializable_recipe["lower_bounds"] = recipe.lower_bounds
         serializable_recipe["upper_bounds"] = recipe.upper_bounds
-        serializable_recipe["pos"] = recipe.pos
+        serializable_recipe["entry_type"] = recipe.entry_type
         serializable_recipe["variables"] = recipe.variables
         return serializable_recipe
 
@@ -33,24 +32,29 @@ class RecipeSerializer(object):
 
     @staticmethod
     def serialize_dict(recipe_dict):
-        """Serialize a dict containing Recipe objects indexed by ID keys to JSON."""
+        """Convert a dictionary of Recipe objects to serializable dictionary.
+           Use json.dump(output, file) to save output to file"""
+        #"""Serialize a dict containing Recipe objects indexed by ID keys to JSON."""
         serializable_dict = {};
-        for index in recipe_dict:
-            serializable_dict[index] = RecipeSerializer.get_serializable_recipe(recipe_dict[index])
-        return json.dumps(serializable_dict, indent=4)
+        for index, recipe in recipe_dict.items():
+            serializable_dict[index] = RecipeSerializer.get_serializable_recipe(recipe)
+        #return json.dumps(serializable_dict, indent=4)
+        return serializable_dict
+        
 
     @staticmethod
-    def get_recipe(serialized_recipe_dict):
-        """Convert a dict returned by the JSON decoder into a Recipe object."""
-        recipe = Recipe(serialized_recipe_dict["name"], 
-                            serialized_recipe_dict["pos"],
-                            serialized_recipe_dict["oxides"],
-                            serialized_recipe_dict["ingredients"],
-                            serialized_recipe_dict["other"],
-                            serialized_recipe_dict["lower_bounds"],
-                            serialized_recipe_dict["upper_bounds"],
-                            serialized_recipe_dict["entry_type"],
-                            serialized_recipe_dict["variables"]) 
+    def get_recipe(serialized_recipe):
+        """Convert a serialized recipe (a dict) returned by the JSON decoder into a Recipe object."""
+        recipe = Recipe(serialized_recipe["name"], 
+                            serialized_recipe["pos"],
+                            # oxides must be converted from a list to a set
+                            set(serialized_recipe["oxides"]),
+                            serialized_recipe["ingredients"],
+                            serialized_recipe["other"],
+                            serialized_recipe["lower_bounds"],
+                            serialized_recipe["upper_bounds"],
+                            serialized_recipe["entry_type"],
+                            serialized_recipe["variables"]) 
         return recipe
         
     @staticmethod
@@ -60,13 +64,16 @@ class RecipeSerializer(object):
         return RecipeSerializer.get_recipe(serialized_recipe_dict)
 
     @staticmethod
-    def deserialize_dict(json_str):
+    #def deserialize_dict(json_str):
+    def deserialize_dict(serialized_recipe_dict):
         """Deserialize a number of recipes from JSON to a dict containing Recipe objects, indexed by Recipe ID."""
         recipe_dict = {}
-        serialized_recipes = json.loads(json_str)
-        for index in serialized_recipes:
-            serialized_recipe_dict = serialized_recipes[index]
-            recipe = RecipeSerializer.get_recipe(serialized_recipe_dict)                           
-            recipe_dict[index] = recipe
+##        serialized_recipes = json.loads(json_str)
+##        for index in serialized_recipes:
+##            serialized_recipe_dict = serialized_recipes[index]
+##            recipe = RecipeSerializer.get_recipe(serialized_recipe_dict)                           
+##            recipe_dict[index] = recipe
+        for i, serialized_recipe in serialized_recipe_dict.items():
+            recipe_dict[i] = RecipeSerializer.get_recipe(serialized_recipe)                           
         return recipe_dict
 

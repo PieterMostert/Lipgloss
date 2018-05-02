@@ -22,14 +22,6 @@ import time
 import copy
 from .core_data import Observable, CoreData
 
-
-##def get_ing_comp():                           # Redo. This function is defined in the main (gui) file
-##    ingredient_analyses = {}
-##    with shelve.open("./data/IngredientShelf") as ingredient_shelf:
-##        for index in ingredient_shelf:
-##            ingredient_analyses[index] = ingredient_shelf[index].analysis
-##    return ingredient_analyses
-
 ##def associated_oxides(ingredients):  #move this to CoreData ?
 ##
 ##    assoc_oxides = set()
@@ -37,14 +29,6 @@ from .core_data import Observable, CoreData
 ##        assoc_oxides = assoc_oxides.union(set(CoreData().ingredient_analyses[index]))  # update the available oxides. Probably not the most
 ##                                                                                                      # efficient way to do this
 ##    return assoc_oxides
-
-def fluxes_subset(oxides):
-
-    return [ox for ox in oxides if CoreData.oxide_dict[ox].flux == 1]
-
-##    with shelve.open("./data/OxideShelf") as oxide_shelf:
-##        fluxes = [ox for ox in oxides if oxide_shelf[ox].flux == 1]
-##    return fluxes
 
 def print_res_type(normalization):   # Used to display error message
     if normalization == "self.lp_var['fluxes_total']":
@@ -106,12 +90,12 @@ class Recipe(Observable):
     def update_restriction_keys(self):
         self.restriction_keys = restr_keys(self.oxides, self.ingredients, self.other)
         
-    def fluxes(self):
-        return fluxes_subset(self.oxides)
+    def fluxes(self):    # Is this used anywhere?
+        return [ox for ox in self.oxides if CoreData.oxide_dict[ox].flux > 0]
 
     def add_ingredient(self, core_data, i):
         if i in self.ingredients:
-            print(core_data.ingredient_dict[i].name+' already occurs in recipe')
+            print(core_data.ingredient_dict[i].name + ' already occurs in recipe')
         else:
             self.ingredients.append(i) 
             self.oxides = self.oxides.union(set(core_data.ingredient_analyses[i]))
@@ -136,11 +120,11 @@ class Recipe(Observable):
                 if (var[t] in old_res_keys) and (var[t] not in self.restriction_keys):
                     del self.variables[t]
         else:
-            print(core_data.ingredient_dict[i].name+' not in recipe')
+            print(core_data.ingredient_dict[i].name + ' not in recipe')
 
     def add_other(self, core_data, index):
         if index in self.other:
-            print(core_data.other_dict[index].name+' already occurs in recipe')
+            print(core_data.other_dict[index].name + ' already occurs in recipe')
         else:
             self.other.append(index)
             ot = 'other_'+index
@@ -160,7 +144,7 @@ class Recipe(Observable):
                 if var[t] == ot:
                     del self.variables[t]
         else:
-            print(core_data.other_dict[index].name+' not in recipe')
+            print(core_data.other_dict[index].name + ' not in recipe')
 
     def update_bounds(self, core_data):      # To be used when ingredient compositions have changed. Could also be used in add_ingredient and remove_ingredient above
         for key in self.restriction_keys:
@@ -177,36 +161,20 @@ class Recipe(Observable):
         old_oxides = copy.copy(self.oxides)
         ass_oxides = core_data.associated_oxides(self.ingredients)
         var = copy.copy(self.variables)
-        for ox in self.oxides:
-            if ox not in ass_oxides:
-                for t in ['umf_', 'mass_perc_', 'mole_perc_']:
-                    key = t + ox
-                    del self.lower_bounds[key]
-                    del self.upper_bounds[key]
-                    # Replace the following with something that checks the type of the variables, and deletes those that are oxides in self.oxides but not in ass_oxides
-                    for t in var:
-                        if var[t] == key:
-                            del self.variables[t]
-##                    restr_dict[t+ox].remove(self)
-##                    try:
-##                        del self.lower_bounds[t+ox]
-##                        restr_dict[t+ox].remove(self)
-##                        print('deleted '+ox+' lower bound')
-##                    except:
-##                        pass
-##                    try:
-##                        del self.upper_bounds[t+ox]
-##                    except:
-##                        pass
-
-        for ox in ass_oxides:
-            if ox not in old_oxides:
-                for t in ['umf_', 'mass_perc_', 'mole_perc_']:
-                    key = t + ox
-                    self.lower_bounds[key] = core_data.default_lower_bounds[key]
-                    self.upper_bounds[key] = core_data.default_upper_bounds[key]
-                #restr_dict[et+ox].display(1 + oxide_dict[ox].pos)
-
+        complement = self.oxides - ass_oxides
+        for ox in complement:
+            for t in ['umf_', 'mass_perc_', 'mole_perc_']:
+                key = t + ox
+                del self.lower_bounds[key]
+                del self.upper_bounds[key]
+        for v, key in var.items():
+            if (key[0] == 'u' and key[4:] in complement) or (key[0] == 'm' and key[10:] in complement):
+                del self.variables[v]
+        for ox in ass_oxides - old_oxides:
+            for t in ['umf_', 'mass_perc_', 'mole_perc_']:
+                key = t + ox
+                self.lower_bounds[key] = core_data.default_lower_bounds[key]
+                self.upper_bounds[key] = core_data.default_upper_bounds[key]
         self.oxides = ass_oxides
         self.update_restriction_keys()
 

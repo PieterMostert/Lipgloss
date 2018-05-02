@@ -21,7 +21,7 @@ class IngredientSerializer(object):
         return serializable_ingredient
 
     @staticmethod
-    def serialize(ingredient):
+    def serialize(ingredient):   # Not used
         """Serialize a single ingredient object to JSON."""
         return json.dumps(ingredientSerializer.get_serializable_ingredient(ingredient), indent=4)
 
@@ -31,7 +31,7 @@ class IngredientSerializer(object):
         serializable_dict = {};
         for i in ingredient_dict:
             serializable_dict[i] = IngredientSerializer.get_serializable_ingredient(ingredient_dict[i])
-        return json.dumps(serializable_dict, indent=4)
+        return serializable_dict  #json.dumps(serializable_dict, indent=4)
 
     @staticmethod
     def get_ingredient(serialized_ingredient_dict):
@@ -39,25 +39,29 @@ class IngredientSerializer(object):
         ingredient = Ingredient(serialized_ingredient_dict["name"], 
                             serialized_ingredient_dict["notes"],
                             serialized_ingredient_dict["analysis"],
-                            serialized_ingredient_dict["ingredients"],
                             serialized_ingredient_dict["other_attributes"],
                             serialized_ingredient_dict["glaze_calculator_ids"]) 
         return ingredient
         
     @staticmethod
-    def deserialize(json_str):
+    def deserialize(json_str): # Not used
         """Deserialize a single ingredient from JSON to a ingredient object."""
         serialized_ingredient_dict = json.loads(json_str)
-        return ingredientSerializer.get_ingredient(serialized_ingredient_dict)
+        return IngredientSerializer.get_ingredient(serialized_ingredient_dict)
 
     @staticmethod
-    def deserialize_dict(json_str):
+    #def deserialize_dict(json_str):
+    def deserialize_dict(serialized_ingredient_dict):
         """Deserialize a number of ingredients from JSON to a dict containing ingredient objects, indexed by ingredient ID."""
         ingredient_dict = {}
-        serialized_ingredients = json.loads(json_str)
-        for index in serialized_ingredients:
-            serialized_ingredient_dict = serialized_ingredients[index]
-            ingredient = IngredientSerializer.get_ingredient(serialized_ingredient_dict)                           
-            ingredient_dict[index] = ingredient
+        #serialized_ingredients = json.loads(json_str)
+        for i, serialized_ingredient in serialized_ingredient_dict.items():
+            ingredient_dict[i] = IngredientSerializer.get_ingredient(serialized_ingredient)                           
         return ingredient_dict
+
+    @staticmethod
+    def get_ingredient_dict(path):
+        """Return the dictionary of ingredients encoded in the JSON file at path"""
+        with open(path) as json_file:
+            return IngredientSerializer.deserialize_dict(json.load(json_file))
 
