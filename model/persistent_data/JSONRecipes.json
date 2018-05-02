@@ -13,9 +13,9 @@
         ],
         "oxides": [
             "Al2O3",
-            "K2O",
             "CaO",
-            "SiO2"
+            "SiO2",
+            "K2O"
         ],
         "lower_bounds": {
             "umf_SiO2": 0.0,
@@ -71,13 +71,13 @@
             "3"
         ],
         "oxides": [
-            "CaO",
-            "K2O",
-            "SiO2",
-            "MgO",
-            "Fe2O3",
             "Na2O",
             "Al2O3",
+            "SiO2",
+            "Fe2O3",
+            "MgO",
+            "K2O",
+            "CaO",
             "TiO2"
         ],
         "lower_bounds": {
@@ -141,74 +141,6 @@
             "ingredient_0": 100.0,
             "ingredient_5": 100.0,
             "other_3": 0.736
-        },
-        "entry_type": "umf_",
-        "variables": {}
-    },
-    "3": {
-        "name": "Recipe Bounds 3",
-        "pos": 3,
-        "ingredients": [
-            "0",
-            "1",
-            "3",
-            "7"
-        ],
-        "other": [
-            "4"
-        ],
-        "oxides": [
-            "K2O",
-            "SiO2",
-            "SrO",
-            "Al2O3",
-            "CaO"
-        ],
-        "lower_bounds": {
-            "umf_SiO2": 0.0,
-            "mass_perc_SiO2": 0.0,
-            "mole_perc_SiO2": 0.0,
-            "umf_Al2O3": 0.0,
-            "mass_perc_Al2O3": 0.0,
-            "mole_perc_Al2O3": 0.0,
-            "umf_K2O": 0.0,
-            "mass_perc_K2O": 0.0,
-            "mole_perc_K2O": 0.0,
-            "ingredient_0": 0.0,
-            "ingredient_1": 0.0,
-            "ingredient_3": 0.0,
-            "other_4": 0.0,
-            "umf_CaO": 0.0,
-            "mass_perc_CaO": 0.0,
-            "mole_perc_CaO": 0.0,
-            "ingredient_7": 0.0,
-            "umf_SrO": 0.0,
-            "mass_perc_SrO": 0.0,
-            "mole_perc_SrO": 0.0,
-            "ingredient_20": 0.0
-        },
-        "upper_bounds": {
-            "umf_SiO2": 100.0,
-            "mass_perc_SiO2": 100.0,
-            "mole_perc_SiO2": 100.0,
-            "umf_Al2O3": 10.0,
-            "mass_perc_Al2O3": 100.0,
-            "mole_perc_Al2O3": 100.0,
-            "umf_K2O": 1.0,
-            "mass_perc_K2O": 100.0,
-            "mole_perc_K2O": 100.0,
-            "ingredient_0": 100.0,
-            "ingredient_1": 100.0,
-            "ingredient_3": 100.0,
-            "other_4": 100.0,
-            "umf_CaO": 1.0,
-            "mass_perc_CaO": 100.0,
-            "mole_perc_CaO": 100.0,
-            "ingredient_7": 100.0,
-            "umf_SrO": 100.0,
-            "mass_perc_SrO": 100.0,
-            "mole_perc_SrO": 100.0,
-            "ingredient_20": 100.0
         },
         "entry_type": "umf_",
         "variables": {}

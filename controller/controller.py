@@ -22,8 +22,8 @@ from os import path
 from inspect import getsourcefile
 model_path = path.join(dirname(dirname(abspath(getsourcefile(lambda:0)))), 'model')
 persistent_data_path = path.join(model_path, 'persistent_data')
-print('model_path = ' + model_path)
-sys.path.append(model_path) # Allows us to import lipgloss like a built-in package. Doesn't seem to work on OSX
+#print('model_path = ' + model_path)
+sys.path.append(model_path) # Allows us to import lipgloss like a built-in package.
 
 try:    # This should work if lipgloss can be imported like a built-in package
     from lipgloss.core_data import OxideData, CoreData, Oxide, Ingredient
@@ -36,7 +36,6 @@ except:
     from model.lipgloss.recipes import Recipe, restr_keys
     from model.lipgloss.restrictions import Restriction
 
-import model.serializers.recipeserializer
 from model.model import Model
 
 from view.main_window import MainWindow, RecipeMenu
