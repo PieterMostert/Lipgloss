@@ -30,26 +30,11 @@ from inspect import getsourcefile
 order_pathname = dirname(dirname(abspath(getsourcefile(lambda:0))))+'\model\persistent_data\OrderShelf'
 raw_order_pathname = "%r"%order_pathname
 
-# Functions relating to the ingredient editor window (accessed through Options > Edit Ingredients)
-
-###Need to access the following. Just defining trivial values for now. Also need toggle_ingredient and update_var
-##ingredient_select_button = {}
-##current_recipe = Recipe('recipe 1', 0, [], [], [], [], '_umf')  #empty recipe
-##recipe_dict = {'0':current_recipe}
-##
-##def toggle_ingredient(index):
-##    pass
-##
-##def update_var(a,b,c):
-##    pass
-
 class DisplayIngredient:
     """A class used to display the line corresponding to an ingredient in the ingredient editor"""
     def __init__(self, index, core_data, frame):
         ing = core_data.ingredient_dict[index]
         self.delete_button =  ttk.Button(master=frame, text='X', width=2) #, command = partial(delete_ingredient_fn, index))
-##        sdw['del'] =  ttk.Label(master=frame, text='X', width=2)
-##        sdw['del'].bind('<Button-1>', partial(delete_ingredient_fn, index))
         self.name_entry = Entry(master=frame, width=20)
         self.name_entry.insert(0, ing.name)
         ox_comp = ing.analysis

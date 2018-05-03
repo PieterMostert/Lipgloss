@@ -19,7 +19,7 @@
 # We define the Restriction, Oxide, Ingredient,and Other classes.
 
 from functools import partial
-import shelve
+#import shelve
 #from .serializers.recipeserializer import RecipeSerializer
 from inspect import getsourcefile
 import os
@@ -60,25 +60,15 @@ class Observable:
         self.attribute = None
 
 class Oxide():
-
-##    order = []
-##
-##    def update_order():
-##        with shelve.open(persistent_data_path+"/OrderShelf") as order_shelf:
-##            order_shelf['oxides'] = Oxide.order
     
-    def __init__(self, pos, molar_mass, flux, min_threshhold=0):
+    def __init__(self, molar_mass, flux, min_threshhold=0):
         
         'SiO2, Al2O3, B2O3, MgO, CaO, etc'
     
         Observable.__init__(self)
-        self.pos = pos  # Determines order in which oxides are displayed.
         self.molar_mass = molar_mass
         self.flux = flux  # Either 0 or 1 (for now).
         self.min_threshhold = min_threshhold  # Don't display this oxide if none of the selected ingredients has more than min_threshhold % wt of that oxide
-
-##    def display(self, frame):     # To be used in the 'Edit oxides' window. Only apply this to copies of things in shelve.
-##        pass
 
 def oxide_reset():
 
@@ -91,9 +81,9 @@ def oxide_reset():
         for (pos, ox) in enumerate(oxidefile.oxides):
              Oxide.order.append(ox)
              if ox in oxidefile.fluxes:
-                  ox_init = Oxide(pos, molar_mass=oxidefile.molar_mass_dict[ox], flux=1)
+                  ox_init = Oxide(molar_mass=oxidefile.molar_mass_dict[ox], flux=1)
              else:
-                  ox_init = Oxide(pos, molar_mass=oxidefile.molar_mass_dict[ox], flux=0)
+                  ox_init = Oxide(molar_mass=oxidefile.molar_mass_dict[ox], flux=0)
              oxide_shelf[ox] = ox_init
 
     Oxide.update_order()
@@ -113,6 +103,7 @@ class OxideData():
     def oxides():
         return OxideData.oxide_dict.keys()
 
+    @staticmethod
     def set_default_oxides():
         OxideData.oxide_dict = {}
         from .default_data import oxidefile as oxidefile
@@ -123,8 +114,8 @@ class OxideData():
                   ox_init = Oxide(pos, molar_mass=oxidefile.molar_mass_dict[ox], flux=0)
              OxideData.oxide_dict[ox] = ox_init
 
-    def __init__(self):
-        pass
+##    def __init__(self):
+##        pass
         
 ##    def update_oxides(self, new_oxide_dict):
 ##	OxideData.oxide_dict = new_oxide_dict    # check that this works
@@ -182,11 +173,8 @@ else:
 # Define Other class:
 class Other(Observable):
     
-    def __init__(self, pos, name, numerator_coefs, normalization, def_low, def_upp, dec_pt):
-        'SiO2:Al2O3, LOI, cost, total clay, etc'
-
-        # pos determines order in which other restrictions are displayed.
-        self.pos = pos
+    def __init__(self, name, numerator_coefs, normalization, def_low, def_upp, dec_pt):
+        """SiO2:Al2O3, LOI, cost, total clay, etc"""
            
         self.name = name
         
@@ -215,10 +203,10 @@ class CoreData(OxideData):
        the dictionary of other attributes ingredients may have'''
     
     def __init__(self):
-        self.other_attr_dict = {}
         self.ingredient_dict = {}
         self.ingredient_analyses = {}    # Could do without this  
         self.other_dict = {}
+        self.other_attr_dict = {}
         self.default_lower_bounds = {}
         self.default_upper_bounds = {}
 
@@ -253,20 +241,20 @@ class CoreData(OxideData):
         self.ingredient_analyses = get_ing_comp(self.ingredient_dict) 
 
         self.other_dict = {}
-        self.other_dict['0'] = Other(0, 'SiO2_Al2O3', {'mole_SiO2':1}, "self.lp_var['mole_Al2O3']", 3, 18, 2)   # Using 'SiO2:Al2O3' gives an error
-        self.other_dict['1'] = Other(1, 'KNaO UMF', {'mole_K2O':1, 'mole_Na2O':1}, "self.lp_var['fluxes_total']", 0, 1, 3)
-        self.other_dict['2'] = Other(2, 'KNaO % mol', {'mole_K2O':1, 'mole_Na2O':1}, "0.01*self.lp_var['ox_mole_total']", 0, 100, 2)
-        self.other_dict['3'] = Other(3, 'RO UMF', {'mole_MgO':1, 'mole_CaO':1, 'mole_BaO':1, 'mole_SrO':1}, "self.lp_var['fluxes_total']", 0, 1, 3)
+        self.other_dict['0'] = Other('SiO2_Al2O3', {'mole_SiO2':1}, "self.lp_var['mole_Al2O3']", 3, 18, 2)   # Using 'SiO2:Al2O3' gives an error
+        self.other_dict['1'] = Other('KNaO UMF', {'mole_K2O':1, 'mole_Na2O':1}, "self.lp_var['fluxes_total']", 0, 1, 3)
+        self.other_dict['2'] = Other('KNaO % mol', {'mole_K2O':1, 'mole_Na2O':1}, "0.01*self.lp_var['ox_mole_total']", 0, 100, 2)
+        self.other_dict['3'] = Other('RO UMF', {'mole_MgO':1, 'mole_CaO':1, 'mole_BaO':1, 'mole_SrO':1}, "self.lp_var['fluxes_total']", 0, 1, 3)
 
         other_att_4 = {'ingredient_'+index : 0.01*float(self.ingredient_dict[index].other_attributes['2'])\
                        for index in self.ingredient_dict if '2' in self.ingredient_dict[index].other_attributes}
-        self.other_dict['4'] = Other(4, 'Total clay', {k:v for k,v in other_att_4.items() if v>0}, "0.01*self.lp_var['ingredient_total']", 0, 100, 1)
+        self.other_dict['4'] = Other('Total clay', {k:v for k,v in other_att_4.items() if v>0}, "0.01*self.lp_var['ingredient_total']", 0, 100, 1)
         other_att_5 = {'ingredient_'+index : 0.01*float(self.ingredient_dict[index].other_attributes['0'])\
                        for index in self.ingredient_dict if '0' in self.ingredient_dict[index].other_attributes}
-        self.other_dict['5'] = Other(5, 'LOI',  {k:v for k,v in other_att_5.items() if v>0}, "0.01*self.lp_var['ingredient_total']", 0, 100, 1)
+        self.other_dict['5'] = Other('LOI',  {k:v for k,v in other_att_5.items() if v>0}, "0.01*self.lp_var['ingredient_total']", 0, 100, 1)
         other_att_6 = {'ingredient_'+index : 0.01*float(self.ingredient_dict[index].other_attributes['1'])\
                        for index in self.ingredient_dict if '1' in self.ingredient_dict[index].other_attributes}
-        self.other_dict['6'] = Other(6, 'cost', {k:v for k,v in other_att_6.items() if v>0}, "0.01*self.lp_var['ingredient_total']", 0, 100, 1)
+        self.other_dict['6'] = Other('cost', {k:v for k,v in other_att_6.items() if v>0}, "0.01*self.lp_var['ingredient_total']", 0, 100, 1)
 
         self.default_lower_bounds = {}
         self.default_upper_bounds = {}

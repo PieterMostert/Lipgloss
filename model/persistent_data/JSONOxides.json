@@ -1,0 +1,77 @@
+{
+    "SiO2": {
+        "molar_mass": 60.085,
+        "flux": 0,
+        "min_threshhold": 0
+    },
+    "Al2O3": {
+        "molar_mass": 101.961,
+        "flux": 0,
+        "min_threshhold": 0
+    },
+    "B2O3": {
+        "molar_mass": 69.62,
+        "flux": 0,
+        "min_threshhold": 0
+    },
+    "MgO": {
+        "molar_mass": 40.304,
+        "flux": 1,
+        "min_threshhold": 0
+    },
+    "CaO": {
+        "molar_mass": 56.077,
+        "flux": 1,
+        "min_threshhold": 0
+    },
+    "SrO": {
+        "molar_mass": 103.62,
+        "flux": 1,
+        "min_threshhold": 0
+    },
+    "BaO": {
+        "molar_mass": 153.326,
+        "flux": 1,
+        "min_threshhold": 0
+    },
+    "ZnO": {
+        "molar_mass": 81.39,
+        "flux": 1,
+        "min_threshhold": 0
+    },
+    "Li2O": {
+        "molar_mass": 29.881,
+        "flux": 1,
+        "min_threshhold": 0
+    },
+    "Na2O": {
+        "molar_mass": 61.979,
+        "flux": 1,
+        "min_threshhold": 0
+    },
+    "K2O": {
+        "molar_mass": 94.196,
+        "flux": 1,
+        "min_threshhold": 0
+    },
+    "P2O5": {
+        "molar_mass": 141.945,
+        "flux": 0,
+        "min_threshhold": 0
+    },
+    "Fe2O3": {
+        "molar_mass": 159.688,
+        "flux": 0,
+        "min_threshhold": 0
+    },
+    "TiO2": {
+        "molar_mass": 79.866,
+        "flux": 0,
+        "min_threshhold": 0
+    },
+    "MnO2": {
+        "molar_mass": 86.937,
+        "flux": 0,
+        "min_threshhold": 0
+    }
+}

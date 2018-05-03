@@ -17,7 +17,8 @@
 
 # Contact: pi.mostert@gmail.com
 
-from tkinter import *      # eliminate
+import tkinter
+from tkinter import messagebox      # eliminate
 from view.pretty_names import prettify   # eliminate
 from functools import partial
 import shelve

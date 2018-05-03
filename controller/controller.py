@@ -52,7 +52,7 @@ from numbers import Number
 
 class Controller:
     def __init__(self):
-        OxideData.set_default_oxides()   # Replace by function that sets data saved by user
+        #OxideData.set_default_oxides()   # Replace by function that sets data saved by user
         #self.cd = CoreData()
         self.mod = Model()
         #self.cd = self.mod
@@ -84,21 +84,21 @@ class Controller:
         
         # Create and grid ingredient selection buttons:
         for r, i in enumerate(self.mod.order["ingredients"]):
-            self.mw.ingredient_select_button[i] = ttk.Button(self.mw.vsf.interior, text=self.mod.ingredient_dict[i].name, width=20, \
-                                                             command=partial(self.toggle_ingredient, i))
+            self.mw.ingredient_select_button[i] = ttk.Button(self.mw.vsf.interior, text=self.mod.ingredient_dict[i].name, \
+                                                             width=20, command=partial(self.toggle_ingredient, i))
             self.mw.ingredient_select_button[i].grid(row=r)
 
         # Create and grid other selection buttons:
-        for i, ot in self.mod.other_dict.items():
-            self.mw.other_select_button[i] = ttk.Button(self.mw.other_selection_window, text=prettify(ot.name), width=18, \
-                                                        command=partial(self.toggle_other, i))
-            self.mw.other_select_button[i].grid(row=ot.pos+1)
+        for r, j in enumerate(self.mod.order["other"]):
+            self.mw.other_select_button[j] = ttk.Button(self.mw.other_selection_window, text=prettify(self.mod.other_dict[j].name), \
+                                                        width=18, command=partial(self.toggle_other, j))
+            self.mw.other_select_button[j].grid(row=r+1)
 
         #Create Restriction and DisplayRestriction dictionaries
         self.restr_dict = {} #default_restriction_bounds(self.mod.oxide_dict, self.mod.ingredient_dict, self.mod.other_dict)
 
         # Create oxide restrictions:
-        for ox in self.mod.oxide_dict:
+        for ox in self.mod.order['oxides']:
             key = 'umf_'+ox
             self.restr_dict[key] = Restriction(key, ox, 'mole_'+ox, "self.lp_var['fluxes_total']", \
                                                self.mod.default_lower_bounds[key], self.mod.default_upper_bounds[key], dec_pt=3)
@@ -221,8 +221,13 @@ class Controller:
         et = self.mod.current_recipe.entry_type
         self.mw.entry_type.set(et)
 
-        for ox in self.mod.current_recipe.oxides:
-            self.display_restr_dict[et + ox].display(1 + self.mod.oxide_dict[ox].pos)
+##        for i, ox for ox in self.mod.current_recipe.oxides:
+##            self.display_restr_dict[et + ox].display(1 + self.mod.oxide_dict[ox].pos)
+
+        oxide_order = self.mod.order["oxides"]
+        for ox in oxide_order:
+            if ox in self.mod.current_recipe.oxides:
+                self.display_restr_dict[et+ox].display(1 + oxide_order.index(ox))
 
         ingredient_order = self.mod.order["ingredients"]
         for i in ingredient_order:
@@ -232,12 +237,20 @@ class Controller:
             else:
                 self.mw.ingredient_select_button[i].state(['!pressed'])
 
-        for ot in self.mod.other_dict:
+        other_order = self.mod.order["other"]
+        for ot in other_order:
             if ot in self.mod.current_recipe.other:
                 self.mw.other_select_button[ot].state(['pressed'])
-                self.display_restr_dict['other_'+ot].display(1001 + self.mod.other_dict[ot].pos)
+                self.display_restr_dict['other_'+ot].display(1001 + ingredient_order.index(i))
             else:
                 self.mw.other_select_button[ot].state(['!pressed'])
+
+##        for ot in self.mod.other_dict:
+##            if ot in self.mod.current_recipe.other:
+##                self.mw.other_select_button[ot].state(['pressed'])
+##                self.display_restr_dict['other_'+ot].display(1001 + self.mod.other_dict[ot].pos)
+##            else:
+##                self.mw.other_select_button[ot].state(['!pressed'])
         
         # Set the command for x and y variable selection boxes
         for key, restr in self.display_restr_dict.items():
@@ -339,7 +352,7 @@ class Controller:
             self.restr_dict['ingredient_'+index].name = ing.name
             self.display_restr_dict['ingredient_'+index].set_name(ing.name)
             self.mw.ingredient_select_button[index].config(text=ing.name)
-            for ox in self.mod.oxide_dict:
+            for ox in self.mod.order['oxides']:
                 try:
                     val = eval(self.ing_editor.line[index].oxide_entry[ox].get()   )
                 except:
@@ -394,7 +407,7 @@ class Controller:
 
         et = self.mw.entry_type.get()
         for ox in self.mod.current_recipe.oxides - old_oxides:
-            self.display_restr_dict[et+ox].display(1 + self.mod.oxide_dict[ox].pos)
+            self.display_restr_dict[et+ox].display(1 + self.mod.order['oxides'].index(ox))
 
     def pre_delete_ingredient(self, i):
         """Deletes ingredient if not in any recipes, otherwise opens dialogue window asking for confirmation."""
@@ -472,7 +485,7 @@ class Controller:
             self.display_restr_dict['ingredient_'+i].display(101 + self.mod.order["ingredients"].index(i))
             et = self.mw.entry_type.get()
             for ox in recipe.oxides:
-                self.display_restr_dict[et+ox].display(1 + self.mod.oxide_dict[ox].pos)
+                self.display_restr_dict[et+ox].display(1 + self.mod.order['oxides'].index(ox))
 
     def toggle_other(self, i):
         """Adds/removes other_dict[index] to/from the current recipe, depending on whether it isn't/is an other restriction already."""
@@ -484,7 +497,7 @@ class Controller:
         else:
             recipe.add_other(self.mod, i)
             self.mw.other_select_button[i].state(['pressed'])         
-            self.display_restr_dict['other_'+i].display(1001 + self.mod.other_dict[i].pos)
+            self.display_restr_dict['other_'+i].display(1001 + self.mod.order['other'].index(i))
             self.mw.restriction_sf.canvas.yview_moveto(1)
 
     def update_var(self, key, t, mystery_variable):     # t should be either 'x' or 'y'. Might be a better way of doing this
@@ -507,7 +520,7 @@ class Controller:
         for et in ['umf_', 'mass_perc_', 'mole_perc_']:
             if et == entry_type:
                 for ox in self.mod.current_recipe.oxides:
-                    self.display_restr_dict[et+ox].display(1 + self.mod.oxide_dict[ox].pos)
+                    self.display_restr_dict[et+ox].display(1 + self.mod.order['oxides'].index(ox))
             else:
                 for ox in self.mod.current_recipe.oxides:
                     self.display_restr_dict[et+ox].hide()

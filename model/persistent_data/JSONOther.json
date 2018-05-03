@@ -1,0 +1,84 @@
+{
+    "0": {
+        "name": "SiO2_Al2O3",
+        "numerator coefs": {
+            "mole_SiO2": 1
+        },
+        "normalization": "self.lp_var['mole_Al2O3']",
+        "def low": 3,
+        "def upp": 18,
+        "dec pt": 2
+    },
+    "1": {
+        "name": "KNaO UMF",
+        "numerator coefs": {
+            "mole_K2O": 1,
+            "mole_Na2O": 1
+        },
+        "normalization": "self.lp_var['fluxes_total']",
+        "def low": 0,
+        "def upp": 1,
+        "dec pt": 3
+    },
+    "2": {
+        "name": "KNaO % mol",
+        "numerator coefs": {
+            "mole_K2O": 1,
+            "mole_Na2O": 1
+        },
+        "normalization": "0.01*self.lp_var['ox_mole_total']",
+        "def low": 0,
+        "def upp": 100,
+        "dec pt": 2
+    },
+    "3": {
+        "name": "RO UMF",
+        "numerator coefs": {
+            "mole_MgO": 1,
+            "mole_CaO": 1,
+            "mole_BaO": 1,
+            "mole_SrO": 1
+        },
+        "normalization": "self.lp_var['fluxes_total']",
+        "def low": 0,
+        "def upp": 1,
+        "dec pt": 3
+    },
+    "4": {
+        "name": "Total clay",
+        "numerator coefs": {
+            "ingredient_1": 1.0,
+            "ingredient_2": 1.0
+        },
+        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "def low": 0,
+        "def upp": 100,
+        "dec pt": 1
+    },
+    "5": {
+        "name": "LOI",
+        "numerator coefs": {
+            "ingredient_1": 0.125,
+            "ingredient_2": 0.12,
+            "ingredient_5": 0.006999999999999999,
+            "ingredient_7": 0.439,
+            "ingredient_8": 0.0475,
+            "ingredient_9": 0.522,
+            "ingredient_16": 0.5926,
+            "ingredient_17": 0.05,
+            "ingredient_18": 0.309
+        },
+        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "def low": 0,
+        "def upp": 100,
+        "dec pt": 1
+    },
+    "6": {
+        "name": "cost",
+        "numerator coefs": {},
+        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "def low": 0,
+        "def upp": 100,
+        "dec pt": 1
+    }
+}

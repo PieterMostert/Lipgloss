@@ -17,16 +17,20 @@
 # Contact: pi.mostert@gmail.com
 
 try:
-    from lipgloss.core_data import CoreData, Ingredient
+    from lipgloss.core_data import OxideData, CoreData, Ingredient
 except:
-    from .lipgloss.core_data import CoreData, Ingredient
+    from .lipgloss.core_data import OxideData, CoreData, Ingredient
     
 try:
     from serializers.recipeserializer import RecipeSerializer
     from serializers.ingredientserializer import IngredientSerializer
+    from serializers.oxideserializer import OxideSerializer
+    from serializers.otherserializer import OtherSerializer
 except:
     from .serializers.recipeserializer import RecipeSerializer
     from .serializers.ingredientserializer import IngredientSerializer
+    from .serializers.oxideserializer import OxideSerializer
+    from .serializers.otherserializer import OtherSerializer
 
 import json
 from inspect import getsourcefile
@@ -52,14 +56,24 @@ class Model(CoreData):
 
     def __init__(self):
         CoreData.__init__(self)
+        #OxideData.set_default_oxides()
+        with open(path.join(persistent_data_path, "JSONOxides.json"), 'r') as f:
+            OxideData.oxide_dict = OxideSerializer.deserialize_dict(json.load(f))
 
-        self.set_default_data()  # Replace by functions that sets data saved by user
+        #self.set_default_data()
+        
         with open(path.join(persistent_data_path, "JSONIngredients.json"), 'r') as f:
             self.ingredient_dict = IngredientSerializer.deserialize_dict(json.load(f))
+            
         for i, ing in self.ingredient_dict.items():
             self.ingredient_analyses[i] = ing.analysis
+
+        with open(path.join(persistent_data_path, "JSONOther.json"), 'r') as f:
+            self.other_dict = OtherSerializer.deserialize_dict(json.load(f))
+
+        self.other_attr_dict = {'0': 'LOI', '2': 'Clay', '1': 'Cost'}  # Replace by functions that sets data saved by user 
         self.set_default_default_bounds() # Replace by function that sets data saved by user
-        
+
         with open(path.join(persistent_data_path, "JSONRecipes.json"), 'r') as f:
             self.recipe_dict = RecipeSerializer.deserialize_dict(json.load(f))
     ##    with open(persistent_data_path+"/JSONRecipeShelf.json", 'r') as json_str:
@@ -100,14 +114,19 @@ class Model(CoreData):
             print('User tried to delete default recipe. This shouldn\'t be an option')
         
     def json_write_recipes(self):
-        """Write all recipes from the global recipe_dict to file, overwriting previous data"""
+        """Write all recipes from self.recipe_dict to file, overwriting previous data"""
 ##        f = open(path.join(persistent_data_path, "JSONRecipeShelf.json"), 'w')
 ##        json_string = RecipeSerializer.serialize_dict(self.recipe_dict)
 ##        f.write(json_string)
 ##        f.close()
         with open(path.join(persistent_data_path, "JSONRecipes.json"), 'w') as f:
             json_string = RecipeSerializer.serialize_dict(self.recipe_dict)
-            json.dump(json_string, f, indent = 4)
+            json.dump(json_string, f, indent=4)
+
+##    def json_read_recipes(self):
+##        """Set self.recipe_dict equal to the deserialized recipe dictionary in JSONRecipes.json"""
+##        with open(path.join(persistent_data_path, "JSONRecipes.json"), 'r') as f:
+##            self.recipe_dict = RecipeSerializer.deserialize_dict(json.load(f))
 
     def update_recipe_dict(self):
         for recipe in self.recipe_dict.values():
@@ -166,3 +185,13 @@ class Model(CoreData):
 ##        f.write(json_string)
 ##        f.close()
  
+    def json_write_oxides(self):
+        """Write all oxides from self.oxide_dict to file, overwriting previous data"""
+        with open(path.join(persistent_data_path, "JSONOxides.json"), 'w') as f:
+            json.dump(OxideSerializer.serialize_dict(self.oxide_dict), f, indent=4)
+
+    def json_write_other(self):
+        print(self.other_dict)
+        """Write all other restrictions from self.other_dict to file, overwriting previous data"""
+        with open(path.join(persistent_data_path, "JSONOther.json"), 'w') as f:
+            json.dump(OtherSerializer.serialize_dict(self.other_dict), f, indent=4)
