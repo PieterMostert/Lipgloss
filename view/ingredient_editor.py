@@ -57,18 +57,17 @@ class DisplayIngredient:
         for i, value in ing.other_attributes.items():
             self.other_attr_entry[i].insert(0, value)
 
-    def display(self, pos, core_data):
+    def display(self, pos, core_data, order):
         self.delete_button.grid(row=pos, column=0)
         self.name_entry.grid(row=pos, column=1, padx=3, pady=3)
 
         c = 3
-        
-        for ox in core_data.oxide_dict:
-            self.oxide_entry[ox].grid(row=pos, column=c, padx=3, pady=1)
-            c += 1
+        for i, ox in enumerate(order["oxides"]):
+            self.oxide_entry[ox].grid(row=pos, column=c+i, padx=3, pady=1)
 
-        for i, other_attr in core_data.other_attr_dict.items(): 
-            self.other_attr_entry[i].grid(row=pos, column=c+int(i), padx=3, pady=3)
+        c = 100
+        for i, other_attr in enumerate(order["other attributes"]): 
+            self.other_attr_entry[other_attr].grid(row=pos, column=c+i, padx=3, pady=3)
 
     def delete(self):
         for widget in [self.delete_button, self.name_entry] + list(self.oxide_entry.values()) + list(self.other_attr_entry.values()):
@@ -78,9 +77,7 @@ class IngredientEditor(MainWindow):
     """Window that lets users enter / delete ingredients, edit oxide compositions and other attributes, and rearrange \\
        the order in which ingredients are displayed"""
 
-    def __init__(self, core_data, order, reorder_ingredients): #, ingredient_order, ingredient_dict, oxides, other_attr_dict): #, recipe_dict, ingredient_select_button, toggle_ingredient, update_var, entry_type):
-        pass
-
+    def __init__(self, core_data, order, reorder_ingredients):
         self.toplevel = Toplevel()
         self.toplevel.title("Ingredient Editor")
 
@@ -98,16 +95,16 @@ class IngredientEditor(MainWindow):
         Label(master=self.ingredient_editor_headings, text='', width=5).grid(row=0, column=1)  # Blank label above the delete buttons
         Label(master=self.ingredient_editor_headings, text='    Ingredient', width=20).grid(row=0, column=2)
 
-        Label(master=self.ingredient_editor_headings, text='', width=5).grid(row=0, column=99)  # Blank label above the scrollbar
-        Label(master=self.ingredient_editor_headings, text='', width=5).grid(row=0, column=100)  # Blank label above the scrollbar
+        Label(master=self.ingredient_editor_headings, text='', width=5).grid(row=0, column=299)  # Blank label above the scrollbar
+        Label(master=self.ingredient_editor_headings, text='', width=5).grid(row=0, column=300)  # Blank label above the scrollbar
 
-        c = 3 + 1
-        for ox in core_data.oxide_dict:
-            Label(master=self.ingredient_editor_headings, text=prettify(ox), width=5).grid(row=0, column=c)
-            c += 1
+        c = 3
+        for i, ox in enumerate(order["oxides"]):
+            Label(master=self.ingredient_editor_headings, text=prettify(ox), width=5).grid(row=0, column=c+i)
 
-        for i, attr in core_data.other_attr_dict.items():
-            Label(master=self.ingredient_editor_headings, text=attr, width=5).grid(row=0, column=c+int(i))
+        c = 100
+        for i, other_attr in enumerate(order["other attributes"]): 
+            Label(master=self.ingredient_editor_headings, text=core_data.other_attr_dict[other_attr], width=5).grid(row=0, column=c+i)
 
         # Create drag manager for ingredient rows:
         self.ing_dnd = DragManager(reorder_ingredients)
@@ -116,7 +113,7 @@ class IngredientEditor(MainWindow):
         self.display_ingredients = {}
         for r, i in enumerate(order["ingredients"]):
             self.display_ingredients[i] = DisplayIngredient(i, core_data, self.i_e_scrollframe.interior)
-            self.display_ingredients[i].display(r, core_data)    
+            self.display_ingredients[i].display(r, core_data, order)    
             self.ing_dnd.add_dragable(self.display_ingredients[i].name_entry)    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
                 
         # This label is hack to make sure that when a new ingredient is added, you don't have to scroll down to see it:

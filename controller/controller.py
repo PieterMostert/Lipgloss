@@ -308,7 +308,7 @@ class Controller:
         # Move next section to IngredientEditor
         self.ing_editor.display_ingredients[i] = DisplayIngredient(i, self.mod, self.ing_editor.i_e_scrollframe.interior) #,
                                                                #lambda j : self.ing_editor.pre_delete_ingredient(j, self.mod.recipe_dict))
-        self.ing_editor.display_ingredients[i].display(int(i), self.mod)
+        self.ing_editor.display_ingredients[i].display(int(i), self.mod, self.mod.order)
         self.ing_editor.ing_dnd.add_dragable(self.ing_editor.display_ingredients[i].name_entry)    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
         self.ing_editor.display_ingredients[i].delete_button.config(command=partial(self.pre_delete_ingredient, i))
         
@@ -443,7 +443,7 @@ class Controller:
 
         self.ing_editor.display_ingredients[i].delete()
         for k, j in enumerate(self.mod.order['ingredients']):
-            self.ing_editor.display_ingredients[j].display(k, self.mod)    # We actually only need to do this for the rows that are below the one that was deleted
+            self.ing_editor.display_ingredients[j].display(k, self.mod, self.mod.order)    # We actually only need to do this for the rows that are below the one that was deleted
 
         # Remove the deleted ingredient from the list of ingredients to select from:
         self.mw.ingredient_select_button[i].destroy()
