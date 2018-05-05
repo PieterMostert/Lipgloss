@@ -93,56 +93,29 @@ class Controller:
                                                         width=18, command=partial(self.toggle_other, j))
             self.mw.other_select_button[j].grid(row=r+1)
 
-        #Create Restriction and DisplayRestriction dictionaries
-        self.restr_dict = {} #default_restriction_bounds(self.mod.oxide_dict, self.mod.ingredient_dict, self.mod.other_dict)
-
-        # Create oxide restrictions:
-        for ox in self.mod.order['oxides']:
-            key = 'umf_'+ox
-            self.restr_dict[key] = Restriction(key, ox, 'mole_'+ox, "self.lp_var['fluxes_total']", \
-                                               self.mod.default_lower_bounds[key], self.mod.default_upper_bounds[key], dec_pt=3)
-            key = 'mass_perc_'+ox
-            self.restr_dict[key] = Restriction(key, ox, 'mass_'+ox, "0.01*self.lp_var['ox_mass_total']", \
-                                               self.mod.default_lower_bounds[key], self.mod.default_upper_bounds[key], dec_pt=2)
-            key = 'mole_perc_'+ox
-            self.restr_dict[key] = Restriction(key, ox, 'mole_'+ox, "0.01*self.lp_var['ox_mole_total']", \
-                                               self.mod.default_lower_bounds[key], self.mod.default_upper_bounds[key], dec_pt=2)
-
-        # Create ingredient restrictions:
-        for i, ing in self.mod.ingredient_dict.items():
-            key = 'ingredient_'+i
-            self.restr_dict[key] = Restriction(key, ing.name, key, "0.01*self.lp_var['ingredient_total']", \
-                                   self.mod.default_lower_bounds[key], self.mod.default_upper_bounds[key])
-
-        # Create other restrictions:
-        for index, ot in self.mod.other_dict.items():
-            key = 'other_'+index
-            self.restr_dict[key] = Restriction(key, ot.name, key, ot.normalization, ot.def_low, ot.def_upp, dec_pt=ot.dec_pt)
-
-
-        
+        # Create DisplayRestriction dictionary
         self.display_restr_dict = {}      
         for key in self.mod.restr_keys():
             self.display_restr_dict[key] = DisplayRestriction(self.mw.restriction_sf.interior, self.mw.x_lab, self.mw.y_lab, \
-                                                              key, self.restr_dict[key].name, self.restr_dict[key].default_low, self.restr_dict[key].default_upp)
+                                                              key, self.mod.restr_dict[key].name, self.mod.restr_dict[key].default_low, self.mod.restr_dict[key].default_upp)
 
         # Open default recipe.
         self.open_recipe('0')
 
     def calc_restr(self):
         self.get_bounds()
-        calculated_bounds = self.lprp.calc_restrictions(self.mod.current_recipe, self.restr_dict)
+        calculated_bounds = self.lprp.calc_restrictions(self.mod.current_recipe, self.mod.restr_dict)
         for key in self.mod.current_recipe.restriction_keys:
             res = self.display_restr_dict[key]
-            dp =  self.restr_dict[key].dec_pt
+            dp =  self.mod.restr_dict[key].dec_pt
             for eps in ['lower', 'upper']:               # display calculated lower and upper bounds.
                 res.calc_bounds[eps].config(text=('%.'+str(dp)+'f') % no_neg_zero(calculated_bounds[eps][key]))
 
         self.mw.proj_canvas.delete("all")
         var = self.mod.current_recipe.variables
         if len(var) == 2:
-            vertices = self.lprp.calc_2d_projection(self.mod.current_recipe, self.restr_dict)
-            if self.restr_dict[var['x']].normalization == self.restr_dict[var['y']].normalization:
+            vertices = self.lprp.calc_2d_projection(self.mod.current_recipe, self.mod.restr_dict)
+            if self.mod.restr_dict[var['x']].normalization == self.mod.restr_dict[var['y']].normalization:
                 scaling = 1
             else:
                 x_pts = [p[0] for p in vertices]
@@ -211,8 +184,8 @@ class Controller:
                 self.display_restr_dict[i].low.set(self.mod.current_recipe.lower_bounds[i])
                 self.display_restr_dict[i].upp.set(self.mod.current_recipe.upper_bounds[i])
             except:
-                self.display_restr_dict[i].low.set(self.restr_dict[i].default_low)    # this is just for the case where the oxides have changed
-                self.display_restr_dict[i].upp.set(self.restr_dict[i].default_upp)    # ditto
+                self.display_restr_dict[i].low.set(self.mod.restr_dict[i].default_low)    # this is just for the case where the oxides have changed
+                self.display_restr_dict[i].upp.set(self.mod.restr_dict[i].default_upp)    # ditto
 
         for t, res in self.mod.current_recipe.variables.items():
             self.display_restr_dict[res].select(t)               # add stars to new variables
@@ -256,13 +229,13 @@ class Controller:
         self.mod.current_recipe.name = self.mw.recipe_name.get()
         self.mod.current_recipe.entry_type = self.mw.entry_type.get()
         self.get_bounds()
-        self.mod.current_recipe.update_bounds(self.restr_dict)   # Do we need this?        
+        self.mod.current_recipe.update_bounds(self.mod.restr_dict)   # Do we need this?        
         self.mod.save_current_recipe()
 
     def save_new_recipe(self):
         """Save a new recipe with new ID to the self.mod.recipe_dict, then update the JSON data file"""
         self.get_bounds()
-        self.mod.current_recipe.update_bounds(self.restr_dict)   # Do we need this?
+        self.mod.current_recipe.update_bounds(self.mod.restr_dict)   # Do we need this?
         self.mod.current_recipe.entry_type = self.mw.entry_type.get()
         self.mod.save_new_recipe()
         self.mw.recipe_name.set(self.mod.current_recipe.name)  
@@ -312,7 +285,7 @@ class Controller:
         self.ing_editor.ing_dnd.add_dragable(self.ing_editor.display_ingredients[i].name_entry)    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
         self.ing_editor.display_ingredients[i].delete_button.config(command=partial(self.pre_delete_ingredient, i))
         
-        self.restr_dict['ingredient_'+i] = Restriction('ingredient_'+i, ing.name, 'ingredient_'+i, "0.01*self.lp_var['ingredient_total']", 0, 100)
+        self.mod.restr_dict['ingredient_'+i] = Restriction('ingredient_'+i, ing.name, 'ingredient_'+i, "0.01*self.lp_var['ingredient_total']", 0, 100)
         self.display_restr_dict['ingredient_'+i] = DisplayRestriction(self.mw.restriction_sf.interior, self.mw.x_lab, self.mw.y_lab,
                                                                           'ingredient_'+i, ing.name, 0, 100)
         # Set the command for x and y variable selection boxes
@@ -339,9 +312,9 @@ class Controller:
         for i, ing in self.mod.ingredient_dict.items():
             # Maybe the restriction class should have an update_data method
             ing.name = self.ing_editor.display_ingredients[i].name_entry.get()                 # update ingredient name
-            self.restr_dict['ingredient_'+i].name = ing.name
-            self.display_restr_dict['ingredient_'+i].set_name(ing.name)
             self.mw.ingredient_select_button[i].config(text=ing.name)
+            self.display_restr_dict['ingredient_'+i].set_name(ing.name)
+            self.mod.restr_dict['ingredient_'+i].name = ing.name
             for ox in self.mod.order['oxides']:
                 try:
                     val = eval(self.ing_editor.display_ingredients[i].oxide_entry[ox].get()   )

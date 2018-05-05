@@ -277,7 +277,7 @@ class CoreData(OxideData):
 
         #with the exception of the following:
         self.default_upper_bounds['umf_Al2O3'] = 10
-        for ox in ['B2O3', 'MgO', 'CaO', 'Na2O', 'K2O', 'ZnO', 'Fe2O3', 'TiO2', 'P2O5']:
+        for ox in ['B2O3', 'MgO', 'CaO', 'SrO', 'BaO', 'Na2O', 'K2O', 'ZnO', 'Fe2O3', 'TiO2', 'P2O5']:
             self.default_upper_bounds['umf_'+ox] = 1
         self.default_lower_bounds['other_0'] = 1
 

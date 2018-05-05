@@ -18,8 +18,10 @@
 
 try:
     from lipgloss.core_data import OxideData, CoreData, Ingredient
+    from lipgloss.restrictions import Restriction
 except:
     from .lipgloss.core_data import OxideData, CoreData, Ingredient
+    from .lipgloss.restrictions import Restriction
     
 try:
     from serializers.recipeserializer import RecipeSerializer
@@ -86,6 +88,32 @@ class Model(CoreData):
 
         with open(path.join(persistent_data_path, "JSONOrder.json"), 'r') as f:
             self.order = json.load(f)
+
+        #Create Restriction dictionary
+        self.restr_dict = {}
+
+        # Create oxide restrictions:
+        for ox in self.order['oxides']:
+            key = 'umf_'+ox
+            self.restr_dict[key] = Restriction(key, ox, 'mole_'+ox, "self.lp_var['fluxes_total']", \
+                                               self.default_lower_bounds[key], self.default_upper_bounds[key], dec_pt=3)
+            key = 'mass_perc_'+ox
+            self.restr_dict[key] = Restriction(key, ox, 'mass_'+ox, "0.01*self.lp_var['ox_mass_total']", \
+                                               self.default_lower_bounds[key], self.default_upper_bounds[key], dec_pt=2)
+            key = 'mole_perc_'+ox
+            self.restr_dict[key] = Restriction(key, ox, 'mole_'+ox, "0.01*self.lp_var['ox_mole_total']", \
+                                               self.default_lower_bounds[key], self.default_upper_bounds[key], dec_pt=2)
+
+        # Create ingredient restrictions:
+        for i, ing in self.ingredient_dict.items():
+            key = 'ingredient_'+i
+            self.restr_dict[key] = Restriction(key, ing.name, key, "0.01*self.lp_var['ingredient_total']", \
+                                   self.default_lower_bounds[key], self.default_upper_bounds[key])
+
+        # Create other restrictions:
+        for i, ot in self.other_dict.items():
+            key = 'other_'+i
+            self.restr_dict[key] = Restriction(key, ot.name, key, ot.normalization, ot.def_low, ot.def_upp, dec_pt=ot.dec_pt)
         
     def set_current_recipe(self, index):
         self.current_recipe = copy.deepcopy(self.recipe_dict[index])
