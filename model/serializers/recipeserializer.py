@@ -7,7 +7,7 @@ except:
 ##from ..lipgloss.core_data import CoreData
 
 class RecipeSerializer(object):
-    """A class to support serializing/deserializing of a single recipes and dictionaries of recipe.  Needs improvement"""
+    """A class to support serializing/deserializing of a single recipe and dictionaries of recipes.  Needs improvement"""
 
     @staticmethod
     def get_serializable_recipe(recipe):

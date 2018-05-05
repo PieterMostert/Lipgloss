@@ -28,11 +28,13 @@ try:
     from serializers.ingredientserializer import IngredientSerializer
     from serializers.oxideserializer import OxideSerializer
     from serializers.otherserializer import OtherSerializer
+    from serializers.restrictionserializer import RestrictionSerializer
 except:
     from .serializers.recipeserializer import RecipeSerializer
     from .serializers.ingredientserializer import IngredientSerializer
     from .serializers.oxideserializer import OxideSerializer
     from .serializers.otherserializer import OtherSerializer
+    from .serializers.restrictionserializer import RestrictionSerializer
 
 import json
 from inspect import getsourcefile
@@ -74,7 +76,7 @@ class Model(CoreData):
             self.other_dict = OtherSerializer.deserialize_dict(json.load(f))
 
         self.other_attr_dict = {'0': 'LOI', '2': 'Clay', '1': 'Cost'}  # Replace by functions that sets data saved by user 
-        self.set_default_default_bounds() # Replace by function that sets data saved by user
+        #self.set_default_default_bounds() # Replace by function that sets data saved by user
 
         with open(path.join(persistent_data_path, "JSONRecipes.json"), 'r') as f:
             self.recipe_dict = RecipeSerializer.deserialize_dict(json.load(f))
@@ -90,30 +92,40 @@ class Model(CoreData):
             self.order = json.load(f)
 
         #Create Restriction dictionary
-        self.restr_dict = {}
-
-        # Create oxide restrictions:
-        for ox in self.order['oxides']:
-            key = 'umf_'+ox
-            self.restr_dict[key] = Restriction(key, ox, 'mole_'+ox, "self.lp_var['fluxes_total']", \
-                                               self.default_lower_bounds[key], self.default_upper_bounds[key], dec_pt=3)
-            key = 'mass_perc_'+ox
-            self.restr_dict[key] = Restriction(key, ox, 'mass_'+ox, "0.01*self.lp_var['ox_mass_total']", \
-                                               self.default_lower_bounds[key], self.default_upper_bounds[key], dec_pt=2)
-            key = 'mole_perc_'+ox
-            self.restr_dict[key] = Restriction(key, ox, 'mole_'+ox, "0.01*self.lp_var['ox_mole_total']", \
-                                               self.default_lower_bounds[key], self.default_upper_bounds[key], dec_pt=2)
-
-        # Create ingredient restrictions:
-        for i, ing in self.ingredient_dict.items():
-            key = 'ingredient_'+i
-            self.restr_dict[key] = Restriction(key, ing.name, key, "0.01*self.lp_var['ingredient_total']", \
-                                   self.default_lower_bounds[key], self.default_upper_bounds[key])
-
-        # Create other restrictions:
-        for i, ot in self.other_dict.items():
-            key = 'other_'+i
-            self.restr_dict[key] = Restriction(key, ot.name, key, ot.normalization, ot.def_low, ot.def_upp, dec_pt=ot.dec_pt)
+        with open(path.join(persistent_data_path, "JSONRestrictions.json"), 'r') as f:
+            self.restr_dict = RestrictionSerializer.deserialize_dict(json.load(f))
+        # It seems a bit silly to record the default lower and upper bounds in both self.restr_dict
+        # and in self.default_lower_bounds and self.default_lower_bounds, but that's how things
+        # stand at the moment
+        for key in self.restr_keys():
+            self.default_lower_bounds[key] = self.restr_dict[key].default_low
+            self.default_upper_bounds[key] = self.restr_dict[key].default_upp
+##        self.restr_dict = {}
+##
+##        # Create oxide restrictions:
+##        for ox in self.order['oxides']:
+##            key = 'umf_'+ox
+##            self.restr_dict[key] = Restriction(key, ox, 'mole_'+ox, "self.lp_var['fluxes_total']", \
+##                                               self.default_lower_bounds[key], self.default_upper_bounds[key], dec_pt=3)
+##            key = 'mass_perc_'+ox
+##            self.restr_dict[key] = Restriction(key, ox, 'mass_'+ox, "0.01*self.lp_var['ox_mass_total']", \
+##                                               self.default_lower_bounds[key], self.default_upper_bounds[key], dec_pt=2)
+##            key = 'mole_perc_'+ox
+##            self.restr_dict[key] = Restriction(key, ox, 'mole_'+ox, "0.01*self.lp_var['ox_mole_total']", \
+##                                               self.default_lower_bounds[key], self.default_upper_bounds[key], dec_pt=2)
+##
+##        # Create ingredient restrictions:
+##        for i, ing in self.ingredient_dict.items():
+##            key = 'ingredient_'+i
+##            self.restr_dict[key] = Restriction(key, ing.name, key, "0.01*self.lp_var['ingredient_total']", \
+##                                   self.default_lower_bounds[key], self.default_upper_bounds[key])
+##
+##        # Create other restrictions:
+##        for i, ot in self.other_dict.items():
+##            key = 'other_'+i
+##            self.restr_dict[key] = Restriction(key, ot.name, key, ot.normalization, ot.def_low, ot.def_upp, dec_pt=ot.dec_pt)
+##
+##        self.json_write_restrictions()
         
     def set_current_recipe(self, index):
         self.current_recipe = copy.deepcopy(self.recipe_dict[index])
@@ -174,9 +186,11 @@ class Model(CoreData):
         i = list(self.ingredient_dict.keys())[-1]     # index of new ingredient
         ing.name = 'Ingredient #'+i
         self.order['ingredients'].append(i)
+        self.restr_dict['ingredient_'+i] = Restriction('ingredient_'+i, ing.name, 'ingredient_'+i, "0.01*self.lp_var['ingredient_total']", 0, 100)
 
         self.json_write_ingredients()  # replace by function that just updates a single ingredient
         self.json_write_order()
+        self.json_write_restrictions()
 ##        with shelve.open(persistent_data_path+"/IngredientShelf") as ingredient_shelf:
 ##            ingredient_shelf[i] = self.ingredient_dict[i]
 
@@ -195,6 +209,8 @@ class Model(CoreData):
         self.json_write_ingredients()
         self.order['ingredients'].remove(i)
         self.json_write_order()
+        del self.restr_dict['ingredient_'+i]
+        self.json_write_restrictions()
 ##        with shelve.open(path.join(persistent_data_path, "OrderShelf")) as order_shelf:
 ##            temp_list = order_shelf['ingredients']
 ##            temp_list.remove(i)
@@ -219,7 +235,11 @@ class Model(CoreData):
             json.dump(OxideSerializer.serialize_dict(self.oxide_dict), f, indent=4)
 
     def json_write_other(self):
-        print(self.other_dict)
         """Write all other restrictions from self.other_dict to file, overwriting previous data"""
         with open(path.join(persistent_data_path, "JSONOther.json"), 'w') as f:
             json.dump(OtherSerializer.serialize_dict(self.other_dict), f, indent=4)
+
+    def json_write_restrictions(self):
+        """Write all other restrictions from self.other_dict to file, overwriting previous data"""
+        with open(path.join(persistent_data_path, "JSONRestrictions.json"), 'w') as f:
+            json.dump(RestrictionSerializer.serialize_dict(self.restr_dict), f, indent=4)

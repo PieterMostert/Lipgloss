@@ -12,10 +12,10 @@
             "4"
         ],
         "oxides": [
-            "Al2O3",
-            "K2O",
+            "SiO2",
             "CaO",
-            "SiO2"
+            "K2O",
+            "Al2O3"
         ],
         "lower_bounds": {
             "umf_SiO2": 0.0,
@@ -71,14 +71,14 @@
             "3"
         ],
         "oxides": [
-            "Al2O3",
+            "Na2O",
+            "TiO2",
             "K2O",
-            "Fe2O3",
+            "Al2O3",
             "SiO2",
             "CaO",
             "MgO",
-            "TiO2",
-            "Na2O"
+            "Fe2O3"
         ],
         "lower_bounds": {
             "umf_SiO2": 3.71,

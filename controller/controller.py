@@ -285,7 +285,6 @@ class Controller:
         self.ing_editor.ing_dnd.add_dragable(self.ing_editor.display_ingredients[i].name_entry)    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
         self.ing_editor.display_ingredients[i].delete_button.config(command=partial(self.pre_delete_ingredient, i))
         
-        self.mod.restr_dict['ingredient_'+i] = Restriction('ingredient_'+i, ing.name, 'ingredient_'+i, "0.01*self.lp_var['ingredient_total']", 0, 100)
         self.display_restr_dict['ingredient_'+i] = DisplayRestriction(self.mw.restriction_sf.interior, self.mw.x_lab, self.mw.y_lab,
                                                                           'ingredient_'+i, ing.name, 0, 100)
         # Set the command for x and y variable selection boxes

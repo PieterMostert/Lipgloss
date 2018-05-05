@@ -5,7 +5,7 @@ except:
     from ..lipgloss.core_data import Oxide
 
 class OxideSerializer(object):
-    """A class to support serializing/deserializing of a single oxides and dictionaries of oxide.  Needs improvement"""
+    """A class to support serializing/deserializing of a single oxide and dictionaries of oxides.  Needs improvement"""
 
     @staticmethod
     def get_serializable_oxide(oxide):

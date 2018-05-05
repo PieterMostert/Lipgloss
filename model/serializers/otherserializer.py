@@ -5,7 +5,7 @@ except:
     from ..lipgloss.core_data import Other
 
 class OtherSerializer(object):
-    """A class to support serializing/deserializing of a single other restriction instances and dictionaries of such.
+    """A class to support serializing/deserializing of a single other restriction instance and dictionaries of such.
        Needs improvement"""
 
     @staticmethod

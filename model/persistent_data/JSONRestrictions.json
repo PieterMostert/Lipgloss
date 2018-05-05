@@ -1,0 +1,650 @@
+{
+    "umf_SiO2": {
+        "index": "umf_SiO2",
+        "name": "SiO2",
+        "objective_func": "mole_SiO2",
+        "normalization": "self.lp_var['fluxes_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 3
+    },
+    "mass_perc_SiO2": {
+        "index": "mass_perc_SiO2",
+        "name": "SiO2",
+        "objective_func": "mass_SiO2",
+        "normalization": "0.01*self.lp_var['ox_mass_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "mole_perc_SiO2": {
+        "index": "mole_perc_SiO2",
+        "name": "SiO2",
+        "objective_func": "mole_SiO2",
+        "normalization": "0.01*self.lp_var['ox_mole_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "umf_Al2O3": {
+        "index": "umf_Al2O3",
+        "name": "Al2O3",
+        "objective_func": "mole_Al2O3",
+        "normalization": "self.lp_var['fluxes_total']",
+        "default_low": 0,
+        "default_upp": 10,
+        "dec_pt": 3
+    },
+    "mass_perc_Al2O3": {
+        "index": "mass_perc_Al2O3",
+        "name": "Al2O3",
+        "objective_func": "mass_Al2O3",
+        "normalization": "0.01*self.lp_var['ox_mass_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "mole_perc_Al2O3": {
+        "index": "mole_perc_Al2O3",
+        "name": "Al2O3",
+        "objective_func": "mole_Al2O3",
+        "normalization": "0.01*self.lp_var['ox_mole_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "umf_B2O3": {
+        "index": "umf_B2O3",
+        "name": "B2O3",
+        "objective_func": "mole_B2O3",
+        "normalization": "self.lp_var['fluxes_total']",
+        "default_low": 0,
+        "default_upp": 1,
+        "dec_pt": 3
+    },
+    "mass_perc_B2O3": {
+        "index": "mass_perc_B2O3",
+        "name": "B2O3",
+        "objective_func": "mass_B2O3",
+        "normalization": "0.01*self.lp_var['ox_mass_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "mole_perc_B2O3": {
+        "index": "mole_perc_B2O3",
+        "name": "B2O3",
+        "objective_func": "mole_B2O3",
+        "normalization": "0.01*self.lp_var['ox_mole_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "umf_MgO": {
+        "index": "umf_MgO",
+        "name": "MgO",
+        "objective_func": "mole_MgO",
+        "normalization": "self.lp_var['fluxes_total']",
+        "default_low": 0,
+        "default_upp": 1,
+        "dec_pt": 3
+    },
+    "mass_perc_MgO": {
+        "index": "mass_perc_MgO",
+        "name": "MgO",
+        "objective_func": "mass_MgO",
+        "normalization": "0.01*self.lp_var['ox_mass_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "mole_perc_MgO": {
+        "index": "mole_perc_MgO",
+        "name": "MgO",
+        "objective_func": "mole_MgO",
+        "normalization": "0.01*self.lp_var['ox_mole_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "umf_CaO": {
+        "index": "umf_CaO",
+        "name": "CaO",
+        "objective_func": "mole_CaO",
+        "normalization": "self.lp_var['fluxes_total']",
+        "default_low": 0,
+        "default_upp": 1,
+        "dec_pt": 3
+    },
+    "mass_perc_CaO": {
+        "index": "mass_perc_CaO",
+        "name": "CaO",
+        "objective_func": "mass_CaO",
+        "normalization": "0.01*self.lp_var['ox_mass_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "mole_perc_CaO": {
+        "index": "mole_perc_CaO",
+        "name": "CaO",
+        "objective_func": "mole_CaO",
+        "normalization": "0.01*self.lp_var['ox_mole_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "umf_SrO": {
+        "index": "umf_SrO",
+        "name": "SrO",
+        "objective_func": "mole_SrO",
+        "normalization": "self.lp_var['fluxes_total']",
+        "default_low": 0,
+        "default_upp": 1,
+        "dec_pt": 3
+    },
+    "mass_perc_SrO": {
+        "index": "mass_perc_SrO",
+        "name": "SrO",
+        "objective_func": "mass_SrO",
+        "normalization": "0.01*self.lp_var['ox_mass_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "mole_perc_SrO": {
+        "index": "mole_perc_SrO",
+        "name": "SrO",
+        "objective_func": "mole_SrO",
+        "normalization": "0.01*self.lp_var['ox_mole_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "umf_BaO": {
+        "index": "umf_BaO",
+        "name": "BaO",
+        "objective_func": "mole_BaO",
+        "normalization": "self.lp_var['fluxes_total']",
+        "default_low": 0,
+        "default_upp": 1,
+        "dec_pt": 3
+    },
+    "mass_perc_BaO": {
+        "index": "mass_perc_BaO",
+        "name": "BaO",
+        "objective_func": "mass_BaO",
+        "normalization": "0.01*self.lp_var['ox_mass_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "mole_perc_BaO": {
+        "index": "mole_perc_BaO",
+        "name": "BaO",
+        "objective_func": "mole_BaO",
+        "normalization": "0.01*self.lp_var['ox_mole_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "umf_ZnO": {
+        "index": "umf_ZnO",
+        "name": "ZnO",
+        "objective_func": "mole_ZnO",
+        "normalization": "self.lp_var['fluxes_total']",
+        "default_low": 0,
+        "default_upp": 1,
+        "dec_pt": 3
+    },
+    "mass_perc_ZnO": {
+        "index": "mass_perc_ZnO",
+        "name": "ZnO",
+        "objective_func": "mass_ZnO",
+        "normalization": "0.01*self.lp_var['ox_mass_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "mole_perc_ZnO": {
+        "index": "mole_perc_ZnO",
+        "name": "ZnO",
+        "objective_func": "mole_ZnO",
+        "normalization": "0.01*self.lp_var['ox_mole_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "umf_Li2O": {
+        "index": "umf_Li2O",
+        "name": "Li2O",
+        "objective_func": "mole_Li2O",
+        "normalization": "self.lp_var['fluxes_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 3
+    },
+    "mass_perc_Li2O": {
+        "index": "mass_perc_Li2O",
+        "name": "Li2O",
+        "objective_func": "mass_Li2O",
+        "normalization": "0.01*self.lp_var['ox_mass_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "mole_perc_Li2O": {
+        "index": "mole_perc_Li2O",
+        "name": "Li2O",
+        "objective_func": "mole_Li2O",
+        "normalization": "0.01*self.lp_var['ox_mole_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "umf_Na2O": {
+        "index": "umf_Na2O",
+        "name": "Na2O",
+        "objective_func": "mole_Na2O",
+        "normalization": "self.lp_var['fluxes_total']",
+        "default_low": 0,
+        "default_upp": 1,
+        "dec_pt": 3
+    },
+    "mass_perc_Na2O": {
+        "index": "mass_perc_Na2O",
+        "name": "Na2O",
+        "objective_func": "mass_Na2O",
+        "normalization": "0.01*self.lp_var['ox_mass_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "mole_perc_Na2O": {
+        "index": "mole_perc_Na2O",
+        "name": "Na2O",
+        "objective_func": "mole_Na2O",
+        "normalization": "0.01*self.lp_var['ox_mole_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "umf_K2O": {
+        "index": "umf_K2O",
+        "name": "K2O",
+        "objective_func": "mole_K2O",
+        "normalization": "self.lp_var['fluxes_total']",
+        "default_low": 0,
+        "default_upp": 1,
+        "dec_pt": 3
+    },
+    "mass_perc_K2O": {
+        "index": "mass_perc_K2O",
+        "name": "K2O",
+        "objective_func": "mass_K2O",
+        "normalization": "0.01*self.lp_var['ox_mass_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "mole_perc_K2O": {
+        "index": "mole_perc_K2O",
+        "name": "K2O",
+        "objective_func": "mole_K2O",
+        "normalization": "0.01*self.lp_var['ox_mole_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "umf_P2O5": {
+        "index": "umf_P2O5",
+        "name": "P2O5",
+        "objective_func": "mole_P2O5",
+        "normalization": "self.lp_var['fluxes_total']",
+        "default_low": 0,
+        "default_upp": 1,
+        "dec_pt": 3
+    },
+    "mass_perc_P2O5": {
+        "index": "mass_perc_P2O5",
+        "name": "P2O5",
+        "objective_func": "mass_P2O5",
+        "normalization": "0.01*self.lp_var['ox_mass_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "mole_perc_P2O5": {
+        "index": "mole_perc_P2O5",
+        "name": "P2O5",
+        "objective_func": "mole_P2O5",
+        "normalization": "0.01*self.lp_var['ox_mole_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "umf_Fe2O3": {
+        "index": "umf_Fe2O3",
+        "name": "Fe2O3",
+        "objective_func": "mole_Fe2O3",
+        "normalization": "self.lp_var['fluxes_total']",
+        "default_low": 0,
+        "default_upp": 1,
+        "dec_pt": 3
+    },
+    "mass_perc_Fe2O3": {
+        "index": "mass_perc_Fe2O3",
+        "name": "Fe2O3",
+        "objective_func": "mass_Fe2O3",
+        "normalization": "0.01*self.lp_var['ox_mass_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "mole_perc_Fe2O3": {
+        "index": "mole_perc_Fe2O3",
+        "name": "Fe2O3",
+        "objective_func": "mole_Fe2O3",
+        "normalization": "0.01*self.lp_var['ox_mole_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "umf_TiO2": {
+        "index": "umf_TiO2",
+        "name": "TiO2",
+        "objective_func": "mole_TiO2",
+        "normalization": "self.lp_var['fluxes_total']",
+        "default_low": 0,
+        "default_upp": 1,
+        "dec_pt": 3
+    },
+    "mass_perc_TiO2": {
+        "index": "mass_perc_TiO2",
+        "name": "TiO2",
+        "objective_func": "mass_TiO2",
+        "normalization": "0.01*self.lp_var['ox_mass_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "mole_perc_TiO2": {
+        "index": "mole_perc_TiO2",
+        "name": "TiO2",
+        "objective_func": "mole_TiO2",
+        "normalization": "0.01*self.lp_var['ox_mole_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "umf_MnO2": {
+        "index": "umf_MnO2",
+        "name": "MnO2",
+        "objective_func": "mole_MnO2",
+        "normalization": "self.lp_var['fluxes_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 3
+    },
+    "mass_perc_MnO2": {
+        "index": "mass_perc_MnO2",
+        "name": "MnO2",
+        "objective_func": "mass_MnO2",
+        "normalization": "0.01*self.lp_var['ox_mass_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "mole_perc_MnO2": {
+        "index": "mole_perc_MnO2",
+        "name": "MnO2",
+        "objective_func": "mole_MnO2",
+        "normalization": "0.01*self.lp_var['ox_mole_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "ingredient_0": {
+        "index": "ingredient_0",
+        "name": "Silica",
+        "objective_func": "ingredient_0",
+        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 1
+    },
+    "ingredient_1": {
+        "index": "ingredient_1",
+        "name": "Kaolin",
+        "objective_func": "ingredient_1",
+        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 1
+    },
+    "ingredient_2": {
+        "index": "ingredient_2",
+        "name": "Ball Clay",
+        "objective_func": "ingredient_2",
+        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 1
+    },
+    "ingredient_3": {
+        "index": "ingredient_3",
+        "name": "Potash Feldspar",
+        "objective_func": "ingredient_3",
+        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 1
+    },
+    "ingredient_4": {
+        "index": "ingredient_4",
+        "name": "Soda Feldspar",
+        "objective_func": "ingredient_4",
+        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 1
+    },
+    "ingredient_5": {
+        "index": "ingredient_5",
+        "name": "Neph Sy",
+        "objective_func": "ingredient_5",
+        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 1
+    },
+    "ingredient_6": {
+        "index": "ingredient_6",
+        "name": "Wollastonite",
+        "objective_func": "ingredient_6",
+        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 1
+    },
+    "ingredient_7": {
+        "index": "ingredient_7",
+        "name": "Whiting",
+        "objective_func": "ingredient_7",
+        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 1
+    },
+    "ingredient_8": {
+        "index": "ingredient_8",
+        "name": "Talc",
+        "objective_func": "ingredient_8",
+        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 1
+    },
+    "ingredient_9": {
+        "index": "ingredient_9",
+        "name": "Magnesite",
+        "objective_func": "ingredient_9",
+        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 1
+    },
+    "ingredient_10": {
+        "index": "ingredient_10",
+        "name": "Zinc Oxide",
+        "objective_func": "ingredient_10",
+        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 1
+    },
+    "ingredient_11": {
+        "index": "ingredient_11",
+        "name": "Frit 3110",
+        "objective_func": "ingredient_11",
+        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 1
+    },
+    "ingredient_12": {
+        "index": "ingredient_12",
+        "name": "Frit 3124",
+        "objective_func": "ingredient_12",
+        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 1
+    },
+    "ingredient_13": {
+        "index": "ingredient_13",
+        "name": "Frit 3134",
+        "objective_func": "ingredient_13",
+        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 1
+    },
+    "ingredient_14": {
+        "index": "ingredient_14",
+        "name": "Frit 3195",
+        "objective_func": "ingredient_14",
+        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 1
+    },
+    "ingredient_15": {
+        "index": "ingredient_15",
+        "name": "Tricalcium Phosphate",
+        "objective_func": "ingredient_15",
+        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 1
+    },
+    "ingredient_16": {
+        "index": "ingredient_16",
+        "name": "Lithium Carbonate",
+        "objective_func": "ingredient_16",
+        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 1
+    },
+    "ingredient_17": {
+        "index": "ingredient_17",
+        "name": "Red Iron Oxide",
+        "objective_func": "ingredient_17",
+        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 1
+    },
+    "ingredient_18": {
+        "index": "ingredient_18",
+        "name": "Gillespie Borate",
+        "objective_func": "ingredient_18",
+        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 1
+    },
+    "ingredient_19": {
+        "index": "ingredient_19",
+        "name": "Cornwall Stone",
+        "objective_func": "ingredient_19",
+        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 1
+    },
+    "other_0": {
+        "index": "other_0",
+        "name": "SiO2_Al2O3",
+        "objective_func": "other_0",
+        "normalization": "self.lp_var['mole_Al2O3']",
+        "default_low": 3,
+        "default_upp": 18,
+        "dec_pt": 2
+    },
+    "other_1": {
+        "index": "other_1",
+        "name": "KNaO UMF",
+        "objective_func": "other_1",
+        "normalization": "self.lp_var['fluxes_total']",
+        "default_low": 0,
+        "default_upp": 1,
+        "dec_pt": 3
+    },
+    "other_2": {
+        "index": "other_2",
+        "name": "KNaO % mol",
+        "objective_func": "other_2",
+        "normalization": "0.01*self.lp_var['ox_mole_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
+    },
+    "other_3": {
+        "index": "other_3",
+        "name": "RO UMF",
+        "objective_func": "other_3",
+        "normalization": "self.lp_var['fluxes_total']",
+        "default_low": 0,
+        "default_upp": 1,
+        "dec_pt": 3
+    },
+    "other_4": {
+        "index": "other_4",
+        "name": "Total clay",
+        "objective_func": "other_4",
+        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 1
+    },
+    "other_5": {
+        "index": "other_5",
+        "name": "LOI",
+        "objective_func": "other_5",
+        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 1
+    },
+    "other_6": {
+        "index": "other_6",
+        "name": "cost",
+        "objective_func": "other_6",
+        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 1
+    }
+}
