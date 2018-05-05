@@ -107,20 +107,17 @@ class IngredientEditor(MainWindow):
             c += 1
 
         for i, attr in core_data.other_attr_dict.items():
-            #Label(master=self.ingredient_editor_headings, text=attr.name, width=5).grid(row=0, column=c+attr.pos)
             Label(master=self.ingredient_editor_headings, text=attr, width=5).grid(row=0, column=c+int(i))
-
-        # Create and display the rows:
-        self.line = {}
-        for i, index in enumerate(order["ingredients"]):
-            self.line[index] = DisplayIngredient(index, core_data, self.i_e_scrollframe.interior) #, lambda i : self.pre_delete_ingredient(i, recipe_dict))
-            self.line[index].display(i, core_data)
 
         # Create drag manager for ingredient rows:
         self.ing_dnd = DragManager(reorder_ingredients)
-
-        for i, index in enumerate(order["ingredients"]):        
-            self.ing_dnd.add_dragable(self.line[index].name_entry)    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
+        
+        # Create and display the rows:
+        self.display_ingredients = {}
+        for r, i in enumerate(order["ingredients"]):
+            self.display_ingredients[i] = DisplayIngredient(i, core_data, self.i_e_scrollframe.interior)
+            self.display_ingredients[i].display(r, core_data)    
+            self.ing_dnd.add_dragable(self.display_ingredients[i].name_entry)    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
                 
         # This label is hack to make sure that when a new ingredient is added, you don't have to scroll down to see it:
         Label(master=self.i_e_scrollframe.interior).grid(row=9000) 

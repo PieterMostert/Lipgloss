@@ -1,6 +1,6 @@
 \* Glaze recipe *\
 Maximize
-KNaO_UMF: - other_1
+Total_clay: - other_4
 Subject To
 Al2O3: 0.4021 ingredient_1 + 0.0602 ingredient_11 + 0.099 ingredient_12
  + 0.1198 ingredient_14 + 0.017 ingredient_18 + 0.1633 ingredient_19
@@ -14,7 +14,13 @@ Al2O3_wt_%_lower: mass_Al2O3 >= 0
 Al2O3_wt_%_upper: mass_Al2O3 - ox_mass_total <= 0
 B2O3: 0.0289 ingredient_11 + 0.1377 ingredient_12 + 0.2309 ingredient_13
  + 0.2262 ingredient_14 + 0.2449 ingredient_18 - mass_B2O3 = 0
-BaO: mass_BaO = 0
+BaO: 0.09 ingredient_20 - mass_BaO = 0
+BaO_mol_%_lower: mole_BaO >= 0
+BaO_mol_%_upper: mole_BaO - ox_mole_total <= 0
+BaO_umf_lower: mole_BaO >= 0
+BaO_umf_upper: - 100 fluxes_total + mole_BaO <= 0
+BaO_wt_%_lower: mass_BaO >= 0
+BaO_wt_%_upper: mass_BaO - ox_mass_total <= 0
 CaO: 0.0564 ingredient_11 + 0.1407 ingredient_12 + 0.2013 ingredient_13
  + 0.1136 ingredient_14 + 0.5422 ingredient_15 + 0.2299 ingredient_18
  + 0.0181 ingredient_19 + 0.003 ingredient_2 + 0.007 ingredient_5
@@ -86,8 +92,9 @@ _C9: - mass_Li2O + 29.881 mole_Li2O = 0
 ing_total: - ingredient_0 - ingredient_1 - ingredient_10 - ingredient_11
  - ingredient_12 - ingredient_13 - ingredient_14 - ingredient_15
  - ingredient_16 - ingredient_17 - ingredient_18 - ingredient_19
- - ingredient_2 - ingredient_3 - ingredient_4 - ingredient_5 - ingredient_6
- - ingredient_7 - ingredient_8 - ingredient_9 + ingredient_total = 0
+ - ingredient_2 - ingredient_20 - ingredient_21 - ingredient_3 - ingredient_4
+ - ingredient_5 - ingredient_6 - ingredient_7 - ingredient_8 - ingredient_9
+ + ingredient_total = 0
 ingredient_0_lower: ingredient_0 >= 0
 ingredient_0_upper: ingredient_0 - ingredient_total <= 0
 ingredient_10_lower: ingredient_10 >= 0
@@ -112,6 +119,10 @@ ingredient_19_lower: ingredient_19 >= 0
 ingredient_19_upper: ingredient_19 <= 0
 ingredient_1_lower: ingredient_1 >= 0
 ingredient_1_upper: ingredient_1 - ingredient_total <= 0
+ingredient_20_lower: ingredient_20 >= 0
+ingredient_20_upper: ingredient_20 - ingredient_total <= 0
+ingredient_21_lower: ingredient_21 >= 0
+ingredient_21_upper: ingredient_21 <= 0
 ingredient_2_lower: ingredient_2 >= 0
 ingredient_2_upper: ingredient_2 <= 0
 ingredient_3_lower: ingredient_3 >= 0
@@ -128,11 +139,9 @@ ingredient_8_lower: ingredient_8 >= 0
 ingredient_8_upper: ingredient_8 <= 0
 ingredient_9_lower: ingredient_9 >= 0
 ingredient_9_upper: ingredient_9 <= 0
-normalization: fluxes_total = 1
+normalization: 0.01 ingredient_total = 1
 other_0: - mole_SiO2 + other_0 = 0
 other_1: - mole_K2O - mole_Na2O + other_1 = 0
-other_1_lower: - 0.5 fluxes_total + other_1 >= 0
-other_1_upper: - fluxes_total + other_1 <= 0
 other_2: - mole_K2O - mole_Na2O + other_2 = 0
 other_3: - mole_BaO - mole_CaO - mole_MgO - mole_SrO + other_3 = 0
 other_4: - ingredient_1 - ingredient_2 + other_4 = 0

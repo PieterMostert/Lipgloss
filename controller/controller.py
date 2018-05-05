@@ -53,7 +53,6 @@ from numbers import Number
 class Controller:
     def __init__(self):
         #OxideData.set_default_oxides()   # Replace by function that sets data saved by user
-        #self.cd = CoreData()
         self.mod = Model()
         #self.cd = self.mod
         #self.mod.save_ingredient_dict(persistent_data_path+'\IngredientShelf')
@@ -221,9 +220,6 @@ class Controller:
         et = self.mod.current_recipe.entry_type
         self.mw.entry_type.set(et)
 
-##        for i, ox for ox in self.mod.current_recipe.oxides:
-##            self.display_restr_dict[et + ox].display(1 + self.mod.oxide_dict[ox].pos)
-
         oxide_order = self.mod.order["oxides"]
         for ox in oxide_order:
             if ox in self.mod.current_recipe.oxides:
@@ -244,13 +240,6 @@ class Controller:
                 self.display_restr_dict['other_'+ot].display(1001 + ingredient_order.index(i))
             else:
                 self.mw.other_select_button[ot].state(['!pressed'])
-
-##        for ot in self.mod.other_dict:
-##            if ot in self.mod.current_recipe.other:
-##                self.mw.other_select_button[ot].state(['pressed'])
-##                self.display_restr_dict['other_'+ot].display(1001 + self.mod.other_dict[ot].pos)
-##            else:
-##                self.mw.other_select_button[ot].state(['!pressed'])
         
         # Set the command for x and y variable selection boxes
         for key, restr in self.display_restr_dict.items():
@@ -295,17 +284,18 @@ class Controller:
             self.ing_editor.new_ingr_button.config(command=self.new_ingredient)
             self.ing_editor.update_button.config(command=self.update_ingredient_dict)
             for i in self.mod.order['ingredients']:
-                self.ing_editor.line[i].delete_button.config(command=partial(self.pre_delete_ingredient, i))
+                self.ing_editor.display_ingredients[i].delete_button.config(command=partial(self.pre_delete_ingredient, i))
 
     def reorder_ingredients(self, y0, yr):
-        # Run when reordering the ingredients using dragmanager.
+        """To be run when reordering the ingredients using dragmanager. This moves the ingredient in line y0
+           to line yr, and shifts the ingredients between by one line up or down, as needed"""
         temp_list = self.mod.order["ingredients"]
         temp_list.insert(yr, temp_list.pop(y0))
         self.mod.json_write_order()
 
         #Regrid ingredients in selection window and those that have been selected.
         for i, j in enumerate(temp_list):
-            self.ing_editor.line[j].display(i, self.mod)
+            self.ing_editor.display_ingredients[j].display(i, self.mod)
             self.mw.ingredient_select_button[j].grid(row=i)
             if j in self.mod.current_recipe.ingredients:
                 self.display_restr_dict['ingredient_'+j].display(101 + i)
@@ -316,11 +306,11 @@ class Controller:
         i, ing = self.mod.new_ingredient()    # i = index of new ingredient ing
 
         # Move next section to IngredientEditor
-        self.ing_editor.line[i] = DisplayIngredient(i, self.mod, self.ing_editor.i_e_scrollframe.interior) #,
+        self.ing_editor.display_ingredients[i] = DisplayIngredient(i, self.mod, self.ing_editor.i_e_scrollframe.interior) #,
                                                                #lambda j : self.ing_editor.pre_delete_ingredient(j, self.mod.recipe_dict))
-        self.ing_editor.line[i].display(int(i), self.mod)
-        self.ing_editor.ing_dnd.add_dragable(self.ing_editor.line[i].name_entry)    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
-        self.ing_editor.line[i].delete_button.config(command=partial(self.pre_delete_ingredient, i))
+        self.ing_editor.display_ingredients[i].display(int(i), self.mod)
+        self.ing_editor.ing_dnd.add_dragable(self.ing_editor.display_ingredients[i].name_entry)    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
+        self.ing_editor.display_ingredients[i].delete_button.config(command=partial(self.pre_delete_ingredient, i))
         
         self.restr_dict['ingredient_'+i] = Restriction('ingredient_'+i, ing.name, 'ingredient_'+i, "0.01*self.lp_var['ingredient_total']", 0, 100)
         self.display_restr_dict['ingredient_'+i] = DisplayRestriction(self.mw.restriction_sf.interior, self.mw.x_lab, self.mw.y_lab,
@@ -346,49 +336,43 @@ class Controller:
     def update_ingredient_dict(self):
         """"Run when updating ingredients (via ingredient editor)"""
 
-        for index, ing in self.mod.ingredient_dict.items():
+        for i, ing in self.mod.ingredient_dict.items():
             # Maybe the restriction class should have an update_data method
-            ing.name = self.ing_editor.line[index].name_entry.get()                 # update ingredient name
-            self.restr_dict['ingredient_'+index].name = ing.name
-            self.display_restr_dict['ingredient_'+index].set_name(ing.name)
-            self.mw.ingredient_select_button[index].config(text=ing.name)
+            ing.name = self.ing_editor.display_ingredients[i].name_entry.get()                 # update ingredient name
+            self.restr_dict['ingredient_'+i].name = ing.name
+            self.display_restr_dict['ingredient_'+i].set_name(ing.name)
+            self.mw.ingredient_select_button[i].config(text=ing.name)
             for ox in self.mod.order['oxides']:
                 try:
-                    val = eval(self.ing_editor.line[index].oxide_entry[ox].get()   )
+                    val = eval(self.ing_editor.display_ingredients[i].oxide_entry[ox].get()   )
                 except:
                     val = 0
                 if isinstance(val, Number) and val != 0:
                     ing.analysis[ox] = val
                 else:
-                    self.ing_editor.line[index].oxide_entry[ox].delete(0, tk.END)
+                    self.ing_editor.display_ingredients[i].oxide_entry[ox].delete(0, tk.END)
                     try:
                         del ing.analysis[ox]
                     except:
                         pass
 
-            for i, attr in self.mod.other_attr_dict.items():
+            for j, attr in self.mod.other_attr_dict.items():
                 try:
-                    val = eval(self.ing_editor.line[index].other_attr_entry[i].get())
+                    val = eval(self.ing_editor.display_ingredients[i].other_attr_entry[j].get())
                 except:
                     val = 0
                 if isinstance(val, Number) and val != 0:
-                    ing.other_attributes[i] = val
+                    ing.other_attributes[j] = val
                 else:
-                    self.ing_editor.line[index].other_attr_entry[i].delete(0, tk.END)
+                    self.ing_editor.display_ingredients[i].other_attr_entry[j].delete(0, tk.END)
                     try:
-                        del ing.other_attributes[i]
+                        del ing.other_attributes[j]
                     except:
                         pass
 
-            self.mod.ingredient_dict[index] = ing
-            self.mod.ingredient_analyses[index] = ing.analysis
-            self.mod.json_write_ingredients()
-
-##        with shelve.open(persistent_data_path+"/IngredientShelf") as ingredient_shelf:
-##            for index in ingredient_shelf:
-##                ingredient_shelf[index] = self.mod.ingredient_dict[index]
-####                    ingredient_shelf[index].analysis = self.mod.ingredient_dict[index].analysis
-####                    ingredient_shelf[index].other_attributes = self.mod.ingredient_dict[index].other_attributes
+            self.mod.ingredient_dict[i] = ing
+            self.mod.ingredient_analyses[i] = ing.analysis
+        self.mod.json_write_ingredients()
                 
         self.lprp.update_ingredient_analyses(self.mod) 
                 
@@ -457,9 +441,9 @@ class Controller:
 
         self.lprp.remove_ingredient(i, self.mod)
 
-        self.ing_editor.line[i].delete()
+        self.ing_editor.display_ingredients[i].delete()
         for k, j in enumerate(self.mod.order['ingredients']):
-            self.ing_editor.line[j].display(k, self.mod)    # We actually only need to do this for the rows that are below the one that was deleted
+            self.ing_editor.display_ingredients[j].display(k, self.mod)    # We actually only need to do this for the rows that are below the one that was deleted
 
         # Remove the deleted ingredient from the list of ingredients to select from:
         self.mw.ingredient_select_button[i].destroy()
