@@ -125,6 +125,12 @@ class IngredientEditor(MainWindow):
 
         self.i_e_scrollframe.interior.focus_force()
 
+    def new_ingredient(self, i, core_data, order):
+        self.display_ingredients[i] = DisplayIngredient(i, core_data, self.i_e_scrollframe.interior) 
+        self.display_ingredients[i].display(int(i), order)
+        self.ing_dnd.add_dragable(self.display_ingredients[i].name_entry)    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
+ 
+
 
 ##    def update_basic_constraints(self, ingredient_analyses, other_dict):
 ##        # We could remove the dependence on ingredient_analyses.
