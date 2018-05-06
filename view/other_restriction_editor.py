@@ -23,112 +23,91 @@ from .dragmanager import *
 from .main_window import MainWindow
 from .vert_scrolled_frame import VerticalScrolledFrame
 from .pretty_names import prettify
-##
-##from os.path import abspath, dirname
-##from inspect import getsourcefile
-##order_pathname = dirname(dirname(abspath(getsourcefile(lambda:0))))+'\model\persistent_data\OrderShelf'
-##raw_order_pathname = "%r"%order_pathname
 
-class DisplayIngredient:
-    """A class used to display the line corresponding to an ingredient in the ingredient editor"""
+class DisplayOtherRestriction:
+    """A class used to display the line corresponding to a restriction in the other restriction editor"""
     def __init__(self, index, core_data, frame):
-        ing = core_data.ingredient_dict[index]
-        self.delete_button =  ttk.Button(master=frame, text='X', width=2) #, command = partial(delete_ingredient_fn, index))
+        ot = core_data.other_dict[index]
+        self.delete_button =  ttk.Button(master=frame, text='X', width=2)
         self.name_entry = Entry(master=frame, width=20)
-        self.name_entry.insert(0, ing.name)
-        ox_comp = ing.analysis
-        self.oxide_entry = {}
-        
-        for ox in core_data.oxide_dict:
-            # Use this entry widget to input the percent weight of the oxide that the ingredient contains.
-            self.oxide_entry[ox] = Entry(master=frame,  width=5)  
-            self.oxide_entry[ox].delete(0, END)
-            if ox in ox_comp:
-                self.oxide_entry[ox].insert(0, ox_comp[ox])
-            else:
-                pass
-
-        self.other_attr_entry = {}
-        for i, other_attr in core_data.other_attr_dict.items(): 
-            self.other_attr_entry[i] = Entry(master=frame, width=5)
-        for i, value in ing.other_attributes.items():
-            self.other_attr_entry[i].insert(0, value)
+        self.numerator_coefs_entry = Entry(master=frame, width=30)
+        self.normalization_entry = Entry(master=frame, width=30)
+        self.def_low_entry = Entry(master=frame, width=12)
+        self.def_upp_entry = Entry(master=frame, width=12)
+        self.dec_pt_entry = Entry(master=frame, width=10)
+        self.name_entry.insert(0, ot.name)
+        self.numerator_coefs_entry.insert(0, ot.numerator_coefs)
+        self.normalization_entry.insert(0, ot.normalization)
+        self.def_low_entry.insert(0, ot.def_low)
+        self.def_upp_entry.insert(0, ot.def_upp)
+        self.dec_pt_entry.insert(0, ot.dec_pt)
 
     def display(self, pos, order):
         self.delete_button.grid(row=pos, column=0)
         self.name_entry.grid(row=pos, column=1, padx=3, pady=3)
-
-        c = 3
-        for i, ox in enumerate(order["oxides"]):
-            self.oxide_entry[ox].grid(row=pos, column=c+i, padx=3, pady=1)
-
-        c = 100
-        for i, other_attr in enumerate(order["other attributes"]): 
-            self.other_attr_entry[other_attr].grid(row=pos, column=c+i, padx=3, pady=3)
+        self.numerator_coefs_entry.grid(row=pos, column=2, padx=3, pady=3)
+        self.normalization_entry.grid(row=pos, column=3, padx=3, pady=3)
+        self.def_low_entry.grid(row=pos, column=4, padx=3, pady=3)
+        self.def_upp_entry.grid(row=pos, column=5, padx=3, pady=3)
+        self.dec_pt_entry.grid(row=pos, column=6, padx=3, pady=3)
 
     def delete(self):
-        for widget in [self.delete_button, self.name_entry] + list(self.oxide_entry.values()) + list(self.other_attr_entry.values()):
+        for widget in [self.delete_button, self.name_entry, self.numerator_coefs_entry, self.normalization_entry, \
+                       self.def_low_entry, self.def_upp_entry, self.dec_pt_entry]:
             widget.destroy()
 
-class IngredientEditor(MainWindow):
-    """Window that lets users enter / delete ingredients, edit oxide compositions and other attributes, and rearrange \\
-       the order in which ingredients are displayed"""
+class OtherRestrictionEditor(MainWindow):
+    """Window that lets users enter / delete other restrictions, and rearrange the order in which they are displayed"""
 
-    def __init__(self, core_data, order, reorder_ingredients):
+    def __init__(self, core_data, order, reorder_other_restrictions):
         self.toplevel = Toplevel()
-        self.toplevel.title("Ingredient Editor")
+        self.toplevel.title("Other Restriction Editor")
 
-        self.ingredient_editor_headings = Frame(self.toplevel)
-        self.ingredient_editor_headings.pack()
+        self.other_restriction_editor_headings = Frame(self.toplevel)
+        self.other_restriction_editor_headings.pack()
         self.i_e_scrollframe = VerticalScrolledFrame(self.toplevel)
-        self.i_e_scrollframe.frame_height = 500
+        self.i_e_scrollframe.frame_height = 200
         self.i_e_scrollframe.pack()
-        ingredient_editor_buttons = Frame(self.toplevel)
-        ingredient_editor_buttons.pack()
+        other_restriction_editor_buttons = Frame(self.toplevel)
+        other_restriction_editor_buttons.pack()
 
-        # Place the headings on the ingredient_editor. There is some not-entirely-successful fiddling involved to try
+        # Place the headings on the other_restriction_editor. There is some not-entirely-successful fiddling involved to try
         # to get the headings to match up with their respective columns:
-        Label(master=self.ingredient_editor_headings, text='', width=5).grid(row=0, column=0)  # Blank label above the delete buttons
-        Label(master=self.ingredient_editor_headings, text='', width=5).grid(row=0, column=1)  # Blank label above the delete buttons
-        Label(master=self.ingredient_editor_headings, text='    Ingredient', width=20).grid(row=0, column=2)
+        Label(master=self.other_restriction_editor_headings, text='', width=5).grid(row=0, column=0)  # Blank label above the delete buttons
+        Label(master=self.other_restriction_editor_headings, text='', width=5).grid(row=0, column=1)  # Blank label above the delete buttons
+        Label(master=self.other_restriction_editor_headings, text='    Restriction Name', width=20).grid(row=0, column=2)
+        Label(master=self.other_restriction_editor_headings, text='Numerator Coefficients', width=30).grid(row=0, column=3)
+        Label(master=self.other_restriction_editor_headings, text='Normalization', width=20).grid(row=0, column=4)
+        Label(master=self.other_restriction_editor_headings, text='Def lower bnd', width=12).grid(row=0, column=5)
+        Label(master=self.other_restriction_editor_headings, text='Def upper bnd', width=12).grid(row=0, column=6)
+        Label(master=self.other_restriction_editor_headings, text='Dec places', width=10).grid(row=0, column=7)
+        Label(master=self.other_restriction_editor_headings, text='', width=5).grid(row=0, column=8)  # Blank label above the scrollbar
+        Label(master=self.other_restriction_editor_headings, text='', width=5).grid(row=0, column=9)  # Blank label above the scrollbar
 
-        Label(master=self.ingredient_editor_headings, text='', width=5).grid(row=0, column=299)  # Blank label above the scrollbar
-        Label(master=self.ingredient_editor_headings, text='', width=5).grid(row=0, column=300)  # Blank label above the scrollbar
-
-        c = 3
-        for i, ox in enumerate(order["oxides"]):
-            Label(master=self.ingredient_editor_headings, text=prettify(ox), width=5).grid(row=0, column=c+i)
-
-        c = 100
-        for i, other_attr in enumerate(order["other attributes"]): 
-            Label(master=self.ingredient_editor_headings, text=core_data.other_attr_dict[other_attr], width=5).grid(row=0, column=c+i)
-
-        # Create drag manager for ingredient rows:
-        self.ing_dnd = DragManager(reorder_ingredients)
+        # Create drag manager for restriction rows:
+        self.ing_dnd = DragManager(reorder_other_restrictions)
         
         # Create and display the rows:
-        self.display_ingredients = {}
-        for r, i in enumerate(order["ingredients"]):
-            self.display_ingredients[i] = DisplayIngredient(i, core_data, self.i_e_scrollframe.interior)
-            self.display_ingredients[i].display(r, order)    
-            self.ing_dnd.add_dragable(self.display_ingredients[i].name_entry)    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
+        self.display_other_restrictions = {}
+        for r, i in enumerate(order["other"]):
+            self.display_other_restrictions[i] = DisplayOtherRestriction(i, core_data, self.i_e_scrollframe.interior)
+            self.display_other_restrictions[i].display(r, order)    
+            self.ing_dnd.add_dragable(self.display_other_restrictions[i].name_entry)    # This lets you drag the row corresponding to a restriction by right-clicking on its name   
                 
-        # This label is hack to make sure that when a new ingredient is added, you don't have to scroll down to see it:
+        # This label is hack to make sure that when a new other restriction is added, you don't have to scroll down to see it:
         Label(master=self.i_e_scrollframe.interior).grid(row=9000) 
 
-        self.new_ingr_button = ttk.Button(ingredient_editor_buttons, text='New ingredient', width=20)
-        self.new_ingr_button.pack(side='left')   
-        self.update_button = ttk.Button(ingredient_editor_buttons, text='Update', width=20)
+        self.new_other_restr_button = ttk.Button(other_restriction_editor_buttons, text='New restriction', width=20)
+        self.new_other_restr_button.pack(side='left')   
+        self.update_button = ttk.Button(other_restriction_editor_buttons, text='Update', width=20)
         self.update_button.pack(side='right')
 
         self.i_e_scrollframe.interior.focus_force()
 
-    def new_ingredient(self, i, core_data, order):
-        self.display_ingredients[i] = DisplayIngredient(i, core_data, self.i_e_scrollframe.interior) 
-        self.display_ingredients[i].display(int(i), order)
-        self.ing_dnd.add_dragable(self.display_ingredients[i].name_entry)    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
- 
-
+    def new_other_restriction(self, i, core_data, order):
+        self.display_other_restrictions[i] = DisplayOtherRestriction(i, core_data, self.i_e_scrollframe.interior) 
+        self.display_other_restrictions[i].display(int(i), order)
+        self.ing_dnd.add_dragable(self.display_other_restrictions[i].name_entry)
 
 ##    def update_basic_constraints(self, ingredient_analyses, other_dict):
 ##        # We could remove the dependence on ingredient_analyses.

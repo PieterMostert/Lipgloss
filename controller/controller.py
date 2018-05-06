@@ -38,6 +38,7 @@ from model.model import Model
 from view.main_window import MainWindow, RecipeMenu
 from view.display_restriction import DisplayRestriction
 from view.ingredient_editor import DisplayIngredient, IngredientEditor
+from view.other_restriction_editor import DisplayOtherRestriction, OtherRestrictionEditor
 from view.pretty_names import prettify, pretty_entry_type
 
 import pulp
@@ -68,7 +69,7 @@ class Controller:
 
         #self.mw.options_menu.add_command(label="Edit Oxides", command=None)
         self.mw.options_menu.add_command(label="Edit Ingredients", command=self.open_ingredient_editor)
-        #self.mw.options_menu.add_command(label="Edit Other Restrictions", command=self.open_ingredient_editor)
+        self.mw.options_menu.add_command(label="Edit Other Restrictions", command=self.open_other_restriction_editor)
         #self.mw.options_menu.add_command(label="Restriction Settings", command=self.open_ingredient_editor)
         
         self.mw.calc_button.config(command=self.calc_restr)
@@ -434,6 +435,134 @@ class Controller:
             et = self.mw.entry_type.get()
             for ox in recipe.oxides:
                 self.display_restr_dict[et+ox].display(1 + self.mod.order['oxides'].index(ox))
+
+    def open_other_restriction_editor(self):
+        """Opens a window that lets users edit other restrictions"""
+        try:
+            self.other_restr_editor.toplevel.lift() # lift the recipe selector, if it already exists
+        except:
+            self.other_restr_editor = OtherRestrictionEditor(self.mod, self.mod.order, self.reorder_other_restrictions)
+            self.other_restr_editor.new_other_restr_button.config(command=self.new_other_restriction)
+            self.other_restr_editor.update_button.config(command=self.update_other_restriction_dict)
+            for i in self.mod.order['other']:
+                self.other_restr_editor.display_other_restrictions[i].delete_button.config(command=partial(self.pre_delete_other_restriction, i))
+
+    def reorder_other_restrictions(self, y0, yr):
+        """To be run when reordering the ingredients using dragmanager. This moves the ingredient in line y0
+           to line yr, and shifts the ingredients between by one line up or down, as needed"""
+        temp_list = self.mod.order["other"]
+        temp_list.insert(yr, temp_list.pop(y0))
+        self.mod.json_write_order()
+
+        #Regrid restrictions in other restriction editor, selection window and those that have been selected.
+        for i, j in enumerate(temp_list):
+            self.other_restr_editor.display_other_restrictions[j].display(i, self.mod.order)
+            self.mw.other_select_button[j].grid(row=i)
+            if j in self.mod.current_recipe.other:
+                self.display_restr_dict['other_'+j].display(1001 + i)
+            else:
+                pass
+            
+    def new_other_restriction(self):
+        i, ot = self.mod.new_other_restriction()    # i = index of new restriction ot
+
+        self.other_restr_editor.new_other_restriction(i, self.mod, self.mod.order)
+        self.other_restr_editor.display_other_restriction[i].delete_button.config(command=partial(self.pre_delete_other_restriction, i))
+        
+        self.display_restr_dict['other_'+i] = DisplayRestriction(self.mw.restriction_sf.interior, self.mw.x_lab, self.mw.y_lab,
+                                                                          'other_'+i, ot.name, 0, 100)
+        # Set the command for x and y variable selection boxes
+        display_restr = self.display_restr_dict['other_'+i]
+        display_restr.left_label.bind("<Button-1>", partial(self.update_var, 'other_'+i, 'x'))
+        display_restr.right_label.bind("<Button-1>", partial(self.update_var, 'other_'+i, 'y'))
+
+        self.mw.iother_select_button[i] = ttk.Button(self.mw.vsf.interior, text=ot.name, width=20,
+                                                     command=partial(self.toggle_other, i))
+        self.mw.other_select_button[i].grid(row=int(i))
+
+    ##    i_e_scrollframe.vscrollbar.set(100,0)  # Doesn't do anything
+        self.other_restr_editor.i_e_scrollframe.canvas.yview_moveto(1)  # Supposed to move the scrollbar to the bottom, but misses the last row
+   
+        # TODO: Move next section to model
+        self.lprp.lp_var['other_'+i] = pulp.LpVariable('other_'+i, 0, None, pulp.LpContinuous)
+        # TODO relate the other variable to the standard variables
+     
+    def update_other_restriction_dict(self):
+        """"Run when updating ingredients (via ingredient editor)"""
+
+        for i, ot in self.mod.other_dict.items():
+            # Maybe the restriction class should have an update_data method
+            ot.name = self.other_restr_editor.display_other_restrictions[i].name_entry.get()                 # update restriction name
+            self.mw.other_select_button[i].config(text=ot.name)
+            self.display_restr_dict['other_'+i].set_name(ot.name)
+            self.mod.restr_dict['other_'+i].name = ot.name
+            self.mod.other_dict[i] = ot
+        self.mod.json_write_other()
+                
+        self.lprp.update_other_restrictions(self.mod)   # Yet to be defined
+                
+        old_oxides = copy.copy(self.mod.current_recipe.oxides)
+        old_variables = copy.copy(self.mod.current_recipe.variables)
+        # Reinsert stars next to other restrictions that are variables:
+        for t, res in old_variables.items():
+            if res[0:10] == 'ingredient':
+                self.display_restr_dict[res].select(t)
+
+    def pre_delete_other_restriction(self, i):
+        """Incomplete. Deletes ingredient if not in any recipes, otherwise opens dialogue window asking for confirmation."""
+        recipe_dict = self.mod.recipe_dict
+        other_dict = self.mod.other_dict
+        recipes_affected = [j for j in other_dict if i in recipe_dict[j].other]
+        n = len(recipes_affected)
+        if n > 0:
+            self.confirmation_window = tk.Toplevel()
+            question_frame = tk.Frame(self.confirmation_window)
+            question_frame.grid()
+            text1 = other_dict[i].name+' occurs in '+recipe_dict[recipes_affected[0]].name
+            text2 = 'Are you sure you want to delete '+other_dict[i].name+'?'
+            if n == 1:
+                tk.Label(master=question_frame, text=text1+'.').grid(row=0)
+                tk.Label(master=question_frame, text=text2).grid(row=1)
+            elif n == 2:
+                tk.Label(master=question_frame, text=text1+' and '+recipe_dict[recipes_affected[1]].name+'.').grid(row=0)
+                tk.Label(master=question_frame, text=text2).grid(row=1)
+            elif n == 3:
+                tk.Label(master=question_frame, text=text1+', '+recipe_dict[recipes_affected[1]].name).grid(row=0)
+                tk.Label(master=question_frame, text=' and 1 other recipe.').grid(row=1)
+                tk.Label(master=question_frame, text=text2).grid(row=2)
+            else:
+                tk.Label(master=question_frame, text=text1+', '+recipe_dict[recipes_affected[1]].name).grid(row=0)
+                tk.Label(master=question_frame, text=' and '+str(n-2)+' other recipes.').grid(row=1)
+                tk.Label(master=question_frame, text=text2).grid(row=2)  
+            answer_frame = tk.Frame(self.confirmation_window)
+            answer_frame.grid()
+            ttk.Button(answer_frame, text='Yes', width=10, command=partial(self.close_conf_window_and_delete_other_restr, i, recipes_affected)).grid(column=0, row=0)
+            ttk.Button(answer_frame, text='No', width=10, command=lambda : self.confirmation_window.destroy()).grid(column=1, row=0)
+        else:
+            self.delete_ingredient(i, [])
+
+    def close_conf_windowc_and_delete_other_restr(self, i, recipes_affected):
+        """Incomplete"""
+        self.delete_other_restriction(i, recipes_affected)
+        self.confirmation_window.destroy()
+
+    def delete_other_restriction(self, i, recipes_affected):
+        """Incomplete"""
+        if i in self.mod.current_recipe.other:
+            self.toggle_other(i)   # gets rid of stars, if the ingredient is a variable
+
+        self.mod.delete_other_restriction(i, recipes_affected)
+
+        self.lprp.remove_other_restriction(i, self.mod)
+
+        self.other_restr_editor.display_other_restrictions[i].delete()
+        for k, j in enumerate(self.mod.order['other']):
+            self.other_restr_editor.display_other_restrictions[j].display(k, self.mod.order)    # We actually only need to do this for the rows that are below the one that was deleted
+
+        # Remove the deleted ingredient from the list of ingredients to select from:
+        self.mw.other_select_button[i].destroy()
+        del self.display_restr_dict['other_'+i]
+
 
     def toggle_other(self, i):
         """Adds/removes other_dict[index] to/from the current recipe, depending on whether it isn't/is an other restriction already."""
