@@ -21,7 +21,6 @@ from os.path import abspath, dirname
 from os import path
 from inspect import getsourcefile
 model_path = path.join(dirname(dirname(abspath(getsourcefile(lambda:0)))), 'model')
-persistent_data_path = path.join(model_path, 'persistent_data')
 #print('model_path = ' + model_path)
 sys.path.append(model_path) # Allows us to import lipgloss like a built-in package.
 
@@ -29,12 +28,10 @@ try:    # This should work if lipgloss can be imported like a built-in package
     from lipgloss.core_data import OxideData, CoreData, Oxide, Ingredient
     from lipgloss.lp_recipe_problem import LpRecipeProblem
     from lipgloss.recipes import Recipe, restr_keys
-    from lipgloss.restrictions import Restriction
 except:
     from model.lipgloss.core_data import OxideData, CoreData, Oxide, Ingredient
     from model.lipgloss.lp_recipe_problem import LpRecipeProblem
     from model.lipgloss.recipes import Recipe, restr_keys
-    from model.lipgloss.restrictions import Restriction
 
 from model.model import Model
 
@@ -55,11 +52,6 @@ class Controller:
         #OxideData.set_default_oxides()   # Replace by function that sets data saved by user
         self.mod = Model()
         #self.cd = self.mod
-        #self.mod.save_ingredient_dict(persistent_data_path+'\IngredientShelf')
-        #self.mod.set_ingredient_dict(persistent_data_path+'\IngredientShelf')
-        
-        #self.mod.save_other_dict(persistent_data_path+'\OtherShelf')
-        #self.mod.set_other_dict(persistent_data_path+'\OtherShelf')
 
         self.lprp = LpRecipeProblem("Glaze recipe", pulp.LpMaximize, self.mod)
         
@@ -225,7 +217,7 @@ class Controller:
             pass  
 
     def save_recipe(self):
-        """Save a recipe to the global recipe_dict, then update the JSON data file"""
+        """Save a recipe to the Model's recipe_dict, then update the JSON data file"""
         self.mod.current_recipe.name = self.mw.recipe_name.get()
         self.mod.current_recipe.entry_type = self.mw.entry_type.get()
         self.get_bounds()
@@ -238,7 +230,7 @@ class Controller:
         self.mod.current_recipe.update_bounds(self.mod.restr_dict)   # Do we need this?
         self.mod.current_recipe.entry_type = self.mw.entry_type.get()
         self.mod.save_new_recipe()
-        self.mw.recipe_name.set(self.mod.current_recipe.name)  
+        self.mw.recipe_name.set(self.mod.current_recipe.name)  # Sets the name to Recipe Bounds n, for a natural number n
 
     def delete_recipe(self, i):
         """Delete the recipe from the recipe_dict, then write out the updated recipe_dict to JSON file."""
@@ -266,9 +258,9 @@ class Controller:
         temp_list.insert(yr, temp_list.pop(y0))
         self.mod.json_write_order()
 
-        #Regrid ingredients in selection window and those that have been selected.
+        #Regrid ingredients in ingredient editor, selection window and those that have been selected.
         for i, j in enumerate(temp_list):
-            self.ing_editor.display_ingredients[j].display(i, self.mod)
+            self.ing_editor.display_ingredients[j].display(i, self.mod.order)
             self.mw.ingredient_select_button[j].grid(row=i)
             if j in self.mod.current_recipe.ingredients:
                 self.display_restr_dict['ingredient_'+j].display(101 + i)
@@ -279,8 +271,7 @@ class Controller:
         i, ing = self.mod.new_ingredient()    # i = index of new ingredient ing
 
         # Move next section to IngredientEditor
-        self.ing_editor.display_ingredients[i] = DisplayIngredient(i, self.mod, self.ing_editor.i_e_scrollframe.interior) #,
-                                                               #lambda j : self.ing_editor.pre_delete_ingredient(j, self.mod.recipe_dict))
+        self.ing_editor.display_ingredients[i] = DisplayIngredient(i, self.mod, self.ing_editor.i_e_scrollframe.interior) 
         self.ing_editor.display_ingredients[i].display(int(i), self.mod, self.mod.order)
         self.ing_editor.ing_dnd.add_dragable(self.ing_editor.display_ingredients[i].name_entry)    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
         self.ing_editor.display_ingredients[i].delete_button.config(command=partial(self.pre_delete_ingredient, i))
@@ -415,7 +406,7 @@ class Controller:
 
         self.ing_editor.display_ingredients[i].delete()
         for k, j in enumerate(self.mod.order['ingredients']):
-            self.ing_editor.display_ingredients[j].display(k, self.mod, self.mod.order)    # We actually only need to do this for the rows that are below the one that was deleted
+            self.ing_editor.display_ingredients[j].display(k, self.mod.order)    # We actually only need to do this for the rows that are below the one that was deleted
 
         # Remove the deleted ingredient from the list of ingredients to select from:
         self.mw.ingredient_select_button[i].destroy()

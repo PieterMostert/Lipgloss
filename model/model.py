@@ -72,17 +72,15 @@ class Model(CoreData):
         for i, ing in self.ingredient_dict.items():
             self.ingredient_analyses[i] = ing.analysis
 
+        # The data contained in JSONOther can be obtained from JSONRestriction, so we don't really need this.
         with open(path.join(persistent_data_path, "JSONOther.json"), 'r') as f:
             self.other_dict = OtherSerializer.deserialize_dict(json.load(f))
 
         self.other_attr_dict = {'0': 'LOI', '2': 'Clay', '1': 'Cost'}  # Replace by functions that sets data saved by user 
-        #self.set_default_default_bounds() # Replace by function that sets data saved by user
+        #self.set_default_default_bounds()
 
         with open(path.join(persistent_data_path, "JSONRecipes.json"), 'r') as f:
             self.recipe_dict = RecipeSerializer.deserialize_dict(json.load(f))
-    ##    with open(persistent_data_path+"/JSONRecipeShelf.json", 'r') as json_str:
-    ##        print(json_str)
-    ##        self.recipe_dict = RecipeSerializer.deserialize_dict(json_str)
 
         self.current_recipe = None
         self.recipe_index = None

@@ -19,16 +19,15 @@
 import tkinter.messagebox
 from numbers import Number
 
-#from recipes import *
 from .dragmanager import *
 from .main_window import MainWindow
 from .vert_scrolled_frame import VerticalScrolledFrame
 from .pretty_names import prettify
-
-from os.path import abspath, dirname
-from inspect import getsourcefile
-order_pathname = dirname(dirname(abspath(getsourcefile(lambda:0))))+'\model\persistent_data\OrderShelf'
-raw_order_pathname = "%r"%order_pathname
+##
+##from os.path import abspath, dirname
+##from inspect import getsourcefile
+##order_pathname = dirname(dirname(abspath(getsourcefile(lambda:0))))+'\model\persistent_data\OrderShelf'
+##raw_order_pathname = "%r"%order_pathname
 
 class DisplayIngredient:
     """A class used to display the line corresponding to an ingredient in the ingredient editor"""
@@ -57,7 +56,7 @@ class DisplayIngredient:
         for i, value in ing.other_attributes.items():
             self.other_attr_entry[i].insert(0, value)
 
-    def display(self, pos, core_data, order):
+    def display(self, pos, order):
         self.delete_button.grid(row=pos, column=0)
         self.name_entry.grid(row=pos, column=1, padx=3, pady=3)
 
@@ -113,7 +112,7 @@ class IngredientEditor(MainWindow):
         self.display_ingredients = {}
         for r, i in enumerate(order["ingredients"]):
             self.display_ingredients[i] = DisplayIngredient(i, core_data, self.i_e_scrollframe.interior)
-            self.display_ingredients[i].display(r, core_data, order)    
+            self.display_ingredients[i].display(r, order)    
             self.ing_dnd.add_dragable(self.display_ingredients[i].name_entry)    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
                 
         # This label is hack to make sure that when a new ingredient is added, you don't have to scroll down to see it:
