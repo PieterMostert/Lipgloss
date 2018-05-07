@@ -132,10 +132,10 @@ class Recipe(Observable):
             self.lower_bounds[ot] = core_data.default_lower_bounds[ot]
             self.upper_bounds[ot] = core_data.default_upper_bounds[ot] 
 
-    def remove_other(self, core_data, index):
-        if index in self.other:
-            self.other.remove(index)
-            ot = 'other_'+index
+    def remove_other(self, core_data, i):
+        if i in self.other:
+            self.other.remove(i)
+            ot = 'other_'+i
             self.restriction_keys.remove(ot)
             del self.lower_bounds[ot]
             del self.upper_bounds[ot]
@@ -144,7 +144,7 @@ class Recipe(Observable):
                 if var[t] == ot:
                     del self.variables[t]
         else:
-            print(core_data.other_dict[index].name + ' not in recipe')
+            print(core_data.other_dict[i].name + ' not in recipe')
 
     def update_bounds(self, core_data):      # To be used when ingredient compositions have changed. Could also be used in add_ingredient and remove_ingredient above
         for key in self.restriction_keys:

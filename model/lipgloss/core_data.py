@@ -19,20 +19,10 @@
 # We define the Restriction, Oxide, Ingredient,and Other classes.
 
 from functools import partial
-#import shelve
-#from .serializers.recipeserializer import RecipeSerializer
-from inspect import getsourcefile
-import os
-from os.path import abspath, dirname
-import sys
-
 
 reset_oxides = 0
 reset_ingredients = 0
 reset_other = 0
-
-##persistent_data_path = dirname(abspath(getsourcefile(lambda:0)))+'/persistent_data'  # please tell me there's an easier way to import stuff in Python
-##sys.path.append(persistent_data_path)
 
 class Observable:
     def __init__(self, initialValue=None):
@@ -77,7 +67,6 @@ def oxide_reset():
     with shelve.open(persistent_data_path+"/OxideShelf") as oxide_shelf:
         for ox in oxide_shelf:
              del oxide_shelf[ox]
-        #Oxide.order = []
         for (pos, ox) in enumerate(oxidefile.oxides):
              Oxide.order.append(ox)
              if ox in oxidefile.fluxes:
@@ -318,6 +307,20 @@ class CoreData(OxideData):
         del self.ingredient_analyses[i]
         del self.default_lower_bounds['ingredient_'+i]
         del self.default_upper_bounds['ingredient_'+i]
+
+    def add_other_restriction(self, ot):
+        """Adds other restriction ot to the other restriction dictionary.
+           The index is determined automatically"""
+        m = max([int(j) for j in self.other_dict]) + 1
+        i = str(m)
+        self.other_dict[i] = ot
+        self.default_lower_bounds['other_'+i] = ot.def_low
+        self.default_upper_bounds['other_'+i] = ot.def_upp
+
+    def remove_other_restriction(self, i):
+        del self.other_dict[i]
+        del self.default_lower_bounds['other_'+i]
+        del self.default_upper_bounds['other_'+i]
             
 ##        self.set_current_recipe('0')
 ##

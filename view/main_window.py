@@ -89,8 +89,11 @@ class MainWindow:
 
         self.options_menu = Menu(self.menubar, tearoff=0)
 
-        self.vsf = VerticalScrolledFrame(self.ingredient_selection_window)
-        self.vsf.frame_height = 400
+        self.ingredient_vsf = VerticalScrolledFrame(self.ingredient_selection_window)
+        self.ingredient_vsf.frame_height = 350
+
+        self.other_vsf = VerticalScrolledFrame(self.other_selection_window)
+        self.other_vsf.frame_height = 200
 
         # GRID REMAINING WIDGETS
 
@@ -103,8 +106,9 @@ class MainWindow:
         for label in [select_ing_label, select_other_label]:
             label.grid(column=0, row=0, columnspan=2)
 
-        # grid the vertical scrolled frame containing the ingredients
-        self.vsf.grid()
+        # grid the vertical scrolled frames containing the ingredients and other restrictions
+        self.ingredient_vsf.grid()
+        self.other_vsf.grid()
 
         # grid main frame
         main_frame.pack(side='left', fill='y')

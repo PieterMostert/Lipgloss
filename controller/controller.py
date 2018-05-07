@@ -76,14 +76,14 @@ class Controller:
         
         # Create and grid ingredient selection buttons:
         for r, i in enumerate(self.mod.order["ingredients"]):
-            self.mw.ingredient_select_button[i] = ttk.Button(self.mw.vsf.interior, text=self.mod.ingredient_dict[i].name, \
+            self.mw.ingredient_select_button[i] = ttk.Button(self.mw.ingredient_vsf.interior, text=self.mod.ingredient_dict[i].name, \
                                                              width=20, command=partial(self.toggle_ingredient, i))
             self.mw.ingredient_select_button[i].grid(row=r)
 
         # Create and grid other selection buttons:
         for r, j in enumerate(self.mod.order["other"]):
-            self.mw.other_select_button[j] = ttk.Button(self.mw.other_selection_window, text=prettify(self.mod.other_dict[j].name), \
-                                                        width=18, command=partial(self.toggle_other, j))
+            self.mw.other_select_button[j] = ttk.Button(self.mw.other_vsf.interior, text=prettify(self.mod.other_dict[j].name), \
+                                                        width=20, command=partial(self.toggle_other, j))
             self.mw.other_select_button[j].grid(row=r+1)
 
         # Create DisplayRestriction dictionary
@@ -203,7 +203,7 @@ class Controller:
         for ot in other_order:
             if ot in self.mod.current_recipe.other:
                 self.mw.other_select_button[ot].state(['pressed'])
-                self.display_restr_dict['other_'+ot].display(1001 + ingredient_order.index(i))
+                self.display_restr_dict['other_'+ot].display(1001 + other_order.index(ot))
             else:
                 self.mw.other_select_button[ot].state(['!pressed'])
         
@@ -285,7 +285,7 @@ class Controller:
         display_restr.left_label.bind("<Button-1>", partial(self.update_var, 'ingredient_'+i, 'x'))
         display_restr.right_label.bind("<Button-1>", partial(self.update_var, 'ingredient_'+i, 'y'))
 
-        self.mw.ingredient_select_button[i] = ttk.Button(self.mw.vsf.interior, text=ing.name, width=20,
+        self.mw.ingredient_select_button[i] = ttk.Button(self.mw.ingredient_vsf.interior, text=ing.name, width=20,
                                                      command=partial(self.toggle_ingredient, i))
         self.mw.ingredient_select_button[i].grid(row=int(i))
 
@@ -467,7 +467,7 @@ class Controller:
         i, ot = self.mod.new_other_restriction()    # i = index of new restriction ot
 
         self.other_restr_editor.new_other_restriction(i, self.mod, self.mod.order)
-        self.other_restr_editor.display_other_restriction[i].delete_button.config(command=partial(self.pre_delete_other_restriction, i))
+        self.other_restr_editor.display_other_restrictions[i].delete_button.config(command=partial(self.pre_delete_other_restriction, i))
         
         self.display_restr_dict['other_'+i] = DisplayRestriction(self.mw.restriction_sf.interior, self.mw.x_lab, self.mw.y_lab,
                                                                           'other_'+i, ot.name, 0, 100)
@@ -476,9 +476,9 @@ class Controller:
         display_restr.left_label.bind("<Button-1>", partial(self.update_var, 'other_'+i, 'x'))
         display_restr.right_label.bind("<Button-1>", partial(self.update_var, 'other_'+i, 'y'))
 
-        self.mw.iother_select_button[i] = ttk.Button(self.mw.vsf.interior, text=ot.name, width=20,
+        self.mw.other_select_button[i] = ttk.Button(self.mw.other_vsf.interior, text=ot.name, width=20,
                                                      command=partial(self.toggle_other, i))
-        self.mw.other_select_button[i].grid(row=int(i))
+        self.mw.other_select_button[i].grid(row=int(i)+1)
 
     ##    i_e_scrollframe.vscrollbar.set(100,0)  # Doesn't do anything
         self.other_restr_editor.i_e_scrollframe.canvas.yview_moveto(1)  # Supposed to move the scrollbar to the bottom, but misses the last row
@@ -505,14 +505,14 @@ class Controller:
         old_variables = copy.copy(self.mod.current_recipe.variables)
         # Reinsert stars next to other restrictions that are variables:
         for t, res in old_variables.items():
-            if res[0:10] == 'ingredient':
+            if res[0:5] == 'other':
                 self.display_restr_dict[res].select(t)
 
     def pre_delete_other_restriction(self, i):
-        """Incomplete. Deletes ingredient if not in any recipes, otherwise opens dialogue window asking for confirmation."""
+        """Incomplete. Deletes restriction if not in any recipes, otherwise opens dialogue window asking for confirmation."""
         recipe_dict = self.mod.recipe_dict
         other_dict = self.mod.other_dict
-        recipes_affected = [j for j in other_dict if i in recipe_dict[j].other]
+        recipes_affected = [j for j in recipe_dict if i in recipe_dict[j].other]
         n = len(recipes_affected)
         if n > 0:
             self.confirmation_window = tk.Toplevel()
@@ -539,7 +539,7 @@ class Controller:
             ttk.Button(answer_frame, text='Yes', width=10, command=partial(self.close_conf_window_and_delete_other_restr, i, recipes_affected)).grid(column=0, row=0)
             ttk.Button(answer_frame, text='No', width=10, command=lambda : self.confirmation_window.destroy()).grid(column=1, row=0)
         else:
-            self.delete_ingredient(i, [])
+            self.delete_other_restriction(i, [])
 
     def close_conf_windowc_and_delete_other_restr(self, i, recipes_affected):
         """Incomplete"""

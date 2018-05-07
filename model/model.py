@@ -17,10 +17,10 @@
 # Contact: pi.mostert@gmail.com
 
 try:
-    from lipgloss.core_data import OxideData, CoreData, Ingredient
+    from lipgloss.core_data import OxideData, CoreData, Ingredient, Other
     from lipgloss.restrictions import Restriction
 except:
-    from .lipgloss.core_data import OxideData, CoreData, Ingredient
+    from .lipgloss.core_data import OxideData, CoreData, Ingredient, Other
     from .lipgloss.restrictions import Restriction
     
 try:
@@ -49,12 +49,6 @@ sys.path.append(persistent_data_path)
 import pulp
 import copy
 
-# initialize oxides, ingredients, recipe_dict, etc.
-##lg.core_data.OxideData.set_default_oxides()
-##cd = lg.core_data.CoreData()
-##cd.set_default_data()
-#CoreData.load_ingredients(path)
-
 class Model(CoreData):
     "A partial model for the GUI. The full model consists of this together with the LpRecipeProblem class."
 
@@ -64,27 +58,19 @@ class Model(CoreData):
         with open(path.join(persistent_data_path, "JSONOxides.json"), 'r') as f:
             OxideData.oxide_dict = OxideSerializer.deserialize_dict(json.load(f))
 
-        #self.set_default_data()
-        
         with open(path.join(persistent_data_path, "JSONIngredients.json"), 'r') as f:
             self.ingredient_dict = IngredientSerializer.deserialize_dict(json.load(f))
             
         for i, ing in self.ingredient_dict.items():
             self.ingredient_analyses[i] = ing.analysis
 
-        # The data contained in JSONOther can be obtained from JSONRestriction, so we don't really need this.
+        # All of the data contained in JSONOther, except numerator_coefs, can be obtained from JSONRestriction.
+        # Need to rethink to data is packaged.
         with open(path.join(persistent_data_path, "JSONOther.json"), 'r') as f:
             self.other_dict = OtherSerializer.deserialize_dict(json.load(f))
 
-        self.other_attr_dict = {'0': 'LOI', '2': 'Clay', '1': 'Cost'}  # Replace by functions that sets data saved by user 
-        #self.set_default_default_bounds()
-
         with open(path.join(persistent_data_path, "JSONRecipes.json"), 'r') as f:
             self.recipe_dict = RecipeSerializer.deserialize_dict(json.load(f))
-
-        self.current_recipe = None
-        self.recipe_index = None
-        self.set_current_recipe('0')
 
         with open(path.join(persistent_data_path, "JSONOrder.json"), 'r') as f:
             self.order = json.load(f)
@@ -98,6 +84,17 @@ class Model(CoreData):
         for key in self.restr_keys():
             self.default_lower_bounds[key] = self.restr_dict[key].default_low
             self.default_upper_bounds[key] = self.restr_dict[key].default_upp
+                  
+##        self.set_default_data()
+##        self.other_attr_dict = {'0': 'LOI', '2': 'Clay', '1': 'Cost'}  # Replace by functions that sets data saved by user 
+##        self.set_default_default_bounds()
+##        with open(path.join(persistent_data_path, "JSONRecipes.json"), 'r') as f:
+##            self.recipe_dict = RecipeSerializer.deserialize_dict(json.load(f))
+##        self.order = {"ingredients": ["0", "1","2","3","4","5","6","8","9","10","11","12","13","14","15","16","17","18","19"],
+##                      "oxides":["SiO2","Al2O3","B2O3","MgO","CaO","SrO","BaO","ZnO","Li2O","Na2O","K2O","P2O5","Fe2O3","TiO2","MnO2"],
+##                      "other": ["0","1","2","3","4","5","6"],
+##                      "other attributes": ["0", "1", "2"] }
+##            
 ##        self.restr_dict = {}
 ##
 ##        # Create oxide restrictions:
@@ -124,6 +121,13 @@ class Model(CoreData):
 ##            self.restr_dict[key] = Restriction(key, ot.name, key, ot.normalization, ot.def_low, ot.def_upp, dec_pt=ot.dec_pt)
 ##
 ##        self.json_write_restrictions()
+##        self.json_write_ingredients()
+##        self.json_write_other()
+##        self.json_write_order()
+
+        self.current_recipe = None
+        self.recipe_index = None
+        self.set_current_recipe('0')
         
     def set_current_recipe(self, index):
         self.current_recipe = copy.deepcopy(self.recipe_dict[index])
@@ -186,19 +190,10 @@ class Model(CoreData):
         self.order['ingredients'].append(i)
         self.restr_dict['ingredient_'+i] = Restriction('ingredient_'+i, ing.name, 'ingredient_'+i, "0.01*self.lp_var['ingredient_total']", 0, 100)
 
-        self.json_write_ingredients()  # replace by function that just updates a single ingredient
+        self.json_write_ingredients()  # Can we replace this by function that just updates a single ingredient?
         self.json_write_order()
         self.json_write_restrictions()
-##        with shelve.open(persistent_data_path+"/IngredientShelf") as ingredient_shelf:
-##            ingredient_shelf[i] = self.ingredient_dict[i]
-
-##        with shelve.open(path.join(persistent_data_path, "OrderShelf")) as order_shelf:
-##            temp_list = order_shelf['ingredients']
-##            temp_list.append(i)
-##            order_shelf['ingredients'] = temp_list
-##        self.order['ingredients'] = temp_list
-        
-        
+    
         return i, ing
 
     def delete_ingredient(self, i, recipes_affected):
@@ -216,6 +211,33 @@ class Model(CoreData):
         # Remove the ingredient from all recipes that contain it.
         for j in recipes_affected:
             self.recipe_dict[j].remove_ingredient(self, i)
+        self.json_write_recipes()
+
+    def new_other_restriction(self):
+        ot = Other('',{}, "self.lp_var['fluxes_total']", 0, 100, 1)
+        self.add_other_restriction(ot)
+        i = list(self.other_dict.keys())[-1]     # index of new restriction
+        ot.name = 'Restriction #'+i
+        self.order['other'].append(i)
+        self.restr_dict['other_'+i] = Restriction('other_'+i, ot.name, 'other_'+i, ot.normalization, 0, 100)
+
+        self.json_write_other()  # Can we replace this by function that just updates a single ingredient?
+        self.json_write_order()
+        self.json_write_restrictions()
+    
+        return i, ot
+
+    def delete_other_restriction(self, i, recipes_affected):
+        """Uses remove_ingredient() method of CoreData"""
+        self.remove_other_restriction(i)
+        self.json_write_other()
+        self.order['other'].remove(i)
+        self.json_write_order()
+        del self.restr_dict['other_'+i]
+        self.json_write_restrictions()
+        # Remove the restriction from all recipes that contain it.
+        for j in recipes_affected:
+            self.recipe_dict[j].remove_other_restriction(self, i)
         self.json_write_recipes()
             
     def json_write_ingredients(self):
