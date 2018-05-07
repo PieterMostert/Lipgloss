@@ -25,11 +25,11 @@ model_path = path.join(dirname(dirname(abspath(getsourcefile(lambda:0)))), 'mode
 sys.path.append(model_path) # Allows us to import lipgloss like a built-in package.
 
 try:    # This should work if lipgloss can be imported like a built-in package
-    from lipgloss.core_data import OxideData, CoreData, Oxide, Ingredient
+    from lipgloss.core_data import OxideData, CoreData, Oxide, Ingredient, Other
     from lipgloss.lp_recipe_problem import LpRecipeProblem
     from lipgloss.recipes import Recipe, restr_keys
 except:
-    from model.lipgloss.core_data import OxideData, CoreData, Oxide, Ingredient
+    from model.lipgloss.core_data import OxideData, CoreData, Oxide, Ingredient, Other
     from model.lipgloss.lp_recipe_problem import LpRecipeProblem
     from model.lipgloss.recipes import Recipe, restr_keys
 
@@ -47,13 +47,13 @@ from tkinter import ttk
 from functools import partial
 import copy
 from numbers import Number
+import ast
 
 class Controller:
     def __init__(self):
         #OxideData.set_default_oxides()   # Replace by function that sets data saved by user
         self.mod = Model()
         #self.cd = self.mod
-
         self.lprp = LpRecipeProblem("Glaze recipe", pulp.LpMaximize, self.mod)
         
         self.mw = MainWindow()
@@ -271,8 +271,8 @@ class Controller:
     def new_ingredient(self):
         i, ing = self.mod.new_ingredient()    # i = index of new ingredient ing
 
-        # Move next section to IngredientEditor
         self.ing_editor.new_ingredient(i, self.mod, self.mod.order)
+        # Moved next section to IngredientEditor
 ##        self.ing_editor.display_ingredients[i] = DisplayIngredient(i, self.mod, self.ing_editor.i_e_scrollframe.interior) 
 ##        self.ing_editor.display_ingredients[i].display(int(i), self.mod, self.mod.order)
 ##        self.ing_editor.ing_dnd.add_dragable(self.ing_editor.display_ingredients[i].name_entry)    # This lets you drag the row corresponding to an ingredient by right-clicking on its name   
@@ -338,8 +338,9 @@ class Controller:
             self.mod.ingredient_dict[i] = ing
             self.mod.ingredient_analyses[i] = ing.analysis
         self.mod.json_write_ingredients()
+        self.mod.json_write_restrictions()
                 
-        self.lprp.update_ingredient_analyses(self.mod) 
+        self.lprp.update_ingredient_analyses() 
                 
         old_oxides = copy.copy(self.mod.current_recipe.oxides)
         old_variables = copy.copy(self.mod.current_recipe.variables)
@@ -488,25 +489,36 @@ class Controller:
         # TODO relate the other variable to the standard variables
      
     def update_other_restriction_dict(self):
-        """"Run when updating ingredients (via ingredient editor)"""
-
-        for i, ot in self.mod.other_dict.items():
-            # Maybe the restriction class should have an update_data method
-            ot.name = self.other_restr_editor.display_other_restrictions[i].name_entry.get()                 # update restriction name
+        """"Run when updating other restrictions (via other restriction editor)"""
+        for i in self.mod.other_dict:
+            disp_other = self.other_restr_editor.display_other_restrictions[i]
+            ot = Other(disp_other.name_entry.get(),
+                       ast.literal_eval(disp_other.numerator_coefs_entry.get()),  # Converts the string into a dictionary
+                       disp_other.normalization_entry.get(),
+                       disp_other.def_low_entry.get(),
+                       disp_other.def_upp_entry.get(),
+                       disp_other.dec_pt_entry.get())
+            self.mod.other_dict[i] = ot
+            self.mod.restr_dict['other_'+i].name = ot.name
+            self.mod.restr_dict['other_'+i].normalization = ot.normalization
+            self.mod.restr_dict['other_'+i].default_low = ot.def_low
+            self.mod.restr_dict['other_'+i].default_upp = ot.def_upp
+            self.mod.restr_dict['other_'+i].dec_pt = ot.dec_pt
+            
             self.mw.other_select_button[i].config(text=ot.name)
             self.display_restr_dict['other_'+i].set_name(ot.name)
-            self.mod.restr_dict['other_'+i].name = ot.name
-            self.mod.other_dict[i] = ot
+            
         self.mod.json_write_other()
+        self.mod.json_write_restrictions()
                 
-        self.lprp.update_other_restrictions(self.mod)   # Yet to be defined
+        self.lprp.update_other_restrictions()
                 
-        old_oxides = copy.copy(self.mod.current_recipe.oxides)
-        old_variables = copy.copy(self.mod.current_recipe.variables)
-        # Reinsert stars next to other restrictions that are variables:
-        for t, res in old_variables.items():
-            if res[0:5] == 'other':
-                self.display_restr_dict[res].select(t)
+##        old_oxides = copy.copy(self.mod.current_recipe.oxides)
+##        old_variables = copy.copy(self.mod.current_recipe.variables)
+##        # Reinsert stars next to other restrictions that are variables:
+##        for t, res in old_variables.items():
+##            if res[0:5] == 'other':
+##                self.display_restr_dict[res].select(t)
 
     def pre_delete_other_restriction(self, i):
         """Incomplete. Deletes restriction if not in any recipes, otherwise opens dialogue window asking for confirmation."""
@@ -558,8 +570,8 @@ class Controller:
         self.other_restr_editor.display_other_restrictions[i].delete()
         for k, j in enumerate(self.mod.order['other']):
             self.other_restr_editor.display_other_restrictions[j].display(k, self.mod.order)    # We actually only need to do this for the rows that are below the one that was deleted
-
-        # Remove the deleted ingredient from the list of ingredients to select from:
+            
+        # Remove the deleted restriction from the list of other restrictions to select from:
         self.mw.other_select_button[i].destroy()
         del self.display_restr_dict['other_'+i]
 

@@ -26,10 +26,6 @@ import copy
 
 from pulp import *
 
-initialize_oxides = 0       # Run script with initialize_oxides = 1 whenever the Oxide class is changed.
-initialize_ingredients = 0  # Run script with initialize_ingredients = 1 whenever the Ingredient class is changed.
-initialize_other = 0        # Run script with initialize_other = 1 whenever the Other class is changed.
-
 # SECTION 1
 # Define Restriction class
 

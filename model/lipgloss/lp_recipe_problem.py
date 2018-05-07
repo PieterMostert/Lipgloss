@@ -62,7 +62,7 @@ class LpRecipeProblem(LpProblem):
             # Relate mole percent and unity:
             self += self.lp_var['mole_'+ox] * self.oxide_dict[ox].molar_mass == self.lp_var['mass_'+ox]   
         # Relate ingredients and oxides:
-        self.update_ingredient_analyses(core_data)
+        self.update_ingredient_analyses()
 
         for index in self.other_dict:
             ot = 'other_'+index
@@ -77,7 +77,7 @@ class LpRecipeProblem(LpProblem):
         self += self.lp_var['ox_mass_total'] == sum(self.lp_var['mass_'+ox] for ox in self.oxide_dict)
         self += self.lp_var['ox_mole_total'] == sum(self.lp_var['mole_'+ox] for ox in self.oxide_dict)
 
-    def update_ingredient_analyses(self, core_data):
+    def update_ingredient_analyses(self): #, core_data):
         "To be run when the composition of any ingredient is changed. May be better to do this for a specific ingredient"
         #self.ingredient_analyses = core_data.ingredient_analyses #unnecessary
         for ox in self.oxide_dict:
@@ -115,6 +115,33 @@ class LpRecipeProblem(LpProblem):
 
     def add_ingredient(self, i, core_data):
         pass     
+
+    def update_other_restrictions(self):
+        "To be run when CoreData.oxide_dict is changed. May be better to do this for a specific other restriction"
+        for i in self.other_dict:
+            ot = 'other_'+i
+            coefs = self.other_dict[i].numerator_coefs
+            linear_combo = [(self.lp_var[key], coefs[key]) for key in coefs]
+            self.constraints[ot] = self.lp_var[ot] == LpAffineExpression(linear_combo)
+
+    def remove_other_restriction(self, i, core_data):
+        try:
+            core_data.remove_other_restriction(i)
+        except:
+            pass
+        ##    self._variables.remove(self.lp_var['ingredient_'+i])
+        # The commented-out line above doesn't work in general since self.lp_var['ingredient_'+i] is regarded as
+        # being equal to all entries of self._variables, so it removes the first entry. Instead, we need to use 'is'.
+        ot = 'other_'+i
+        del self.constraints[ot]
+        for k, j in enumerate(self._variables):
+            if j is self.lp_var[ot]:
+                del self._variables[k]  
+        try:
+            del self.constraints[ot+'_lower']  # Is this necessary?
+            del self.constraints[ot+'_upper']  # Is this necessary?
+        except:
+            pass
 
     def calc_restrictions(self, recipe, restr_dict):   # first update recipe
         

@@ -57,6 +57,8 @@ class Model(CoreData):
         #OxideData.set_default_oxides()
         with open(path.join(persistent_data_path, "JSONOxides.json"), 'r') as f:
             OxideData.oxide_dict = OxideSerializer.deserialize_dict(json.load(f))
+            
+        self.other_attr_dict = {'0': 'LOI', '2': 'Clay', '1': 'Cost'}  # Replace by functions that sets data saved by user
 
         with open(path.join(persistent_data_path, "JSONIngredients.json"), 'r') as f:
             self.ingredient_dict = IngredientSerializer.deserialize_dict(json.load(f))
@@ -86,7 +88,7 @@ class Model(CoreData):
             self.default_upper_bounds[key] = self.restr_dict[key].default_upp
                   
 ##        self.set_default_data()
-##        self.other_attr_dict = {'0': 'LOI', '2': 'Clay', '1': 'Cost'}  # Replace by functions that sets data saved by user 
+##         
 ##        self.set_default_default_bounds()
 ##        with open(path.join(persistent_data_path, "JSONRecipes.json"), 'r') as f:
 ##            self.recipe_dict = RecipeSerializer.deserialize_dict(json.load(f))
@@ -228,7 +230,7 @@ class Model(CoreData):
         return i, ot
 
     def delete_other_restriction(self, i, recipes_affected):
-        """Uses remove_ingredient() method of CoreData"""
+        """Uses remove_other_restriction() method of CoreData"""
         self.remove_other_restriction(i)
         self.json_write_other()
         self.order['other'].remove(i)
