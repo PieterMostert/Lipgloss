@@ -72,13 +72,13 @@
         ],
         "oxides": [
             "SiO2",
-            "Al2O3",
             "K2O",
-            "Fe2O3",
-            "TiO2",
-            "CaO",
             "MgO",
-            "Na2O"
+            "CaO",
+            "TiO2",
+            "Fe2O3",
+            "Na2O",
+            "Al2O3"
         ],
         "lower_bounds": {
             "umf_SiO2": 3.71,

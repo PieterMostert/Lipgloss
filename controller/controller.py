@@ -494,7 +494,7 @@ class Controller:
             disp_other = self.other_restr_editor.display_other_restrictions[i]
             ot = Other(disp_other.name_entry.get(),
                        ast.literal_eval(disp_other.numerator_coefs_entry.get()),  # Converts the string into a dictionary
-                       disp_other.normalization_entry.get(),
+                       ast.literal_eval(disp_other.normalization_entry.get()),
                        disp_other.def_low_entry.get(),
                        disp_other.def_upp_entry.get(),
                        disp_other.dec_pt_entry.get())

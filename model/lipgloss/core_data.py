@@ -230,20 +230,20 @@ class CoreData(OxideData):
         self.ingredient_analyses = get_ing_comp(self.ingredient_dict) 
 
         self.other_dict = {}
-        self.other_dict['0'] = Other('SiO2_Al2O3', {'mole_SiO2':1}, "self.lp_var['mole_Al2O3']", 3, 18, 2)   # Using 'SiO2:Al2O3' gives an error
-        self.other_dict['1'] = Other('KNaO UMF', {'mole_K2O':1, 'mole_Na2O':1}, "self.lp_var['fluxes_total']", 0, 1, 3)
-        self.other_dict['2'] = Other('KNaO % mol', {'mole_K2O':1, 'mole_Na2O':1}, "0.01*self.lp_var['ox_mole_total']", 0, 100, 2)
-        self.other_dict['3'] = Other('RO UMF', {'mole_MgO':1, 'mole_CaO':1, 'mole_BaO':1, 'mole_SrO':1}, "self.lp_var['fluxes_total']", 0, 1, 3)
+        self.other_dict['0'] = Other('SiO2_Al2O3', {'mole_SiO2':1}, {'mole_Al2O3': 1}, 3, 18, 2)   # Using 'SiO2:Al2O3' gives an error
+        self.other_dict['1'] = Other('KNaO UMF', {'mole_K2O':1, 'mole_Na2O':1}, {'fluxes_total': 1}, 0, 1, 3)
+        self.other_dict['2'] = Other('KNaO % mol', {'mole_K2O':1, 'mole_Na2O':1}, {'ox_mole_total': 0.01}, 0, 100, 2)
+        self.other_dict['3'] = Other('RO UMF', {'mole_MgO':1, 'mole_CaO':1, 'mole_BaO':1, 'mole_SrO':1}, {'fluxes_total': 1}, 0, 1, 3)
 
         other_att_4 = {'ingredient_'+index : 0.01*float(self.ingredient_dict[index].other_attributes['2'])\
                        for index in self.ingredient_dict if '2' in self.ingredient_dict[index].other_attributes}
-        self.other_dict['4'] = Other('Total clay', {k:v for k,v in other_att_4.items() if v>0}, "0.01*self.lp_var['ingredient_total']", 0, 100, 1)
+        self.other_dict['4'] = Other('Total clay', {k:v for k,v in other_att_4.items() if v>0}, {'ingredient_total': 0.01}, 0, 100, 1)
         other_att_5 = {'ingredient_'+index : 0.01*float(self.ingredient_dict[index].other_attributes['0'])\
                        for index in self.ingredient_dict if '0' in self.ingredient_dict[index].other_attributes}
-        self.other_dict['5'] = Other('LOI',  {k:v for k,v in other_att_5.items() if v>0}, "0.01*self.lp_var['ingredient_total']", 0, 100, 1)
+        self.other_dict['5'] = Other('LOI',  {k:v for k,v in other_att_5.items() if v>0}, {'ingredient_total': 0.01}, 0, 100, 1)
         other_att_6 = {'ingredient_'+index : 0.01*float(self.ingredient_dict[index].other_attributes['1'])\
                        for index in self.ingredient_dict if '1' in self.ingredient_dict[index].other_attributes}
-        self.other_dict['6'] = Other('cost', {k:v for k,v in other_att_6.items() if v>0}, "0.01*self.lp_var['ingredient_total']", 0, 100, 1)
+        self.other_dict['6'] = Other('cost', {k:v for k,v in other_att_6.items() if v>0}, {'ingredient_total': 0.01}, 0, 100, 1)
 
         self.default_lower_bounds = {}
         self.default_upper_bounds = {}

@@ -29,6 +29,7 @@ from .recipes import restr_keys
 from .pulp2dim import *
 from pulp import *
 import time
+#import ast
 
 solver = GLPK()
 #solver = None
@@ -51,18 +52,24 @@ class LpRecipeProblem(LpProblem):
         # Create variables used to normalize:
         for total in ['ingredient_total', 'fluxes_total', 'ox_mass_total', 'ox_mole_total']:
             self.lp_var[total] = pulp.LpVariable(total, 0, None, pulp.LpContinuous)
-
-        for index in self.ingredient_dict:
-            ing = 'ingredient_'+index
-            self.lp_var[ing] = pulp.LpVariable(ing, 0, None, pulp.LpContinuous)
             
         for ox in self.oxide_dict:
             self.lp_var['mole_'+ox] = pulp.LpVariable('mole_'+ox, 0, None, pulp.LpContinuous)
             self.lp_var['mass_'+ox] = pulp.LpVariable('mass_'+ox, 0, None, pulp.LpContinuous)
             # Relate mole percent and unity:
             self += self.lp_var['mole_'+ox] * self.oxide_dict[ox].molar_mass == self.lp_var['mass_'+ox]   
+
+        self += self.lp_var['fluxes_total'] == sum(self.oxide_dict[ox].flux * self.lp_var['mole_'+ox] for ox in self.oxide_dict)
+        self += self.lp_var['ox_mass_total'] == sum(self.lp_var['mass_'+ox] for ox in self.oxide_dict)
+        self += self.lp_var['ox_mole_total'] == sum(self.lp_var['mole_'+ox] for ox in self.oxide_dict)
+
+        # May move the next section out of __init__
+        for index in self.ingredient_dict:
+            ing = 'ingredient_'+index
+            self.lp_var[ing] = pulp.LpVariable(ing, 0, None, pulp.LpContinuous)
         # Relate ingredients and oxides:
         self.update_ingredient_analyses()
+        self += self.lp_var['ingredient_total'] == sum(self.lp_var['ingredient_'+index] for index in self.ingredient_dict), 'ing_total'
 
         for index in self.other_dict:
             ot = 'other_'+index
@@ -72,14 +79,8 @@ class LpRecipeProblem(LpProblem):
             # Relate this variable to the other variables:
             self += self.lp_var[ot] == LpAffineExpression(linear_combo), ot
 
-        self += self.lp_var['ingredient_total'] == sum(self.lp_var['ingredient_'+index] for index in self.ingredient_dict), 'ing_total'
-        self += self.lp_var['fluxes_total'] == sum(self.oxide_dict[ox].flux * self.lp_var['mole_'+ox] for ox in self.oxide_dict)
-        self += self.lp_var['ox_mass_total'] == sum(self.lp_var['mass_'+ox] for ox in self.oxide_dict)
-        self += self.lp_var['ox_mole_total'] == sum(self.lp_var['mole_'+ox] for ox in self.oxide_dict)
-
-    def update_ingredient_analyses(self): #, core_data):
+    def update_ingredient_analyses(self):
         "To be run when the composition of any ingredient is changed. May be better to do this for a specific ingredient"
-        #self.ingredient_analyses = core_data.ingredient_analyses #unnecessary
         for ox in self.oxide_dict:
             self.constraints[ox] = sum(self.ingredient_analyses[j][ox] * self.lp_var['ingredient_'+j]/100 \
                                    for j in self.ingredient_dict if ox in self.ingredient_analyses[j]) \
@@ -101,23 +102,15 @@ class LpRecipeProblem(LpProblem):
             del self.constraints['ingredient_'+i+'_upper']  # Is this necessary?
         except:
             pass
-
-        #del self.ingredient_dict[i]
-        #del self.ingredient_analyses[i]
         self.constraints['ing_total'] = self.lp_var['ingredient_total'] == \
                                         sum(self.lp_var['ingredient_'+j] for j in self.ingredient_dict)
-
-##        try:
-##            del core_data.ingredient_analyses[i]
-##        except:
-##            pass
-        self.update_ingredient_analyses(core_data)
+        self.update_ingredient_analyses()
 
     def add_ingredient(self, i, core_data):
         pass     
 
     def update_other_restrictions(self):
-        "To be run when CoreData.oxide_dict is changed. May be better to do this for a specific other restriction"
+        "To be run when CoreData.other_dict is changed. May be better to do this for a specific other restriction"
         for i in self.other_dict:
             ot = 'other_'+i
             coefs = self.other_dict[i].numerator_coefs
@@ -129,11 +122,14 @@ class LpRecipeProblem(LpProblem):
             core_data.remove_other_restriction(i)
         except:
             pass
-        ##    self._variables.remove(self.lp_var['ingredient_'+i])
-        # The commented-out line above doesn't work in general since self.lp_var['ingredient_'+i] is regarded as
+        ##    self._variables.remove(self.lp_var['other_'+i])
+        # The commented-out line above doesn't work in general since self.lp_var['other_'+i] is regarded as
         # being equal to all entries of self._variables, so it removes the first entry. Instead, we need to use 'is'.
         ot = 'other_'+i
-        del self.constraints[ot]
+        try:
+            del self.constraints[ot]
+        except:
+            pass
         for k, j in enumerate(self._variables):
             if j is self.lp_var[ot]:
                 del self._variables[k]  
@@ -143,7 +139,13 @@ class LpRecipeProblem(LpProblem):
         except:
             pass
 
-    def calc_restrictions(self, recipe, restr_dict):   # first update recipe
+##Proposed rearrangement: Move variables and constraints relating to ingredients and other restrictions
+##from LpRecipeProblem.__init__ to LpRecipeProblem.calc_restrictions.
+##Add default bounds to recipe initialization
+##Change format of normalizations
+
+    def calc_restrictions(self, recipe, restr_dict):   # first update recipe.
+                                                       # Should be able to construct a reduced restr_dict from recipe
         
         # first, test for obvious errors
 
@@ -248,8 +250,13 @@ class LpRecipeProblem(LpProblem):
 ##            prob += self.lp_var['KNaO_wt_%'] == lp_var['K2O_wt_%'] + lp_var['Na2O_wt_%']  
 
         for index in self.other_dict:
-            if index in recipe.other:  
-                other_norm = eval(self.other_dict[index].normalization)               
+            if index in recipe.other:
+                #Could turn the next 3 lines into a function of self and coefs:
+                other_norm = self.linear_combination(self.other_dict[index].normalization)
+##                coefs = self.other_dict[index].normalization
+##                linear_combo = [(self.lp_var[key], coefs[key]) for key in coefs]
+##                other_norm = LpAffineExpression(linear_combo)    
+                #other_norm = eval(self.other_dict[index].normalization)               
                 self.constraints['other_'+index+'_lower'] = self.lp_var['other_'+index] >= recipe.lower_bounds['other_'+index]*other_norm   # lower bound
                 self.constraints['other_'+index+'_upper'] = self.lp_var['other_'+index] <= recipe.upper_bounds['other_'+index]*other_norm   # upper bound
             else:
@@ -264,8 +271,10 @@ class LpRecipeProblem(LpProblem):
         calc_bounds = {-1:{}, 1:{}}
         for key in recipe.restriction_keys:
             res = restr_dict[key]
-            self.constraints['normalization'] = eval(res.normalization) == 1  # Apply the normalization of the restriction in question
-                                                                                   # Apparently this doesn't slow things down a whole lot
+            norm = self.linear_combination(res.normalization)
+            #norm = eval(res.normalization)
+            self.constraints['normalization'] = norm == 1  # Apply the normalization of the restriction in question
+                                                                              # Apparently this doesn't slow things down a whole lot
             for eps in [1, -1]:               # calculate lower and upper bounds.
                 self += eps*self.lp_var[res.objective_func], res.name
                 self.writeLP('constraints.lp')
@@ -289,11 +298,16 @@ class LpRecipeProblem(LpProblem):
         if len(recipe.variables) == 2:
             x_var = restr_dict[recipe.variables['x']]
             y_var = restr_dict[recipe.variables['y']]
-            x_norm = x_var.normalization
-            y_norm = y_var.normalization
+            x_norm = self.linear_combination(x_var.normalization)
+            y_norm = self.linear_combination(y_var.normalization)
 
             vertices = self.two_dim_projection(self.lp_var[x_var.objective_func], self.lp_var[y_var.objective_func], x_norm, y_norm)   # defined in pulp2dim file
             return vertices
 
         else:
             print("Select two variables first")
+
+    def linear_combination(self, coefs):
+        """Returns a linear combination of lp_vars, based on the dictionary coefs"""
+        linear_combo = [(self.lp_var[key], coefs[key]) for key in coefs]
+        return LpAffineExpression(linear_combo)    

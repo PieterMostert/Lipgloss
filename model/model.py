@@ -92,7 +92,7 @@ class Model(CoreData):
 ##        self.set_default_default_bounds()
 ##        with open(path.join(persistent_data_path, "JSONRecipes.json"), 'r') as f:
 ##            self.recipe_dict = RecipeSerializer.deserialize_dict(json.load(f))
-##        self.order = {"ingredients": ["0", "1","2","3","4","5","6","8","9","10","11","12","13","14","15","16","17","18","19"],
+##        self.order = {"ingredients": ["0", "1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19"],
 ##                      "oxides":["SiO2","Al2O3","B2O3","MgO","CaO","SrO","BaO","ZnO","Li2O","Na2O","K2O","P2O5","Fe2O3","TiO2","MnO2"],
 ##                      "other": ["0","1","2","3","4","5","6"],
 ##                      "other attributes": ["0", "1", "2"] }
@@ -102,19 +102,19 @@ class Model(CoreData):
 ##        # Create oxide restrictions:
 ##        for ox in self.order['oxides']:
 ##            key = 'umf_'+ox
-##            self.restr_dict[key] = Restriction(key, ox, 'mole_'+ox, "self.lp_var['fluxes_total']", \
+##            self.restr_dict[key] = Restriction(key, ox, 'mole_'+ox, {'fluxes_total': 1}, \
 ##                                               self.default_lower_bounds[key], self.default_upper_bounds[key], dec_pt=3)
 ##            key = 'mass_perc_'+ox
-##            self.restr_dict[key] = Restriction(key, ox, 'mass_'+ox, "0.01*self.lp_var['ox_mass_total']", \
+##            self.restr_dict[key] = Restriction(key, ox, 'mass_'+ox, {'ox_mass_total': 0.01}, \
 ##                                               self.default_lower_bounds[key], self.default_upper_bounds[key], dec_pt=2)
 ##            key = 'mole_perc_'+ox
-##            self.restr_dict[key] = Restriction(key, ox, 'mole_'+ox, "0.01*self.lp_var['ox_mole_total']", \
+##            self.restr_dict[key] = Restriction(key, ox, 'mole_'+ox, {'ox_mole_total': 0.01}, \
 ##                                               self.default_lower_bounds[key], self.default_upper_bounds[key], dec_pt=2)
 ##
 ##        # Create ingredient restrictions:
 ##        for i, ing in self.ingredient_dict.items():
 ##            key = 'ingredient_'+i
-##            self.restr_dict[key] = Restriction(key, ing.name, key, "0.01*self.lp_var['ingredient_total']", \
+##            self.restr_dict[key] = Restriction(key, ing.name, key, {'ingredient_total': 0.01}, \
 ##                                   self.default_lower_bounds[key], self.default_upper_bounds[key])
 ##
 ##        # Create other restrictions:
@@ -216,7 +216,7 @@ class Model(CoreData):
         self.json_write_recipes()
 
     def new_other_restriction(self):
-        ot = Other('',{}, "self.lp_var['fluxes_total']", 0, 100, 1)
+        ot = Other('',{}, {'fluxes_total': 1}, 0, 100, 1)
         self.add_other_restriction(ot)
         i = list(self.other_dict.keys())[-1]     # index of new restriction
         ot.name = 'Restriction #'+i

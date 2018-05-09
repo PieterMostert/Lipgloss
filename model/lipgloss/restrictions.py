@@ -45,58 +45,6 @@ class Restriction:
         
         self.calc_bounds = {}   
 
-##        self.left_label_text = StringVar()
-##        self.left_label_text.set('  '+prettify(self.name)+' : ')
-##        self.left_label = Label(self.display_frame, textvariable=self.left_label_text)
-##        
-##        self.low = DoubleVar()
-##        self.lower_bound = Entry(self.display_frame, textvariable=self.low, width=5, fg='blue') #user lower bound
-##        self.low.set(self.default_low)
-##
-##        self.upp = DoubleVar()
-##        self.upper_bound = Entry(self.display_frame, textvariable=self.upp, width=5, fg='blue') #user upper bound
-##        self.upp.set(self.default_upp)
-
-##        for eps in [-1, 1]:
-##            self.calc_bounds[eps] = Label(self.display_frame, bg='white', fg='red', width=5) #calculated lower and upper bounds
-##            self.calc_bounds[eps].config(text=' ')
-##
-##        self.right_label_text = StringVar()
-##        self.right_label_text.set(' : '+prettify(self.name)+'   ')
-##        self.right_label = Label(self.display_frame, textvariable=self.right_label_text)
-##
-##    def select(self, t):
-##        if t == 'x':
-##            self.left_label_text.set('* '+prettify(self.name)+' : ')
-##            x_lab.config(text='x variable: '+prettify(self.name)+pretty_entry_type(self.index[0:2]))
-##        elif t == 'y':
-##            self.right_label_text.set(' : '+prettify(self.name)+' *')
-##            y_lab.config(text='y variable: '+prettify(self.name)+pretty_entry_type(self.index[0:2]))
-##        else:
-##            print('Something\'s wrong')
-##
-##    def deselect(self, t):
-##        if t == 'x':
-##            self.left_label_text.set('  '+prettify(self.name)+' : ')
-##            x_lab.config(text='x variable: Click right restriction name to select')
-##        elif t == 'y':
-##            self.right_label_text.set(' : '+prettify(self.name)+'  ')
-##            y_lab.config(text='y variable: Click left restriction name to select')
-##        else:
-##            print('Something\'s wrong')
-##                    
-##    def display(self, line):
-##
-##        self.left_label.grid(row=line, column=0, sticky=E)        # grid left restriction name
-##        
-##        self.lower_bound.grid(row=line, column=1)                 # grid lower bound entry box      
-##        self.upper_bound.grid(row=line, column=2)                 # grid upper bound entry box
-##    
-##        self.calc_bounds[-1].grid(row=line, column=4)             # grid calculated lower bound box
-##        self.calc_bounds[1].grid(row=line, column=5)             # grid calculated upper bound box
-##
-##        self.right_label.grid(row=line, column=6, sticky=W)       # grid right restriction name
-
     def remove(self, recipe):
         for widget in [self.left_label, self.lower_bound, self.upper_bound, self.calc_bounds[-1], self.calc_bounds[1],
                        self.right_label]:
@@ -124,83 +72,83 @@ class Restriction:
 # SECTION 3
 #
 # Define Other_Attribute class and initialize other attributes
-
-class Other_Attribute:
-    
-     def __init__(self, name, pos):
-         'LOI, cost, clay, etc'
-
-         self.name = name
-         self.pos = pos  # Determines order in which other attributes are displayed.
-
-# Once users are able to add their own attributes, other_attr_dict will be determined by the entries in
-# OtherAttributeShelf (yet to be defined).  For now we just do things manually.
-other_attr_dict = {}     
-other_attr_dict['0'] = Other_Attribute('LOI', 0)
-other_attr_dict['1'] = Other_Attribute('cost', 1)
-other_attr_dict['2'] = Other_Attribute('clay', 2)
+##
+##class Other_Attribute:
+##    
+##     def __init__(self, name, pos):
+##         'LOI, cost, clay, etc'
+##
+##         self.name = name
+##         self.pos = pos  # Determines order in which other attributes are displayed.
+##
+### Once users are able to add their own attributes, other_attr_dict will be determined by the entries in
+### OtherAttributeShelf (yet to be defined).  For now we just do things manually.
+##other_attr_dict = {}     
+##other_attr_dict['0'] = Other_Attribute('LOI', 0)
+##other_attr_dict['1'] = Other_Attribute('cost', 1)
+##other_attr_dict['2'] = Other_Attribute('clay', 2)
 
 
 # SECTION 4
-#
-# Define Ingredient class.  Ingredients will be referenced by their index, a string consisting of a unique natural number.
-class Ingredient:    
-    
-    def __init__(self, name='New ingredient', notes='', oxide_comp={}, other_attributes={}):
-
-        self.name = name
-        # notes not implemented yet. Intended to show up in the 'Edit ingredients' window.
-        self.notes = notes
-        # oxide_comp is a dictionary giving the weight percent of each oxide in the ingredient.
-        self.oxide_comp = oxide_comp  
-        self.other_attributes = other_attributes
-        self.display_widgets = {}
-
-    def displayable_version(self, index, frame, delete_ingredient_fn):
-        # To be used in the 'Edit ingredients' window.  Only apply this to copies of things in shelve.
-        sdw = self.display_widgets
-        sdw['del'] =  ttk.Button(master=frame, text='X', width=2, command = partial(delete_ingredient_fn, index))
-##        sdw['del'] =  ttk.Label(master=frame, text='X', width=2)
-##        sdw['del'].bind('<Button-1>', partial(delete_ingredient_fn, index))
-        sdw['name'] = Entry(master=frame, width=20)
-        sdw['name'].insert(0, self.name)
-
-        c = 3
-        
-        for ox in oxides:
-            # Use this entry widget to input the percent weight of the oxide that the ingredient contains.
-            sdw[ox] = Entry(master=frame,  width=5)  
-            sdw[ox].delete(0, END)
-            if ox in self.oxide_comp:
-                sdw[ox].insert(0, self.oxide_comp[ox])
-            else:
-                pass
-            c += 1
-
-        for i, other_attr in other_attr_dict.items(): 
-            sdw['other_attr_'+i] = Entry(master=frame, width=5)
-            if i in self.other_attributes:
-                sdw['other_attr_'+i].insert(0, self.other_attributes[i])
-
-    def display(self, pos):
-        sdw = self.display_widgets
-        sdw['del'].grid(row=pos, column=0)
-        sdw['name'].grid(row=pos, column=1, padx=3, pady=3)
-
-        c = 3
-        
-        for ox in oxides:
-            sdw[ox].grid(row=pos, column=c, padx=3, pady=1)
-            c += 1
-
-        for i, other_attr in other_attr_dict.items(): 
-            sdw['other_attr_'+i].grid(row=pos, column=c+other_attr.pos, padx=3, pady=3)
-
-    def pickleable_version(self):   
-        temp = copy.copy(self)
-        # The values in self.display_widgets that the ingredient editor introduces can't be pickled, so we discard them:
-        temp.display_widgets = {}    
-        return temp
+###
+### Define Ingredient class.  Ingredients will be referenced by their index, a string consisting of a unique natural number.
+##class Ingredient:    
+##    
+##    def __init__(self, name='New ingredient', notes='', oxide_comp={}, other_attributes={}):
+##
+##        self.name = name
+##        # notes not implemented yet. Intended to show up in the 'Edit ingredients' window.
+##        self.notes = notes
+##        # oxide_comp is a dictionary giving the weight percent of each oxide in the ingredient.
+##        self.oxide_comp = oxide_comp  
+##        self.other_attributes = other_attributes
+##        self.display_widgets = {}
+##
+##    def displayable_version(self, index, frame, delete_ingredient_fn):
+##        # To be used in the 'Edit ingredients' window.  Only apply this to copies of things in shelve.
+##        sdw = self.display_widgets
+##        sdw['del'] =  ttk.Button(master=frame, text='X', width=2, command = partial(delete_ingredient_fn, index))
+####        sdw['del'] =  ttk.Label(master=frame, text='X', width=2)
+####        sdw['del'].bind('<Button-1>', partial(delete_ingredient_fn, index))
+##        sdw['name'] = Entry(master=frame, width=20)
+##        sdw['name'].insert(0, self.name)
+##
+##        c = 3
+##        
+##        for ox in oxides:
+##            # Use this entry widget to input the percent weight of the oxide that the ingredient contains.
+##            sdw[ox] = Entry(master=frame,  width=5)  
+##            sdw[ox].delete(0, END)
+##            if ox in self.oxide_comp:
+##                sdw[ox].insert(0, self.oxide_comp[ox])
+##            else:
+##                pass
+##            c += 1
+##
+##        for i, other_attr in other_attr_dict.items(): 
+##            sdw['other_attr_'+i] = Entry(master=frame, width=5)
+##            if i in self.other_attributes:
+##                sdw['other_attr_'+i].insert(0, self.other_attributes[i])
+##
+##    def display(self, pos):
+##        sdw = self.display_widgets
+##        sdw['del'].grid(row=pos, column=0)
+##        sdw['name'].grid(row=pos, column=1, padx=3, pady=3)
+##
+##        c = 3
+##        
+##        for ox in oxides:
+##            sdw[ox].grid(row=pos, column=c, padx=3, pady=1)
+##            c += 1
+##
+##        for i, other_attr in other_attr_dict.items(): 
+##            sdw['other_attr_'+i].grid(row=pos, column=c+other_attr.pos, padx=3, pady=3)
+##
+##    def pickleable_version(self):   
+##        temp = copy.copy(self)
+##        # The values in self.display_widgets that the ingredient editor introduces can't be pickled, so we discard them:
+##        temp.display_widgets = {}    
+##        return temp
 
 # SECTION 5
 #

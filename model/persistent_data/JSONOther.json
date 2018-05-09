@@ -4,7 +4,9 @@
         "numerator coefs": {
             "mole_SiO2": 1
         },
-        "normalization": "self.lp_var['mole_Al2O3']",
+        "normalization": {
+            "mole_Al2O3": 1
+        },
         "def low": "3",
         "def upp": "18",
         "dec pt": "2"
@@ -15,7 +17,9 @@
             "mole_K2O": 1,
             "mole_Na2O": 1
         },
-        "normalization": "self.lp_var['fluxes_total']",
+        "normalization": {
+            "fluxes_total": 1
+        },
         "def low": "0",
         "def upp": "1",
         "dec pt": "3"
@@ -26,7 +30,9 @@
             "mole_K2O": 1,
             "mole_Na2O": 1
         },
-        "normalization": "0.01*self.lp_var['ox_mole_total']",
+        "normalization": {
+            "ox_mole_total": 0.01
+        },
         "def low": "0",
         "def upp": "100",
         "dec pt": "2"
@@ -39,7 +45,9 @@
             "mole_BaO": 1,
             "mole_SrO": 1
         },
-        "normalization": "self.lp_var['fluxes_total']",
+        "normalization": {
+            "fluxes_total": 1
+        },
         "def low": "0",
         "def upp": "1",
         "dec pt": "3"
@@ -50,7 +58,9 @@
             "ingredient_1": 1.0,
             "ingredient_2": 1.0
         },
-        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "normalization": {
+            "ingredient_total": 0.01
+        },
         "def low": "0",
         "def upp": "100",
         "dec pt": "1"
@@ -68,7 +78,9 @@
             "ingredient_17": 0.05,
             "ingredient_18": 0.309
         },
-        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "normalization": {
+            "ingredient_total": 0.01
+        },
         "def low": "0",
         "def upp": "100",
         "dec pt": "1"
@@ -76,7 +88,9 @@
     "6": {
         "name": "cost",
         "numerator coefs": {},
-        "normalization": "0.01*self.lp_var['ingredient_total']",
+        "normalization": {
+            "ingredient_total": 0.01
+        },
         "def low": "0",
         "def upp": "100",
         "dec pt": "1"

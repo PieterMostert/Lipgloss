@@ -22,12 +22,13 @@ k = 20  # number of sample points to take in the case where the denominators are
 solver = GLPK()
 #solver = PULP_CBC_CMD()
 
-def two_dim_projection(self, var0, var1, var2, var3):   # Calculates a set of vertices in R^2 whose convex hull is
+def two_dim_projection(self, var0, var1, norm2, norm3):   # Calculates a set of vertices in R^2 whose convex hull is
                                             # the projection of the linear programming problem, self, onto a 2d subspace
     # Start by finding two distinct points on the 2 dimensional projection of the feasible reason. This assumes
     # the region is bounded.
-
-    self.constraints['normalization'] = eval(var2) == 1
+    #norm2 = self.linear_combination(var2)
+    #norm3 = self.linear_combination(var3)
+    self.constraints['normalization'] = norm2 == 1
 
     initial_vertices = []
     for eps in [-1, 1]:
@@ -35,7 +36,7 @@ def two_dim_projection(self, var0, var1, var2, var3):   # Calculates a set of ve
         self.solve(solver)
         initial_vertices.append([pulp.value(var0), pulp.value(var1)]) 
     
-    if var2 == var3:
+    if norm2 == norm3:
 
         # Find remaining points:
         vertices_post = []
@@ -90,8 +91,8 @@ def two_dim_projection(self, var0, var1, var2, var3):   # Calculates a set of ve
 
         for i in range(k + 1):
             x = 0.0001 + a + d * i
-            self.constraints['normalization'] = eval(var3) == 1
-            self.constraints['fix_x'] = var0 == x * eval(var2)
+            self.constraints['normalization'] = norm3 == 1
+            self.constraints['fix_x'] = var0 == x * norm2
             for eps in [-1,1]:
                 self += eps * var1
                 #print(self.constraints)

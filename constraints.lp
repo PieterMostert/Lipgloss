@@ -40,6 +40,12 @@ Li2O: 0.4074 ingredient_16 - mass_Li2O = 0
 MgO: 0.039 ingredient_18 + 0.0014 ingredient_19 + 0.003 ingredient_2
  + 0.001 ingredient_5 + 0.3187 ingredient_8 + 0.478 ingredient_9 - mass_MgO
  = 0
+MgO_mol_%_lower: mole_MgO >= 0
+MgO_mol_%_upper: mole_MgO - ox_mole_total <= 0
+MgO_umf_lower: mole_MgO >= 0
+MgO_umf_upper: - fluxes_total + mole_MgO <= 0
+MgO_wt_%_lower: mass_MgO >= 0
+MgO_wt_%_upper: mass_MgO - ox_mass_total <= 0
 MnO2: mass_MnO2 = 0
 Na2O: 0.1512 ingredient_11 + 0.0628 ingredient_12 + 0.1028 ingredient_13
  + 0.0569 ingredient_14 + 0.0377 ingredient_18 + 0.033 ingredient_19
@@ -127,7 +133,7 @@ ingredient_7_upper: ingredient_7 - ingredient_total <= 0
 ingredient_8_lower: ingredient_8 >= 0
 ingredient_8_upper: ingredient_8 <= 0
 ingredient_9_lower: ingredient_9 >= 0
-ingredient_9_upper: ingredient_9 <= 0
+ingredient_9_upper: ingredient_9 - ingredient_total <= 0
 normalization: 0.01 ingredient_total = 1
 other_0: - mole_SiO2 + other_0 = 0
 other_1: - mole_K2O - mole_Na2O + other_1 = 0
@@ -140,5 +146,4 @@ other_5: - 0.125 ingredient_1 - 0.5926 ingredient_16 - 0.05 ingredient_17
  - 0.309 ingredient_18 - 0.12 ingredient_2 - 0.007 ingredient_5
  - 0.439 ingredient_7 - 0.0475 ingredient_8 - 0.522 ingredient_9 + other_5 = 0
 other_6: other_6 = 0
-other_9: other_9 = 0
 End
