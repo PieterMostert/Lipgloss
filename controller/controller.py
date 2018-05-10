@@ -507,8 +507,8 @@ class Controller:
             
             self.mw.other_select_button[i].config(text=ot.name)
             self.display_restr_dict['other_'+i].set_name(ot.name)
-            self.display_restr_dict['other_'+i].default_low = ot.def_low
-            self.display_restr_dict['other_'+i].default_upp = ot.def_upp
+            self.display_restr_dict['other_'+i].set_default_low(ot.def_low)
+            self.display_restr_dict['other_'+i].set_default_upp(ot.def_upp)
             
         self.mod.json_write_other()
         self.mod.json_write_restrictions()

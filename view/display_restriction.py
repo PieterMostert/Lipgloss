@@ -79,11 +79,6 @@ class DisplayRestriction:
                     
     def display(self, line):
 
-        self.low.set(self.default_low)
-        self.upp.set(self.default_upp)
-        for eps in ['lower', 'upper']:
-            self.calc_bounds[eps].config(text='')
-
         self.left_label.grid(row=line, column=0, sticky=tk.E)        # grid left restriction name
         
         self.lower_bound.grid(row=line, column=1)                 # grid lower bound entry box      
@@ -98,6 +93,11 @@ class DisplayRestriction:
         for widget in [self.left_label, self.lower_bound, self.upper_bound, self.calc_bounds['lower'], self.calc_bounds['upper'],
                        self.right_label]:
             widget.grid_forget()    # remove widgets corresponding to that restriction
+
+        self.low.set(self.default_low)
+        self.upp.set(self.default_upp)
+        for eps in ['lower', 'upper']:
+            self.calc_bounds[eps].config(text='')
 
         for t in var:
             if self.index == var[t]:
@@ -114,10 +114,16 @@ class DisplayRestriction:
         self.left_label_text.set(name+' : ')
         self.right_label_text.set(' : '+name)
 
-##    def set_default_low(self, def_low):
-##        self.default_low = def_low
-##        self.low.set(self.default_low)    
-##        
-##    def set_default_upp(self, def_upp):
-##        self.default_upp = def_upp
-##        self.upp.set(self.default_upp)    
+    def set_default_low(self, def_low):
+        self.default_low = def_low
+        if self.lower_bound.winfo_ismapped():
+            pass     # Don't change bound if the restriction is currently displayed
+        else:
+            self.low.set(self.default_low)    # Change default bound that will appear the next time the restriction is displayed
+        
+    def set_default_upp(self, def_upp):
+        self.default_upp = def_upp
+        if self.upper_bound.winfo_ismapped():
+            pass     # Don't change bound if the restriction is currently displayed
+        else:
+            self.upp.set(self.default_upp)    # Change default bound that will appear the next time the restriction is displayed   
