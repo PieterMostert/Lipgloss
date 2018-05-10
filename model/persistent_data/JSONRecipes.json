@@ -71,12 +71,12 @@
             "3"
         ],
         "oxides": [
-            "SiO2",
-            "K2O",
-            "MgO",
-            "CaO",
             "TiO2",
+            "CaO",
+            "SiO2",
             "Fe2O3",
+            "MgO",
+            "K2O",
             "Na2O",
             "Al2O3"
         ],

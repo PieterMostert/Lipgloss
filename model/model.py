@@ -190,7 +190,7 @@ class Model(CoreData):
         i = list(self.ingredient_dict.keys())[-1]     # index of new ingredient
         ing.name = 'Ingredient #'+i
         self.order['ingredients'].append(i)
-        self.restr_dict['ingredient_'+i] = Restriction('ingredient_'+i, ing.name, 'ingredient_'+i, "0.01*self.lp_var['ingredient_total']", 0, 100)
+        self.restr_dict['ingredient_'+i] = Restriction('ingredient_'+i, ing.name, 'ingredient_'+i, {'ingredient_total': 0.01}, 0, 100)
 
         self.json_write_ingredients()  # Can we replace this by function that just updates a single ingredient?
         self.json_write_order()

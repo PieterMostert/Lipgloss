@@ -40,12 +40,6 @@ Li2O: 0.4074 ingredient_16 - mass_Li2O = 0
 MgO: 0.039 ingredient_18 + 0.0014 ingredient_19 + 0.003 ingredient_2
  + 0.001 ingredient_5 + 0.3187 ingredient_8 + 0.478 ingredient_9 - mass_MgO
  = 0
-MgO_mol_%_lower: mole_MgO >= 0
-MgO_mol_%_upper: mole_MgO - ox_mole_total <= 0
-MgO_umf_lower: mole_MgO >= 0
-MgO_umf_upper: - fluxes_total + mole_MgO <= 0
-MgO_wt_%_lower: mass_MgO >= 0
-MgO_wt_%_upper: mass_MgO - ox_mass_total <= 0
 MnO2: mass_MnO2 = 0
 Na2O: 0.1512 ingredient_11 + 0.0628 ingredient_12 + 0.1028 ingredient_13
  + 0.0569 ingredient_14 + 0.0377 ingredient_18 + 0.033 ingredient_19
@@ -92,8 +86,9 @@ _C9: - mass_Li2O + 29.881 mole_Li2O = 0
 ing_total: - ingredient_0 - ingredient_1 - ingredient_10 - ingredient_11
  - ingredient_12 - ingredient_13 - ingredient_14 - ingredient_15
  - ingredient_16 - ingredient_17 - ingredient_18 - ingredient_19
- - ingredient_2 - ingredient_3 - ingredient_4 - ingredient_5 - ingredient_6
- - ingredient_7 - ingredient_8 - ingredient_9 + ingredient_total = 0
+ - ingredient_2 - ingredient_20 - ingredient_3 - ingredient_4 - ingredient_5
+ - ingredient_6 - ingredient_7 - ingredient_8 - ingredient_9
+ + ingredient_total = 0
 ingredient_0_lower: ingredient_0 >= 0
 ingredient_0_upper: ingredient_0 - ingredient_total <= 0
 ingredient_10_lower: ingredient_10 >= 0
@@ -118,6 +113,8 @@ ingredient_19_lower: ingredient_19 >= 0
 ingredient_19_upper: ingredient_19 <= 0
 ingredient_1_lower: ingredient_1 >= 0
 ingredient_1_upper: ingredient_1 - ingredient_total <= 0
+ingredient_20_lower: ingredient_20 >= 0
+ingredient_20_upper: ingredient_20 - ingredient_total <= 0
 ingredient_2_lower: ingredient_2 >= 0
 ingredient_2_upper: ingredient_2 <= 0
 ingredient_3_lower: ingredient_3 >= 0
@@ -133,7 +130,7 @@ ingredient_7_upper: ingredient_7 - ingredient_total <= 0
 ingredient_8_lower: ingredient_8 >= 0
 ingredient_8_upper: ingredient_8 <= 0
 ingredient_9_lower: ingredient_9 >= 0
-ingredient_9_upper: ingredient_9 - ingredient_total <= 0
+ingredient_9_upper: ingredient_9 <= 0
 normalization: 0.01 ingredient_total = 1
 other_0: - mole_SiO2 + other_0 = 0
 other_1: - mole_K2O - mole_Na2O + other_1 = 0

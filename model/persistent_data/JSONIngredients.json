@@ -48,9 +48,7 @@
             "Al2O3": 18.32,
             "K2O": 16.92
         },
-        "other_attributes": {
-            "0": 0
-        },
+        "other_attributes": {},
         "glaze_calculator_ids": {}
     },
     "4": {
@@ -61,9 +59,7 @@
             "Al2O3": 19.44,
             "Na2O": 11.82
         },
-        "other_attributes": {
-            "0": 0
-        },
+        "other_attributes": {},
         "glaze_calculator_ids": {}
     },
     "5": {
