@@ -45,11 +45,9 @@ class DisplayRestriction:
         
         self.low = tk.DoubleVar()
         self.lower_bound = tk.Entry(self.display_frame, textvariable=self.low, width=5, fg='blue') #user lower bound
-        self.low.set(self.default_low)
 
         self.upp = tk.DoubleVar()
         self.upper_bound = tk.Entry(self.display_frame, textvariable=self.upp, width=5, fg='blue') #user upper bound
-        self.upp.set(self.default_upp)
 
         for eps in ['lower', 'upper']:
             self.calc_bounds[eps] = tk.Label(self.display_frame, bg='white', fg='red', width=5) #calculated lower and upper bounds
@@ -81,6 +79,11 @@ class DisplayRestriction:
                     
     def display(self, line):
 
+        self.low.set(self.default_low)
+        self.upp.set(self.default_upp)
+        for eps in ['lower', 'upper']:
+            self.calc_bounds[eps].config(text='')
+
         self.left_label.grid(row=line, column=0, sticky=tk.E)        # grid left restriction name
         
         self.lower_bound.grid(row=line, column=1)                 # grid lower bound entry box      
@@ -95,10 +98,7 @@ class DisplayRestriction:
         for widget in [self.left_label, self.lower_bound, self.upper_bound, self.calc_bounds['lower'], self.calc_bounds['upper'],
                        self.right_label]:
             widget.grid_forget()    # remove widgets corresponding to that restriction
-        self.low.set(self.default_low)
-        self.upp.set(self.default_upp)
-        for eps in ['lower', 'upper']:
-            self.calc_bounds[eps].config(text='')
+
         for t in var:
             if self.index == var[t]:
                 self.deselect(t)
@@ -113,4 +113,11 @@ class DisplayRestriction:
         self.name = name
         self.left_label_text.set(name+' : ')
         self.right_label_text.set(' : '+name)
-        
+
+##    def set_default_low(self, def_low):
+##        self.default_low = def_low
+##        self.low.set(self.default_low)    
+##        
+##    def set_default_upp(self, def_upp):
+##        self.default_upp = def_upp
+##        self.upp.set(self.default_upp)    

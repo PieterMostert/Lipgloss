@@ -205,94 +205,13 @@ class CoreData(OxideData):
            ['other_'+ot for ot in self.other_dict]
 
     def associated_oxides(self, ingredients):
+        """The set of all oxides that occur in at least one of the ingredients with index in the list or dictionary ingredients,
+        which is a list of ingredient indices, or a dictionary whose keys are ingredient indices"""
         assoc_oxides = set()
-        for index in ingredients:
-            assoc_oxides = assoc_oxides.union(set(self.ingredient_analyses[index]))  # update the available oxides. Probably not the most
-                                                                                                      # efficient way to do this
+        for i in ingredients:
+            assoc_oxides = assoc_oxides.union(set(self.ingredient_analyses[i]))  # May not be the most efficient way to do this
         return assoc_oxides
-
-    def set_default_data(self):
-             
-        self.other_attr_dict = {'0': 'LOI', '2': 'Clay', '1': 'Cost'}
-
-        self.ingredient_dict = {}
-        from .default_data import ingredientfile as ingredientfile
-        for pos, ing in enumerate(ingredientfile.ingredient_names):
-            ox_comp = dict([(ox, ingredientfile.ingredient_analyses[ing][ox]) \
-                            for ox in self.oxides() if ox in ingredientfile.ingredient_analyses[ing]])
-            ing_init = Ingredient(name=ing, analysis=ox_comp, other_attributes={})
-            for attr in self.other_attr_dict:
-                try:
-                    ing_init.other_attributes[attr] = ingredientfile.ingredient_analyses[ing][attr]
-                except:
-                    pass  
-            self.ingredient_dict[str(pos)] = ing_init
-        self.ingredient_analyses = get_ing_comp(self.ingredient_dict) 
-
-        self.other_dict = {}
-        self.other_dict['0'] = Other('SiO2_Al2O3', {'mole_SiO2':1}, {'mole_Al2O3': 1}, 3, 18, 2)   # Using 'SiO2:Al2O3' gives an error
-        self.other_dict['1'] = Other('KNaO UMF', {'mole_K2O':1, 'mole_Na2O':1}, {'fluxes_total': 1}, 0, 1, 3)
-        self.other_dict['2'] = Other('KNaO % mol', {'mole_K2O':1, 'mole_Na2O':1}, {'ox_mole_total': 0.01}, 0, 100, 2)
-        self.other_dict['3'] = Other('RO UMF', {'mole_MgO':1, 'mole_CaO':1, 'mole_BaO':1, 'mole_SrO':1}, {'fluxes_total': 1}, 0, 1, 3)
-
-        other_att_4 = {'ingredient_'+index : 0.01*float(self.ingredient_dict[index].other_attributes['2'])\
-                       for index in self.ingredient_dict if '2' in self.ingredient_dict[index].other_attributes}
-        self.other_dict['4'] = Other('Total clay', {k:v for k,v in other_att_4.items() if v>0}, {'ingredient_total': 0.01}, 0, 100, 1)
-        other_att_5 = {'ingredient_'+index : 0.01*float(self.ingredient_dict[index].other_attributes['0'])\
-                       for index in self.ingredient_dict if '0' in self.ingredient_dict[index].other_attributes}
-        self.other_dict['5'] = Other('LOI',  {k:v for k,v in other_att_5.items() if v>0}, {'ingredient_total': 0.01}, 0, 100, 1)
-        other_att_6 = {'ingredient_'+index : 0.01*float(self.ingredient_dict[index].other_attributes['1'])\
-                       for index in self.ingredient_dict if '1' in self.ingredient_dict[index].other_attributes}
-        self.other_dict['6'] = Other('cost', {k:v for k,v in other_att_6.items() if v>0}, {'ingredient_total': 0.01}, 0, 100, 1)
-
-        self.default_lower_bounds = {}
-        self.default_upper_bounds = {}
-        for key in self.restr_keys():
-            self.default_lower_bounds[key] = 0
-            self.default_upper_bounds[key] = 100
-
-        #with the exception of the following:
-        self.default_upper_bounds['umf_Al2O3'] = 10
-        for ox in ['B2O3', 'MgO', 'CaO', 'Na2O', 'K2O', 'ZnO', 'Fe2O3', 'TiO2', 'P2O5']:
-            self.default_upper_bounds['umf_'+ox] = 1
-        self.default_lower_bounds['other_0'] = 1
-
-    def set_default_default_bounds(self):
-        self.default_lower_bounds = {}
-        self.default_upper_bounds = {}
-        for key in self.restr_keys():
-            self.default_lower_bounds[key] = 0
-            self.default_upper_bounds[key] = 100
-
-        #with the exception of the following:
-        self.default_upper_bounds['umf_Al2O3'] = 10
-        for ox in ['B2O3', 'MgO', 'CaO', 'SrO', 'BaO', 'Na2O', 'K2O', 'ZnO', 'Fe2O3', 'TiO2', 'P2O5']:
-            self.default_upper_bounds['umf_'+ox] = 1
-        self.default_lower_bounds['other_0'] = 1
-
-    def save_ingredient_dict(self, path):    # change to JSON?
-        with shelve.open(path) as ingredient_shelf:
-            for i in self.ingredient_dict:
-                ingredient_shelf[i] = self.ingredient_dict[i] 
-
-    def set_ingredient_dict(self, path):    # change to JSON?
-        with shelve.open(path) as ingredient_shelf:
-            self.ingredient_dict = dict(ingredient_shelf)
-        self.ingredient_analyses = get_ing_comp(self.ingredient_dict)
-
-    def save_other_dict(self, path):    # change to JSON?
-        with shelve.open(path) as other_shelf:
-            for i in self.other_dict:
-                other_shelf[i] = self.other_dict[i] 
-
-    def set_other_dict(self, path):
-        with shelve.open(path) as other_shelf:
-            self.other_dict = dict(other_shelf)
-
-##    def set_default_bounds(self, path):
-##        with shelve.open(path) as other_shelf:
-##            self.other_dict = dict(other_shelf)
-
+    
     def add_ingredient(self, ing, default_low = 0, default_upp = 100):
         """Adds ingredient ing to the ingredient dictionary. The index is determined automatically"""
         m = max([int(j) for j in self.ingredient_dict]) + 1
@@ -321,8 +240,82 @@ class CoreData(OxideData):
         del self.other_dict[i]
         del self.default_lower_bounds['other_'+i]
         del self.default_upper_bounds['other_'+i]
+
+    def set_default_data(self):
+             
+        self.other_attr_dict = {'0': 'LOI', '2': 'Clay', '1': 'Cost'}
+
+        self.ingredient_dict = {}
+        from .default_data import ingredientfile as ingredientfile
+        for pos, ing in enumerate(ingredientfile.ingredient_names):
+            ox_comp = dict([(ox, ingredientfile.ingredient_analyses[ing][ox]) \
+                            for ox in self.oxides() if ox in ingredientfile.ingredient_analyses[ing]])
+            ing_init = Ingredient(name=ing, analysis=ox_comp, other_attributes={})
+            for attr in self.other_attr_dict:
+                try:
+                    ing_init.other_attributes[attr] = ingredientfile.ingredient_analyses[ing][attr]
+                except:
+                    pass  
+            self.ingredient_dict[str(pos)] = ing_init
+        self.ingredient_analyses = get_ing_comp(self.ingredient_dict) 
+
+        self.other_dict = {}
+        self.other_dict['0'] = Other('SiO2_Al2O3', {'mole_SiO2':1}, {'mole_Al2O3': 1}, 3, 18, 2)   # Using 'SiO2:Al2O3' gives an error
+        self.other_dict['1'] = Other('KNaO UMF', {'mole_K2O':1, 'mole_Na2O':1}, {'fluxes_total': 1}, 0, 1, 3)
+        self.other_dict['2'] = Other('KNaO % mol', {'mole_K2O':1, 'mole_Na2O':1}, {'ox_mole_total': 0.01}, 0, 100, 2)
+        self.other_dict['3'] = Other('RO UMF', {'mole_MgO':1, 'mole_CaO':1, 'mole_BaO':1, 'mole_SrO':1}, {'fluxes_total': 1}, 0, 1, 3)
+        self.other_dict['4'] = Other('Total clay', {'other_attr_2': 1}, {'ingredient_total': 0.01}, 0, 100, 1)
+        self.other_dict['5'] = Other('LOI', {'other_attr_0': 1}, {'ingredient_total': 0.01}, 0, 100, 1)
+        self.other_dict['6'] = Other('cost', {'other_attr_1': 1}, {'ingredient_total': 0.01}, 0, 100, 1)
+
+        self.default_lower_bounds = {}
+        self.default_upper_bounds = {}
+        for key in self.restr_keys():
+            self.default_lower_bounds[key] = 0
+            self.default_upper_bounds[key] = 100
+
+        #with the exception of the following:
+        self.default_upper_bounds['umf_Al2O3'] = 10
+        for ox in ['B2O3', 'MgO', 'CaO', 'Na2O', 'K2O', 'ZnO', 'Fe2O3', 'TiO2', 'P2O5']:
+            self.default_upper_bounds['umf_'+ox] = 1
+        self.default_lower_bounds['other_0'] = 1
+
+    def set_default_default_bounds(self):
+        self.default_lower_bounds = {}
+        self.default_upper_bounds = {}
+        for key in self.restr_keys():
+            self.default_lower_bounds[key] = 0
+            self.default_upper_bounds[key] = 100
+
+        #with the exception of the following:
+        self.default_upper_bounds['umf_Al2O3'] = 10
+        for ox in ['B2O3', 'MgO', 'CaO', 'SrO', 'BaO', 'Na2O', 'K2O', 'ZnO', 'Fe2O3', 'TiO2', 'P2O5']:
+            self.default_upper_bounds['umf_'+ox] = 1
+        self.default_lower_bounds['other_0'] = 1
+
+##    def save_ingredient_dict(self, path):    # change to JSON?
+##        with shelve.open(path) as ingredient_shelf:
+##            for i in self.ingredient_dict:
+##                ingredient_shelf[i] = self.ingredient_dict[i] 
+##
+##    def set_ingredient_dict(self, path):    # change to JSON?
+##        with shelve.open(path) as ingredient_shelf:
+##            self.ingredient_dict = dict(ingredient_shelf)
+##        self.ingredient_analyses = get_ing_comp(self.ingredient_dict)
+##
+##    def save_other_dict(self, path):    # change to JSON?
+##        with shelve.open(path) as other_shelf:
+##            for i in self.other_dict:
+##                other_shelf[i] = self.other_dict[i] 
+##
+##    def set_other_dict(self, path):
+##        with shelve.open(path) as other_shelf:
+##            self.other_dict = dict(other_shelf)
+
+##    def set_default_bounds(self, path):
+##        with shelve.open(path) as other_shelf:
+##            self.other_dict = dict(other_shelf)
             
-##        self.set_current_recipe('0')
 ##
 ##    def set_current_recipe(self, i):
 ##        CoreData.current_recipe = self.recipe_dict[i]  

@@ -46,6 +46,7 @@ class LpRecipeProblem(LpProblem):
         self.oxide_dict = core_data.oxide_dict
         self.other_dict = core_data.other_dict
         self.ingredient_analyses = core_data.ingredient_analyses
+        self.other_attr_dict = core_data.other_attr_dict
         
         self.lp_var = {}     # self.lp_var is a dictionary for the variables in the linear programming problem
 
@@ -63,11 +64,14 @@ class LpRecipeProblem(LpProblem):
         self += self.lp_var['ox_mass_total'] == sum(self.lp_var['mass_'+ox] for ox in self.oxide_dict)
         self += self.lp_var['ox_mole_total'] == sum(self.lp_var['mole_'+ox] for ox in self.oxide_dict)
 
+        for i in self.other_attr_dict:
+            self.lp_var['other_attr_'+i] = pulp.LpVariable('other_attr_'+i, 0, None, pulp.LpContinuous)
+
         # May move the next section out of __init__
         for index in self.ingredient_dict:
             ing = 'ingredient_'+index
             self.lp_var[ing] = pulp.LpVariable(ing, 0, None, pulp.LpContinuous)
-        # Relate ingredients and oxides:
+        # Relate ingredients, oxides and other attributes:
         self.update_ingredient_analyses()
         self += self.lp_var['ingredient_total'] == sum(self.lp_var['ingredient_'+index] for index in self.ingredient_dict), 'ing_total'
 
@@ -83,8 +87,12 @@ class LpRecipeProblem(LpProblem):
         "To be run when the composition of any ingredient is changed. May be better to do this for a specific ingredient"
         for ox in self.oxide_dict:
             self.constraints[ox] = sum(self.ingredient_analyses[j][ox] * self.lp_var['ingredient_'+j]/100 \
-                                   for j in self.ingredient_dict if ox in self.ingredient_analyses[j]) \
+                                       for j in self.ingredient_dict if ox in self.ingredient_analyses[j]) \
                                    == self.lp_var['mass_'+ox]
+        for i in self.other_attr_dict:
+            self.constraints['other_attr_'+i] = sum(self.ingredient_dict[j].other_attributes[i] * self.lp_var['ingredient_'+j]/100 \
+                                                    for j in self.ingredient_dict if i in self.ingredient_dict[j].other_attributes) \
+                                                == self.lp_var['other_attr_'+i]
 
     def remove_ingredient(self, i, core_data):
         try:

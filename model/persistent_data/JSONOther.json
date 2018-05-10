@@ -55,8 +55,7 @@
     "4": {
         "name": "Total clay",
         "numerator coefs": {
-            "ingredient_1": 1.0,
-            "ingredient_2": 1.0
+            "other_attr_2": 1
         },
         "normalization": {
             "ingredient_total": 0.01
@@ -68,15 +67,7 @@
     "5": {
         "name": "LOI",
         "numerator coefs": {
-            "ingredient_1": 0.125,
-            "ingredient_2": 0.12,
-            "ingredient_5": 0.006999999999999999,
-            "ingredient_7": 0.439,
-            "ingredient_8": 0.0475,
-            "ingredient_9": 0.522,
-            "ingredient_16": 0.5926,
-            "ingredient_17": 0.05,
-            "ingredient_18": 0.309
+            "other_attr_0": 1
         },
         "normalization": {
             "ingredient_total": 0.01
@@ -87,7 +78,9 @@
     },
     "6": {
         "name": "cost",
-        "numerator coefs": {},
+        "numerator coefs": {
+            "other_attr_1": 1
+        },
         "normalization": {
             "ingredient_total": 0.01
         },

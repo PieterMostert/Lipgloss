@@ -1,6 +1,6 @@
 \* Glaze recipe *\
 Maximize
-Total_clay: - other_4
+SiO2_Al2O3: - other_0
 Subject To
 Al2O3: 0.4021 ingredient_1 + 0.0602 ingredient_11 + 0.099 ingredient_12
  + 0.1198 ingredient_14 + 0.017 ingredient_18 + 0.1633 ingredient_19
@@ -86,9 +86,8 @@ _C9: - mass_Li2O + 29.881 mole_Li2O = 0
 ing_total: - ingredient_0 - ingredient_1 - ingredient_10 - ingredient_11
  - ingredient_12 - ingredient_13 - ingredient_14 - ingredient_15
  - ingredient_16 - ingredient_17 - ingredient_18 - ingredient_19
- - ingredient_2 - ingredient_20 - ingredient_3 - ingredient_4 - ingredient_5
- - ingredient_6 - ingredient_7 - ingredient_8 - ingredient_9
- + ingredient_total = 0
+ - ingredient_2 - ingredient_3 - ingredient_4 - ingredient_5 - ingredient_6
+ - ingredient_7 - ingredient_8 - ingredient_9 + ingredient_total = 0
 ingredient_0_lower: ingredient_0 >= 0
 ingredient_0_upper: ingredient_0 - ingredient_total <= 0
 ingredient_10_lower: ingredient_10 >= 0
@@ -113,8 +112,6 @@ ingredient_19_lower: ingredient_19 >= 0
 ingredient_19_upper: ingredient_19 <= 0
 ingredient_1_lower: ingredient_1 >= 0
 ingredient_1_upper: ingredient_1 - ingredient_total <= 0
-ingredient_20_lower: ingredient_20 >= 0
-ingredient_20_upper: ingredient_20 - ingredient_total <= 0
 ingredient_2_lower: ingredient_2 >= 0
 ingredient_2_upper: ingredient_2 <= 0
 ingredient_3_lower: ingredient_3 >= 0
@@ -131,16 +128,22 @@ ingredient_8_lower: ingredient_8 >= 0
 ingredient_8_upper: ingredient_8 <= 0
 ingredient_9_lower: ingredient_9 >= 0
 ingredient_9_upper: ingredient_9 <= 0
-normalization: 0.01 ingredient_total = 1
+normalization: mole_Al2O3 = 1
 other_0: - mole_SiO2 + other_0 = 0
+other_0_lower: - 3 mole_Al2O3 + other_0 >= 0
+other_0_upper: - 18 mole_Al2O3 + other_0 <= 0
 other_1: - mole_K2O - mole_Na2O + other_1 = 0
 other_2: - mole_K2O - mole_Na2O + other_2 = 0
 other_3: - mole_BaO - mole_CaO - mole_MgO - mole_SrO + other_3 = 0
-other_4: - ingredient_1 - ingredient_2 + other_4 = 0
+other_4: other_4 - other_attr_2 = 0
 other_4_lower: other_4 >= 0
 other_4_upper: - ingredient_total + other_4 <= 0
-other_5: - 0.125 ingredient_1 - 0.5926 ingredient_16 - 0.05 ingredient_17
- - 0.309 ingredient_18 - 0.12 ingredient_2 - 0.007 ingredient_5
- - 0.439 ingredient_7 - 0.0475 ingredient_8 - 0.522 ingredient_9 + other_5 = 0
-other_6: other_6 = 0
+other_5: other_5 - other_attr_0 = 0
+other_6: other_6 - other_attr_1 = 0
+other_attr_0: 0.125 ingredient_1 + 0.5926 ingredient_16 + 0.05 ingredient_17
+ + 0.309 ingredient_18 + 0.12 ingredient_2 + 0.007 ingredient_5
+ + 0.439 ingredient_7 + 0.0475 ingredient_8 + 0.522 ingredient_9
+ - other_attr_0 = 0
+other_attr_1: other_attr_1 = 0
+other_attr_2: ingredient_1 + ingredient_2 - other_attr_2 = 0
 End
