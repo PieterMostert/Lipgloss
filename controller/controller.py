@@ -134,7 +134,7 @@ class Controller:
         except:
             pass
         t1 = time.process_time()
-        print(t1 - t0)
+        #print(t1 - t0)
 
     def get_bounds(self):
         for key in self.mod.current_recipe.restriction_keys:
@@ -586,9 +586,10 @@ class Controller:
         """Adds/removes other_dict[index] to/from the current recipe, depending on whether it isn't/is an other restriction already."""
         recipe = self.mod.current_recipe
         if i in recipe.other:
+            old_variables = copy.copy(recipe.variables)            
             recipe.remove_other(self.mod, i)
             self.mw.other_select_button[i].state(['!pressed'])
-            self.display_restr_dict['other_'+i].remove(recipe.variables)
+            self.display_restr_dict['other_'+i].remove(old_variables)
         else:
             recipe.add_other(self.mod, i)
             self.mw.other_select_button[i].state(['pressed'])         

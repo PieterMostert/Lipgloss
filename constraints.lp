@@ -131,13 +131,11 @@ ingredient_9_upper: ingredient_9 <= 0
 normalization: mole_Al2O3 = 1
 other_0: - mole_SiO2 + other_0 = 0
 other_0_lower: - 3 mole_Al2O3 + other_0 >= 0
-other_0_upper: - 3 mole_Al2O3 + other_0 <= 0
+other_0_upper: - 18 mole_Al2O3 + other_0 <= 0
 other_1: - mole_K2O - mole_Na2O + other_1 = 0
 other_2: - mole_K2O - mole_Na2O + other_2 = 0
 other_3: - mole_BaO - mole_CaO - mole_MgO - mole_SrO + other_3 = 0
 other_4: other_4 - other_attr_2 = 0
-other_4_lower: - 0.7 ingredient_total + other_4 >= 0
-other_4_upper: - ingredient_total + other_4 <= 0
 other_5: other_5 - other_attr_0 = 0
 other_6: other_6 - other_attr_1 = 0
 other_attr_0: 0.125 ingredient_1 + 0.5926 ingredient_16 + 0.05 ingredient_17

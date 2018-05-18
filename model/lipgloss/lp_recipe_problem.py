@@ -295,7 +295,7 @@ class LpRecipeProblem(LpProblem):
                     self.writeLP('constraints.lp')
                     return
         t2 = time.process_time()  
-        print(t2 - t0)
+        #print(t2 - t0)
         return {'lower':calc_bounds[-1], 'upper':calc_bounds[1]}
 
     def calc_2d_projection(self, recipe, restr_dict):  # This is designed to be run when only the x and y variables have changed; it does not take
