@@ -36,7 +36,7 @@ def two_dim_projection(self, var0, var1, norm2, norm3):   # Calculates a set of 
         self.solve(solver)
         initial_vertices.append([pulp.value(var0), pulp.value(var1)]) 
     
-    if norm2 == norm3:
+    if norm2 is norm3:
 
         # Find remaining points:
         vertices_post = []
@@ -81,29 +81,35 @@ def two_dim_projection(self, var0, var1, norm2, norm3):   # Calculates a set of 
         return vertices_post
     
     else:
+        vertices = {-1:[], 1:[]}
         a = initial_vertices[0][0]
         b = initial_vertices[1][0]
- 
-
         width = b - a - 0.0002
-        d = width / k
-        vertices = {-1:[], 1:[]}
-
-        for i in range(k + 1):
-            x = 0.0001 + a + d * i
+        if width < 0:
+            x = (a + b) / 2
             self.constraints['normalization'] = norm3 == 1
             self.constraints['fix_x'] = var0 == x * norm2
             for eps in [-1,1]:
                 self += eps * var1
-                #print(self.constraints)
                 self.solve()
                 vertices[eps].append([x, eps * pulp.value(self.objective)])
-        del self.constraints['fix_x']    # Not sure if this is necessary
-        vertices[-1].reverse()
+        else:
+            d = width / k
+            for i in range(k + 1):
+                x = 0.0001 + a + d * i
+                self.constraints['normalization'] = norm3 == 1
+                self.constraints['fix_x'] = var0 == x * norm2
+                for eps in [-1,1]:
+                    self += eps * var1
+                    self.solve()
+                    vertices[eps].append([x, eps * pulp.value(self.objective)])  
+            vertices[-1].reverse()
+        del self.constraints['fix_x']
+        
         #print(vertices[1] + vertices[-1])
         return vertices[1] + vertices[-1]
 
-LpProblem.two_dim_projection = two_dim_projection  # Add the method two_dim_projection to the predefined LpProblem class.
+LpProblem.two_dim_projection = two_dim_projection  # Add the method two_dim_projection to the LpProblem class.
 
 
             

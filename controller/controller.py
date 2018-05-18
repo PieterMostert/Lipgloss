@@ -48,6 +48,7 @@ from functools import partial
 import copy
 from numbers import Number
 import ast
+import time
 
 class Controller:
     def __init__(self):
@@ -96,6 +97,7 @@ class Controller:
         self.open_recipe('0')
 
     def calc_restr(self):
+        t0 = time.process_time()
         self.get_bounds()
         calculated_bounds = self.lprp.calc_restrictions(self.mod.current_recipe, self.mod.restr_dict)
         for key in self.mod.current_recipe.restriction_keys:
@@ -131,6 +133,8 @@ class Controller:
             self.ing_editor.toplevel.lower()
         except:
             pass
+        t1 = time.process_time()
+        print(t1 - t0)
 
     def get_bounds(self):
         for key in self.mod.current_recipe.restriction_keys:

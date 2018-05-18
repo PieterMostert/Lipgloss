@@ -34,6 +34,11 @@ import time
 solver = GLPK()
 #solver = None
 
+# Based on https://scaron.info/blog/linear-programming-in-python-with-cvxopt.html,
+# it seems the glpk solver provided by cvxopt is much faster than the one provided by pulp.
+# Unfortunately I can't get cvxopt to run on Windows 7 with Python 3.6, so I'm sticking with
+# pulp for now.
+
 class LpRecipeProblem(LpProblem):
 
     def __init__(self, name, max_or_min, core_data):
@@ -154,9 +159,10 @@ class LpRecipeProblem(LpProblem):
 
     def calc_restrictions(self, recipe, restr_dict):   # first update recipe.
                                                        # Should be able to construct a reduced restr_dict from recipe
+        t0 = time.process_time()
         
-        # first, test for obvious errors
-
+        # First, test for obvious errors
+        
         if sum(self.oxide_dict[ox].flux for ox in recipe.oxides) == 0:
             messagebox.showerror(" ", 'No flux! You have to give a flux.')
             return
@@ -216,7 +222,7 @@ class LpRecipeProblem(LpProblem):
                                        +' or more.')  
             return
          
-        t0 = time.process_time()  
+        #t0 = time.process_time()  
             
         for index in self.ingredient_dict:
             ing = 'ingredient_'+index
@@ -259,12 +265,7 @@ class LpRecipeProblem(LpProblem):
 
         for index in self.other_dict:
             if index in recipe.other:
-                #Could turn the next 3 lines into a function of self and coefs:
-                other_norm = self.linear_combination(self.other_dict[index].normalization)
-##                coefs = self.other_dict[index].normalization
-##                linear_combo = [(self.lp_var[key], coefs[key]) for key in coefs]
-##                other_norm = LpAffineExpression(linear_combo)    
-                #other_norm = eval(self.other_dict[index].normalization)               
+                other_norm = self.linear_combination(self.other_dict[index].normalization)              
                 self.constraints['other_'+index+'_lower'] = self.lp_var['other_'+index] >= recipe.lower_bounds['other_'+index]*other_norm   # lower bound
                 self.constraints['other_'+index+'_upper'] = self.lp_var['other_'+index] <= recipe.upper_bounds['other_'+index]*other_norm   # upper bound
             else:
@@ -280,9 +281,8 @@ class LpRecipeProblem(LpProblem):
         for key in recipe.restriction_keys:
             res = restr_dict[key]
             norm = self.linear_combination(res.normalization)
-            #norm = eval(res.normalization)
             self.constraints['normalization'] = norm == 1  # Apply the normalization of the restriction in question
-                                                                              # Apparently this doesn't slow things down a whole lot
+                                                           # Apparently this doesn't slow things down a whole lot
             for eps in [1, -1]:               # calculate lower and upper bounds.
                 self += eps*self.lp_var[res.objective_func], res.name
                 self.writeLP('constraints.lp')
@@ -294,7 +294,8 @@ class LpRecipeProblem(LpProblem):
                     messagebox.showerror(" ", LpStatus[self.status])
                     self.writeLP('constraints.lp')
                     return
-                
+        t2 = time.process_time()  
+        print(t2 - t0)
         return {'lower':calc_bounds[-1], 'upper':calc_bounds[1]}
 
     def calc_2d_projection(self, recipe, restr_dict):  # This is designed to be run when only the x and y variables have changed; it does not take
