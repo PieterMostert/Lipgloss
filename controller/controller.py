@@ -514,6 +514,12 @@ class Controller:
             self.display_restr_dict['other_'+i].set_default_low(ot.def_low)
             self.display_restr_dict['other_'+i].set_default_upp(ot.def_upp)
             
+        old_variables = copy.copy(self.mod.current_recipe.variables)
+        # Reinsert stars next to other restrictions that are variables:
+        for t, res in old_variables.items():
+            if res[0:5] == 'other':
+                self.display_restr_dict[res].select(t)
+            
         self.mod.json_write_other()
         self.mod.json_write_restrictions()
                 

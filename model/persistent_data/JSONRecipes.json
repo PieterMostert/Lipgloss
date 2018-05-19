@@ -12,10 +12,10 @@
             "0"
         ],
         "oxides": [
-            "SiO2",
-            "K2O",
             "Al2O3",
-            "CaO"
+            "K2O",
+            "CaO",
+            "SiO2"
         ],
         "lower_bounds": {
             "umf_SiO2": 0.0,
@@ -71,14 +71,14 @@
             "3"
         ],
         "oxides": [
-            "K2O",
-            "Fe2O3",
-            "CaO",
             "Al2O3",
+            "CaO",
             "SiO2",
             "Na2O",
             "TiO2",
-            "MgO"
+            "MgO",
+            "K2O",
+            "Fe2O3"
         ],
         "lower_bounds": {
             "umf_SiO2": 3.71,
@@ -168,15 +168,15 @@
             "1"
         ],
         "oxides": [
-            "K2O",
-            "Fe2O3",
-            "CaO",
             "Al2O3",
+            "CaO",
+            "B2O3",
             "SiO2",
             "Na2O",
             "TiO2",
             "MgO",
-            "B2O3"
+            "K2O",
+            "Fe2O3"
         ],
         "lower_bounds": {
             "umf_SiO2": 3.0,
