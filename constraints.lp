@@ -1,6 +1,6 @@
 \* Glaze recipe *\
 Maximize
-SiO2_Al2O3: - other_0
+LOI: - other_5
 Subject To
 Al2O3: 0.4021 ingredient_1 + 0.0602 ingredient_11 + 0.099 ingredient_12
  + 0.1198 ingredient_14 + 0.017 ingredient_18 + 0.1633 ingredient_19
@@ -53,8 +53,8 @@ SiO2: ingredient_0 + 0.4729 ingredient_1 + 0.6688 ingredient_11
  + 0.5172 ingredient_6 + 0.6338 ingredient_8 - mass_SiO2 = 0
 SiO2_mol_%_lower: mole_SiO2 >= 0
 SiO2_mol_%_upper: mole_SiO2 - ox_mole_total <= 0
-SiO2_umf_lower: mole_SiO2 >= 0
-SiO2_umf_upper: - 100 fluxes_total + mole_SiO2 <= 0
+SiO2_umf_lower: - 3 fluxes_total + mole_SiO2 >= 0
+SiO2_umf_upper: - 4 fluxes_total + mole_SiO2 <= 0
 SiO2_wt_%_lower: mass_SiO2 >= 0
 SiO2_wt_%_upper: mass_SiO2 - ox_mass_total <= 0
 SrO: mass_SrO = 0
@@ -114,8 +114,8 @@ ingredient_1_lower: ingredient_1 >= 0
 ingredient_1_upper: ingredient_1 - ingredient_total <= 0
 ingredient_2_lower: ingredient_2 >= 0
 ingredient_2_upper: ingredient_2 <= 0
-ingredient_3_lower: ingredient_3 >= 0
-ingredient_3_upper: ingredient_3 - ingredient_total <= 0
+ingredient_3_lower: ingredient_3 - 0.3 ingredient_total >= 0
+ingredient_3_upper: ingredient_3 - 0.3 ingredient_total <= 0
 ingredient_4_lower: ingredient_4 >= 0
 ingredient_4_upper: ingredient_4 <= 0
 ingredient_5_lower: ingredient_5 >= 0
@@ -128,7 +128,7 @@ ingredient_8_lower: ingredient_8 >= 0
 ingredient_8_upper: ingredient_8 <= 0
 ingredient_9_lower: ingredient_9 >= 0
 ingredient_9_upper: ingredient_9 <= 0
-normalization: mole_Al2O3 = 1
+normalization: 0.01 ingredient_total = 1
 other_0: - mole_SiO2 + other_0 = 0
 other_0_lower: - 3 mole_Al2O3 + other_0 >= 0
 other_0_upper: - 18 mole_Al2O3 + other_0 <= 0
@@ -137,6 +137,8 @@ other_2: - mole_K2O - mole_Na2O + other_2 = 0
 other_3: - mole_BaO - mole_CaO - mole_MgO - mole_SrO + other_3 = 0
 other_4: other_4 - other_attr_2 = 0
 other_5: other_5 - other_attr_0 = 0
+other_5_lower: other_5 >= 0
+other_5_upper: - ingredient_total + other_5 <= 0
 other_6: other_6 - other_attr_1 = 0
 other_attr_0: 0.125 ingredient_1 + 0.5926 ingredient_16 + 0.05 ingredient_17
  + 0.309 ingredient_18 + 0.12 ingredient_2 + 0.007 ingredient_5

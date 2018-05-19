@@ -36,7 +36,7 @@ def two_dim_projection(self, var0, var1, norm2, norm3):   # Calculates a set of 
         self.solve(solver)
         initial_vertices.append([pulp.value(var0), pulp.value(var1)]) 
     
-    if norm2 is norm3:
+    if norm2.items() == norm3.items():   # Order is disregarded when deciding equality
 
         # Find remaining points:
         vertices_post = []

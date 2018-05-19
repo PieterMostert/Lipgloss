@@ -318,5 +318,5 @@ class LpRecipeProblem(LpProblem):
 
     def linear_combination(self, coefs):
         """Returns a linear combination of lp_vars, based on the dictionary coefs"""
-        linear_combo = [(self.lp_var[key], coefs[key]) for key in coefs]
+        linear_combo = [(self.lp_var[key], val) for key, val in coefs.items() if val != 0]
         return LpAffineExpression(linear_combo)    
