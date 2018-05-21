@@ -524,13 +524,6 @@ class Controller:
         self.mod.json_write_restrictions()
                 
         self.lprp.update_other_restrictions()
-                
-##        old_oxides = copy.copy(self.mod.current_recipe.oxides)
-##        old_variables = copy.copy(self.mod.current_recipe.variables)
-##        # Reinsert stars next to other restrictions that are variables:
-##        for t, res in old_variables.items():
-##            if res[0:5] == 'other':
-##                self.display_restr_dict[res].select(t)
 
     def pre_delete_other_restriction(self, i):
         """Incomplete. Deletes restriction if not in any recipes, otherwise opens dialogue window asking for confirmation."""

@@ -8,7 +8,7 @@
         },
         "default_low": 0,
         "default_upp": 100,
-        "dec_pt": 3
+        "dec_pt": 2
     },
     "mass_perc_SiO2": {
         "index": "mass_perc_SiO2",
