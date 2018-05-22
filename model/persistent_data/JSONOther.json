@@ -7,9 +7,9 @@
         "normalization": {
             "mole_Al2O3": 1
         },
-        "def low": "3",
-        "def upp": "18",
-        "dec pt": "2"
+        "def low": 3,
+        "def upp": 18,
+        "dec pt": 2
     },
     "1": {
         "name": "KNaO UMF",
@@ -20,9 +20,9 @@
         "normalization": {
             "fluxes_total": 1
         },
-        "def low": "0",
-        "def upp": "1",
-        "dec pt": "3"
+        "def low": 0,
+        "def upp": 1,
+        "dec pt": 3
     },
     "2": {
         "name": "KNaO % mol",
@@ -33,9 +33,9 @@
         "normalization": {
             "ox_mole_total": 0.01
         },
-        "def low": "0",
-        "def upp": "100",
-        "dec pt": "2"
+        "def low": 0,
+        "def upp": 100,
+        "dec pt": 2
     },
     "3": {
         "name": "RO UMF",
@@ -48,9 +48,9 @@
         "normalization": {
             "fluxes_total": 1
         },
-        "def low": "0",
-        "def upp": "1",
-        "dec pt": "3"
+        "def low": 0,
+        "def upp": 1,
+        "dec pt": 3
     },
     "4": {
         "name": "Total clay",
@@ -60,9 +60,9 @@
         "normalization": {
             "ingredient_total": 0.01
         },
-        "def low": "0",
-        "def upp": "100",
-        "dec pt": "1"
+        "def low": 0,
+        "def upp": 100,
+        "dec pt": 1
     },
     "5": {
         "name": "LOI",
@@ -72,9 +72,9 @@
         "normalization": {
             "ingredient_total": 0.01
         },
-        "def low": "0",
-        "def upp": "100",
-        "dec pt": "1"
+        "def low": 0,
+        "def upp": 100,
+        "dec pt": 1
     },
     "6": {
         "name": "cost",
@@ -84,8 +84,8 @@
         "normalization": {
             "ingredient_total": 0.01
         },
-        "def low": "0",
-        "def upp": "100",
-        "dec pt": "1"
+        "def low": 0,
+        "def upp": 100,
+        "dec pt": 1
     }
 }

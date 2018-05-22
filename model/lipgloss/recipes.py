@@ -132,7 +132,7 @@ class Recipe(Observable):
             self.lower_bounds[ot] = core_data.default_lower_bounds[ot]
             self.upper_bounds[ot] = core_data.default_upper_bounds[ot] 
 
-    def remove_other(self, core_data, i):
+    def remove_other_restriction(self, core_data, i):
         if i in self.other:
             self.other.remove(i)
             ot = 'other_'+i

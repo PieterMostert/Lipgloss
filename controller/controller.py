@@ -526,7 +526,7 @@ class Controller:
         self.lprp.update_other_restrictions()
 
     def pre_delete_other_restriction(self, i):
-        """Incomplete. Deletes restriction if not in any recipes, otherwise opens dialogue window asking for confirmation."""
+        """Deletes restriction if not in any recipes, otherwise opens dialogue window asking for confirmation."""
         recipe_dict = self.mod.recipe_dict
         other_dict = self.mod.other_dict
         recipes_affected = [j for j in recipe_dict if i in recipe_dict[j].other]
@@ -558,8 +558,7 @@ class Controller:
         else:
             self.delete_other_restriction(i, [])
 
-    def close_conf_windowc_and_delete_other_restr(self, i, recipes_affected):
-        """Incomplete"""
+    def close_conf_window_and_delete_other_restr(self, i, recipes_affected):
         self.delete_other_restriction(i, recipes_affected)
         self.confirmation_window.destroy()
 
@@ -586,7 +585,7 @@ class Controller:
         recipe = self.mod.current_recipe
         if i in recipe.other:
             old_variables = copy.copy(recipe.variables)            
-            recipe.remove_other(self.mod, i)
+            recipe.remove_other_restriction(self.mod, i)
             self.mw.other_select_button[i].state(['!pressed'])
             self.display_restr_dict['other_'+i].remove(old_variables)
         else:

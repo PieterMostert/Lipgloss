@@ -721,9 +721,9 @@
         "normalization": {
             "mole_Al2O3": 1
         },
-        "default_low": "3",
-        "default_upp": "18",
-        "dec_pt": "2"
+        "default_low": 3,
+        "default_upp": 18,
+        "dec_pt": 2
     },
     "other_1": {
         "index": "other_1",
@@ -732,9 +732,9 @@
         "normalization": {
             "fluxes_total": 1
         },
-        "default_low": "0",
-        "default_upp": "1",
-        "dec_pt": "3"
+        "default_low": 0,
+        "default_upp": 1,
+        "dec_pt": 3
     },
     "other_2": {
         "index": "other_2",
@@ -743,9 +743,9 @@
         "normalization": {
             "ox_mole_total": 0.01
         },
-        "default_low": "0",
-        "default_upp": "100",
-        "dec_pt": "2"
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 2
     },
     "other_3": {
         "index": "other_3",
@@ -754,9 +754,9 @@
         "normalization": {
             "fluxes_total": 1
         },
-        "default_low": "0",
-        "default_upp": "1",
-        "dec_pt": "3"
+        "default_low": 0,
+        "default_upp": 1,
+        "dec_pt": 3
     },
     "other_4": {
         "index": "other_4",
@@ -765,9 +765,9 @@
         "normalization": {
             "ingredient_total": 0.01
         },
-        "default_low": "0",
-        "default_upp": "100",
-        "dec_pt": "1"
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 1
     },
     "other_5": {
         "index": "other_5",
@@ -776,9 +776,9 @@
         "normalization": {
             "ingredient_total": 0.01
         },
-        "default_low": "0",
-        "default_upp": "100",
-        "dec_pt": "1"
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 1
     },
     "other_6": {
         "index": "other_6",
@@ -787,8 +787,8 @@
         "normalization": {
             "ingredient_total": 0.01
         },
-        "default_low": "0",
-        "default_upp": "100",
-        "dec_pt": "1"
+        "default_low": 0,
+        "default_upp": 100,
+        "dec_pt": 1
     }
 }
