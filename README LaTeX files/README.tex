@@ -38,11 +38,11 @@ It employs a linear programming algorithm to calculate bounds on oxides and ingr
 
 The plan is that LIPGLOSS will eventually be released as a desktop app that users can customize with their own ingredients and restrictions. This will be designed to import and export recipes from \href{https://glazy.org}{Glazy}, as well as other glaze calculation software; alternatively, part of the code could be incorporated within Glazy.
 
-\textit{NOTE: This document refers to an older version of the code. The functionality is still mostly the same, but the code has been refactored to fit the MVC pattern (well, sort of...).}
+\textit{NOTE: This document has only been partially updated to reflect changes to the code. The functionality is still mostly the same, but the code has been refactored to fit the MVC pattern (well, sort of...).}
 
 \section{Using LIPGLOSS}
 
-Currently, to use LIPGLOSS, you need to instal \href{https://www.python.org/downloads/}{Python 3}, the linear programming API \href{https://github.com/coin-or/pulp}{PuLP}, and the \href{https://www.gnu.org/software/glpk/}{GLPK} library\footnote{If installing the GLPK library is a problem, comment out `solver = GLPK()' and uncomment `solver = PULP\_CBC\_CMD()' in pulp2dim.py. This will result in the COIN-OR \href{https://projects.coin-or.org/Cbc}{Cbc} solver being used, which comes with PuLP. Note, however, that it is released under the \href{https://en.wikipedia.org/wiki/Eclipse_Public_License}{Eclipse Public Licence}, which is \href{https://eclipse.org/legal/eplfaq.php}{incompatible with the GPL}.} (and possibly the \href{https://wiki.python.org/moin/TkInter}{tkinter} Python package). Running the GUI.py script opens the graphical user interface. 
+Currently, to use LIPGLOSS, you need to instal \href{https://www.python.org/downloads/}{Python 3}, the linear programming API \href{https://github.com/coin-or/pulp}{PuLP}, and the \href{https://www.gnu.org/software/glpk/}{GLPK} library\footnote{If installing the GLPK library is a problem, comment out `solver = GLPK(msg=0)' and uncomment `solver = PULP\_CBC\_CMD()' in model/lipgloss/lp\_recipe\_problem.py.  This will result in the COIN-OR \href{https://projects.coin-or.org/Cbc}{Cbc} solver being used, which comes with PuLP. Note, however, that it is released under the \href{https://en.wikipedia.org/wiki/Eclipse_Public_License}{Eclipse Public Licence}, which is \href{https://eclipse.org/legal/eplfaq.php}{incompatible with the GPL}.} (and possibly the \href{https://wiki.python.org/moin/TkInter}{tkinter} Python package). Running the main.py script opens the graphical user interface. 
 
 When the gui opens, you'll be presented with a window that shows a list of ingredients and `other restrictions' in the panel on the left. Some of these will have already been selected by default, but you can add or remove items by clicking on the buttons.
 
@@ -57,6 +57,8 @@ If you want to restrict the bounds for two variables simultaneously, you have th
 A collection of ingredient and other restrictions with lower and upper bounds will be referred to as a bounded recipe. Bounded recipes can be saved, or saved as new bounded recipes. If you start with the default bounds and narrow them down to a recipe - i.e. all upper and lower bounds are effectively the same - you should save this as a new bounded recipe, otherwise you'll have to undo all your restrictions when you start working on a new problem. Saved bounded recipes can be opened through the File menu.
 
 LIPGLOSS will come pre-installed with common types of ingredients, but most of these should be updated to reflect the analyses of the ingredients in your studio. To do this, click Options $>$ Edit Ingredients to open the ingredient editor. The order in which ingredients are displayed can be changed by dragging (with a right-click) and dropping the names of ingredients.
+
+You can add custom restrictions by clicking Options $>$ Edit Restrictions, but this requires some knowledge of the code.
 
 \section{Code Structure}
 In an attempt to make things clearer, any text below that is used as code will be printed in blue. File names will be printed in purple.
@@ -97,8 +99,8 @@ The following are the most important classes: \blue{Oxide}, \blue{Ingredient}, \
 We could easily do without the \blue{Oxide} class, but I've introduced it so that if (in some future version of the program) we decide to allow users to assign attributes to oxides, then this can be done in the same way as for ingredients. See the `To do' list.
 
 \subsection{Setting up the linear programming problem}
-The code relating to the computation of the bounds is mostly found in \newline
-\green{recipes.py}, although parts of the linear programming problem are set up in \green{restrictions.py}, section 5. To set up the LP problem, we define the following variables / families of variables:
+The code relating to the computation of the bounds is found in \newline
+\green{model/lipgloss/lp\_recipe\_problem.py}. To set up the LP problem, we define the following variables / families of variables:
 \begin{itemize}
 \item \blue{\lpv[\'mass\_\'+ox]}, for each key \blue{ox} in \blue{oxide\_dict}, representing the mass (in grams) of that oxide in a batch.
 \item \blue{\lpv[\'mole\_\'+ox]}, for each key \blue{ox} in \blue{oxide\_dict}, representing the number (in moles) of that oxide in a batch.
@@ -159,24 +161,13 @@ To maximize or minimize the variable associated with a restriction \blue{res}, w
 
 \subsection{Storing user-defined data}
 
-To save data entered by the user, I\'ve been using the \href{https://docs.python.org/3.6/library/shelve.html}{shelve} module. This results in several data files: \green{IngredientShelf.dat}, \green{OtherShelf.dat}, \green{OxideShelf.dat}, and \green{OrderShelf.dat} (these all have associated bak and dir files). These are stored in the `data' folder. Derek Au is in the process of switching to JSON instead. So far, only the list of recipe bounds is stored as a JSON file, \green{JSONRecipeShelf}.
+Data is saved in the model/persistent\_data folder, in JSON format. At the moment, we could do without the \green{JSONOxides} file, since there's no way for the user to modify any data related to the oxides, but it may be possible in future versions.
 
-At the moment, we could do without the \green{OxideShelf} files, since there's no way for the user to modify any data related to the oxides, but it may be possible in future versions.
-
-The \green{IngredientShelf}, \green{OtherShelf}, \green{OxideShelf} files are essentially copies of the dictionaries \blue{ingredient\_dict}, \blue{other\_dict}, and \blue{oxide\_dict}. The order in which ingredients are displayed is saved in \green{OrderShelf}; the code
-\begin{flushleft}
-%\begin{verbatim}
-\begin{lstlisting}
-with shelve.open("./data/OrderShelf") as order_shelf:
-    print(order_shelf[`ingredients'])
-\end{lstlisting}
-%\end{verbatim}
-\end{flushleft}
-will print a list of all ingredient indices, in the order the ingredients are displayed in the ingredient selection window and the ingredient editor. Once users are able to change the order of oxides and other restrictions, \green{OrderShelf} will record these orders too, using the keys \blue{`oxides'} and \blue{`other\_restr'}.
+%The \green{JSONIngredients}, \green{JSONOther}, \green{JSONOxides} files are essentially copies of the dictionaries \blue{ingredient\_dict}, \blue{other\_dict}, and \blue{oxide\_dict}. 
 
 \section{Known bugs}
 \begin{itemize}
-\item On my computer, the PuLP API causes a window to open and close each time a linear function is optimized, resulting in a delay of around 10 seconds, even though the actual calculation usually takes under 2 seconds. There may be a fix for this, but I haven't been able to implement it.
+\item On my computer, calculation times are significantly longer than they should be. I think the PuLP API wastes time by writing to or reading from a file, but I'm not sure. See \href{https://scaron.info/blog/linear-programming-in-python-with-cvxopt.html}{this blog post}.
 \end{itemize}
 
 \section{To do}
@@ -185,7 +176,7 @@ will print a list of all ingredient indices, in the order the ingredients are di
 \item For the 2d graphing, have a button to the right of the restriction panel that when clicked on, opens a panel with instructions on how to select the two variables, as well as a button that calculates only the region corresponding to two variables, not all the other lower and upper bounds (Before updating the restrictions, you may want to compare several pairs of variables. In this case there's no need to recalculate all the other bounds). Include labels on the axes when the region is calculated, and make sure the numbers along the axes don't overlap. 
 \item Implement the ability to plot the feasible region corresponding to any two restrictions. EDIT: This has been done, but using a brute-force approach, which may not give accurate results.
 \item Clicking Options $>$ Edit restriction settings, should open a window that allows you to set default lower and upper bounds for each oxide, ingredient and other restriction.
-\item Allow users to define custom `other restrictions'. Users would need to specify an objective function, and a normalization.
+\item Make the restriction editor more user friendly.
 \item Implement the ability to add other attributes to ingredients, using the restriction editor. Each other attribute will be assigned a variable, and an `other restriction' corresponding to that attribute will automatically be added. For example, an other attribute could be the percentage of an ingredient having particle diameters between two bounds.
 \item Make the headings in the ingredient editor align with their respective columns. Add a horizontal scrollbar, and fix the ingredient names when scrolling sideways.
 \item Import recipes (or oxide compositions of recipes) from external software, and automatically generate a recipe problem where the oxides are constrained to have the same composition as the imported recipe.
