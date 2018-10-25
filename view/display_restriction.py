@@ -70,10 +70,10 @@ class DisplayRestriction:
     def deselect(self, t):
         if t == 'x':
             self.left_label_text.set('  '+prettify(self.name)+' : ')
-            self.x_lab.config(text='x variable: Click right restriction name to select')
+            self.x_lab.config(text='x variable: Click left restriction name to select')
         elif t == 'y':
             self.right_label_text.set(' : '+prettify(self.name)+'  ')
-            self.y_lab.config(text='y variable: Click left restriction name to select')
+            self.y_lab.config(text='y variable: Click right restriction name to select')
         else:
             print('Something\'s wrong')
                     

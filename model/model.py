@@ -53,10 +53,12 @@ class Model(CoreData):
     "A partial model for the GUI. The full model consists of this together with the LpRecipeProblem class."
 
     def __init__(self):
-        CoreData.__init__(self)
-        #OxideData.set_default_oxides()
+        
+        OxideData.set_default_oxides()
         with open(path.join(persistent_data_path, "JSONOxides.json"), 'r') as f:
             OxideData.oxide_dict = OxideSerializer.deserialize_dict(json.load(f))
+
+        CoreData.__init__(self)
 
         if True:    # Use data saved by user if True
             self.other_attr_dict = {'0': 'LOI', '2': 'Clay', '1': 'Cost'}  # Replace by functions that sets data saved by user
@@ -95,7 +97,7 @@ class Model(CoreData):
             with open(path.join(persistent_data_path, "JSONRecipes.json"), 'r') as f:
                 self.recipe_dict = RecipeSerializer.deserialize_dict(json.load(f))
             self.order = {"ingredients": ["0", "1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19"],
-                          "oxides":["SiO2","Al2O3","B2O3","MgO","CaO","SrO","BaO","ZnO","Li2O","Na2O","K2O","P2O5","Fe2O3","TiO2","MnO2"],
+                          "oxides":["SiO2","Al2O3","B2O3","MgO","CaO","SrO","BaO","ZnO","Li2O","Na2O","K2O","P2O5","Fe2O3","TiO2","MnO2","ZrO2"],
                           "other": ["0","1","2","3","4","5","6"],
                           "other attributes": ["0", "1", "2"] }
                 

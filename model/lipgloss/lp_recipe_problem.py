@@ -29,9 +29,9 @@ from .recipes import restr_keys
 from .pulp2dim import *
 from pulp import *
 import time
-#import ast
 
-solver = GLPK()
+solver = GLPK(msg=0)
+#solver = PULP_CBC_CMD(msg=0)
 #solver = None
 
 # Based on https://scaron.info/blog/linear-programming-in-python-with-cvxopt.html,
@@ -310,7 +310,7 @@ class LpRecipeProblem(LpProblem):
             x_norm = self.linear_combination(x_var.normalization)
             y_norm = self.linear_combination(y_var.normalization)
 
-            vertices = self.two_dim_projection(self.lp_var[x_var.objective_func], self.lp_var[y_var.objective_func], x_norm, y_norm)   # defined in pulp2dim file
+            vertices = self.two_dim_projection(self.lp_var[x_var.objective_func], self.lp_var[y_var.objective_func], x_norm, y_norm, solver)   # defined in pulp2dim file
             return vertices
 
         else:

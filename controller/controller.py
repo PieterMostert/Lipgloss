@@ -250,6 +250,7 @@ class Controller:
         try:
             self.ing_editor.toplevel.lift() # lift the recipe selector, if it already exists
         except:
+            print(self.mod.order['oxides'])
             self.ing_editor = IngredientEditor(self.mod, self.mod.order, self.reorder_ingredients)
             self.ing_editor.new_ingr_button.config(command=self.new_ingredient)
             self.ing_editor.update_button.config(command=self.update_ingredient_dict)
@@ -509,8 +510,8 @@ class Controller:
             self.mod.restr_dict['other_'+i].default_upp = ot.def_upp
             self.mod.restr_dict['other_'+i].dec_pt = ot.dec_pt
             
-            self.mw.other_select_button[i].config(text=ot.name)
-            self.display_restr_dict['other_'+i].set_name(ot.name)
+            self.mw.other_select_button[i].config(text=prettify(ot.name))
+            self.display_restr_dict['other_'+i].set_name(prettify(ot.name))
             self.display_restr_dict['other_'+i].set_default_low(ot.def_low)
             self.display_restr_dict['other_'+i].set_default_upp(ot.def_upp)
             

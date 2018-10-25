@@ -19,6 +19,7 @@
 # We define the Restriction, Oxide, Ingredient,and Other classes.
 
 from functools import partial
+import shelve
 
 reset_oxides = 0
 reset_ingredients = 0
@@ -62,7 +63,8 @@ class Oxide():
 
 def oxide_reset():
 
-    import oxidefile
+    #import default_data.oxidefile
+    from .default_data import oxidefile as oxidefile
 
     with shelve.open(persistent_data_path+"/OxideShelf") as oxide_shelf:
         for ox in oxide_shelf:
@@ -98,9 +100,9 @@ class OxideData():
         from .default_data import oxidefile as oxidefile
         for (pos, ox) in enumerate(oxidefile.oxides):
              if ox in oxidefile.fluxes:
-                  ox_init = Oxide(pos, molar_mass=oxidefile.molar_mass_dict[ox], flux=1)
+                  ox_init = Oxide(pos, oxidefile.molar_mass_dict[ox], 1) #ox_init = Oxide(pos, molar_mass=oxidefile.molar_mass_dict[ox], flux=1)
              else:
-                  ox_init = Oxide(pos, molar_mass=oxidefile.molar_mass_dict[ox], flux=0)
+                  ox_init = Oxide(pos, oxidefile.molar_mass_dict[ox], 0) #ox_init = Oxide(pos, molar_mass=oxidefile.molar_mass_dict[ox], flux=0)
              OxideData.oxide_dict[ox] = ox_init
 
 ##    def __init__(self):
@@ -276,7 +278,7 @@ class CoreData(OxideData):
 
         #with the exception of the following:
         self.default_upper_bounds['umf_Al2O3'] = 10
-        for ox in ['B2O3', 'MgO', 'CaO', 'Na2O', 'K2O', 'ZnO', 'Fe2O3', 'TiO2', 'P2O5']:
+        for ox in ['B2O3', 'MgO', 'CaO', 'Na2O', 'K2O', 'ZnO', 'Fe2O3', 'TiO2', 'P2O5', 'ZrO2']:
             self.default_upper_bounds['umf_'+ox] = 1
         self.default_lower_bounds['other_0'] = 1
 
