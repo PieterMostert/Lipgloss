@@ -3,6 +3,8 @@ Cross-platform Python app for creating glaze recipes.
 
 See README.pdf in README LaTeX files for more info. A user guide can be found [here](https://wiki.glazy.org/t/using-lipgloss/238).
 
+Note that a new, improved version of Lipgloss can be found [here](https://github.com/PieterMostert/Lipgloss)
+
 NB: This is a Python 3 application and does not work with Python 2. 
 
 ## Getting started on a Mac
